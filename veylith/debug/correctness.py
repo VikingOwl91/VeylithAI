@@ -75,7 +75,8 @@ def finite(t):
 def run_case(N, n_embd, E, k, dtype, seed):
     torch.manual_seed(seed)
     sp, dn = build_pair(n_embd, E, k)
-    x = torch.randn(N, n_embd, device=device, requires_grad=True)
+    B, T = 8, N // 8  # both modules expect (B, T, C) and flatten internally
+    x = torch.randn(B, T, n_embd, device=device, requires_grad=True)
     xd = x.detach().clone().requires_grad_(True)
 
     if dtype == "bf16":
@@ -113,15 +114,17 @@ def run_case(N, n_embd, E, k, dtype, seed):
 def memory_stability(iters=200):
     torch.manual_seed(7)
     sp, _ = build_pair(256, 8, 2)
-    x0 = torch.randn(16384, 256, device=device, requires_grad=True)
+    x0 = torch.randn(8, 2048, 256, device=device, requires_grad=True)
     ctx = torch.autocast(device_type="cuda", dtype=torch.bfloat16)
     base = None
     grow = False
+    last_x_grad = None
     for i in range(iters):
         x = x0.detach().clone().requires_grad_(True)
         with ctx:
             out, aux = sp(x)
         (out.sum() + 0.01 * aux).backward()
+        last_x_grad = x.grad
         if i == 10:
             base = torch.cuda.memory_allocated()
         if i == iters - 1:
@@ -130,7 +133,8 @@ def memory_stability(iters=200):
     torch.cuda.synchronize()
     check(f"memory stability over {iters} iters (no growth)", not grow,
           f"base={base / 1e9:.2f}GB end={end / 1e9:.2f}GB")
-    check("no NaN/Inf after repeated iters", finite(out) and finite(x0.grad))
+    check("no NaN/Inf after repeated iters",
+          finite(out) and last_x_grad is not None and finite(last_x_grad))
 
 
 print("=== sparse-MoE correctness (sparse vs dense reference) ===")

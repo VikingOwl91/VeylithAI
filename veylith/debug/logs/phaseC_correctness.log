@@ -1,19 +1,115 @@
 ~/veylith-debug-venvs/testC/lib/python3.14/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
   cpu = _conversion_method_template(device=torch.device("cpu"))
 === sparse-MoE correctness (sparse vs dense reference) ===
-Traceback (most recent call last):
-  File "~/git/AI-Research/veylith/debug/correctness.py", line 140, in <module>
-    run_case(N, 256, E, k, dtype, seed=0)
-    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "~/git/AI-Research/veylith/debug/correctness.py", line 86, in run_case
-    out_sp, aux_sp = sp(x)
-                     ~~^^^
-  File "~/veylith-debug-venvs/testC/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1787, in _wrapped_call_impl
-    return self._call_impl(*args, **kwargs)
-           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
-  File "~/veylith-debug-venvs/testC/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1798, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "~/git/AI-Research/veylith/debug/sparse_moe_v2_train.py", line 268, in forward
-    B, T, C = x.shape
-    ^^^^^^^
-ValueError: not enough values to unpack (expected 3, got 2)
+  [PASS] out E8k2 N2048 bf16 s0 output equality maxdiff=1.95e-03
+  [PASS] out E8k2 N2048 bf16 s0 finite 
+  [PASS] out E8k2 N2048 bf16 s0 grad-x equality maxdiff=1.22e-03
+  [PASS] out E8k2 N2048 bf16 s0 grad-gate equality 
+  [PASS] out E8k2 N2048 bf16 s0 grad-expert0 equality 
+  [PASS] out E8k2 N2048 bf16 s0 grads finite 
+  [PASS] out E8k2 N16384 bf16 s0 output equality maxdiff=1.95e-03
+  [PASS] out E8k2 N16384 bf16 s0 finite 
+  [PASS] out E8k2 N16384 bf16 s0 grad-x equality maxdiff=1.04e-03
+  [PASS] out E8k2 N16384 bf16 s0 grad-gate equality 
+  [PASS] out E8k2 N16384 bf16 s0 grad-expert0 equality 
+  [PASS] out E8k2 N16384 bf16 s0 grads finite 
+  [PASS] out E4k2 N2048 bf16 s0 output equality maxdiff=9.77e-04
+  [PASS] out E4k2 N2048 bf16 s0 finite 
+  [PASS] out E4k2 N2048 bf16 s0 grad-x equality maxdiff=9.77e-04
+  [PASS] out E4k2 N2048 bf16 s0 grad-gate equality 
+  [PASS] out E4k2 N2048 bf16 s0 grad-expert0 equality 
+  [PASS] out E4k2 N2048 bf16 s0 grads finite 
+  [PASS] out E4k2 N16384 bf16 s0 output equality maxdiff=1.95e-03
+  [PASS] out E4k2 N16384 bf16 s0 finite 
+  [PASS] out E4k2 N16384 bf16 s0 grad-x equality maxdiff=1.46e-03
+  [PASS] out E4k2 N16384 bf16 s0 grad-gate equality 
+  [PASS] out E4k2 N16384 bf16 s0 grad-expert0 equality 
+  [PASS] out E4k2 N16384 bf16 s0 grads finite 
+  [PASS] out E16k4 N2048 bf16 s0 output equality maxdiff=1.95e-03
+  [PASS] out E16k4 N2048 bf16 s0 finite 
+  [PASS] out E16k4 N2048 bf16 s0 grad-x equality maxdiff=9.77e-04
+  [PASS] out E16k4 N2048 bf16 s0 grad-gate equality 
+  [PASS] out E16k4 N2048 bf16 s0 grad-expert0 equality 
+  [PASS] out E16k4 N2048 bf16 s0 grads finite 
+  [PASS] out E16k4 N16384 bf16 s0 output equality maxdiff=1.95e-03
+  [PASS] out E16k4 N16384 bf16 s0 finite 
+  [PASS] out E16k4 N16384 bf16 s0 grad-x equality maxdiff=9.77e-04
+  [PASS] out E16k4 N16384 bf16 s0 grad-gate equality 
+  [PASS] out E16k4 N16384 bf16 s0 grad-expert0 equality 
+  [PASS] out E16k4 N16384 bf16 s0 grads finite 
+  [PASS] out E8k8 N2048 bf16 s0 output equality maxdiff=0.00e+00
+  [PASS] out E8k8 N2048 bf16 s0 finite 
+  [PASS] out E8k8 N2048 bf16 s0 grad-x equality maxdiff=1.49e-08
+  [PASS] out E8k8 N2048 bf16 s0 grad-gate equality 
+  [PASS] out E8k8 N2048 bf16 s0 grad-expert0 equality 
+  [PASS] out E8k8 N2048 bf16 s0 grads finite 
+  [PASS] out E8k8 N16384 bf16 s0 output equality maxdiff=0.00e+00
+  [PASS] out E8k8 N16384 bf16 s0 finite 
+  [PASS] out E8k8 N16384 bf16 s0 grad-x equality maxdiff=2.98e-08
+  [PASS] out E8k8 N16384 bf16 s0 grad-gate equality 
+  [PASS] out E8k8 N16384 bf16 s0 grad-expert0 equality 
+  [PASS] out E8k8 N16384 bf16 s0 grads finite 
+  [PASS] out E8k2 N2048 fp32 s0 output equality maxdiff=5.36e-07
+  [PASS] out E8k2 N2048 fp32 s0 finite 
+  [PASS] out E8k2 N2048 fp32 s0 grad-x equality maxdiff=5.96e-07
+  [FAIL] out E8k2 N2048 fp32 s0 grad-gate equality 
+  [PASS] out E8k2 N2048 fp32 s0 grad-expert0 equality 
+  [PASS] out E8k2 N2048 fp32 s0 grads finite 
+  [PASS] out E8k2 N16384 fp32 s0 output equality maxdiff=6.41e-07
+  [PASS] out E8k2 N16384 fp32 s0 finite 
+  [PASS] out E8k2 N16384 fp32 s0 grad-x equality maxdiff=7.00e-07
+  [FAIL] out E8k2 N16384 fp32 s0 grad-gate equality 
+  [FAIL] out E8k2 N16384 fp32 s0 grad-expert0 equality 
+  [PASS] out E8k2 N16384 fp32 s0 grads finite 
+  [PASS] out E4k2 N2048 fp32 s0 output equality maxdiff=4.77e-07
+  [PASS] out E4k2 N2048 fp32 s0 finite 
+  [PASS] out E4k2 N2048 fp32 s0 grad-x equality maxdiff=5.96e-07
+  [FAIL] out E4k2 N2048 fp32 s0 grad-gate equality 
+  [PASS] out E4k2 N2048 fp32 s0 grad-expert0 equality 
+  [PASS] out E4k2 N2048 fp32 s0 grads finite 
+  [PASS] out E4k2 N16384 fp32 s0 output equality maxdiff=5.96e-07
+  [PASS] out E4k2 N16384 fp32 s0 finite 
+  [PASS] out E4k2 N16384 fp32 s0 grad-x equality maxdiff=7.15e-07
+  [FAIL] out E4k2 N16384 fp32 s0 grad-gate equality 
+  [FAIL] out E4k2 N16384 fp32 s0 grad-expert0 equality 
+  [PASS] out E4k2 N16384 fp32 s0 grads finite 
+  [PASS] out E16k4 N2048 fp32 s0 output equality maxdiff=3.43e-07
+  [PASS] out E16k4 N2048 fp32 s0 finite 
+  [PASS] out E16k4 N2048 fp32 s0 grad-x equality maxdiff=4.47e-07
+  [FAIL] out E16k4 N2048 fp32 s0 grad-gate equality 
+  [PASS] out E16k4 N2048 fp32 s0 grad-expert0 equality 
+  [PASS] out E16k4 N2048 fp32 s0 grads finite 
+  [PASS] out E16k4 N16384 fp32 s0 output equality maxdiff=3.73e-07
+  [PASS] out E16k4 N16384 fp32 s0 finite 
+  [PASS] out E16k4 N16384 fp32 s0 grad-x equality maxdiff=4.47e-07
+  [FAIL] out E16k4 N16384 fp32 s0 grad-gate equality 
+  [PASS] out E16k4 N16384 fp32 s0 grad-expert0 equality 
+  [PASS] out E16k4 N16384 fp32 s0 grads finite 
+  [PASS] out E8k8 N2048 fp32 s0 output equality maxdiff=0.00e+00
+  [PASS] out E8k8 N2048 fp32 s0 finite 
+  [PASS] out E8k8 N2048 fp32 s0 grad-x equality maxdiff=1.19e-07
+  [PASS] out E8k8 N2048 fp32 s0 grad-gate equality 
+  [PASS] out E8k8 N2048 fp32 s0 grad-expert0 equality 
+  [PASS] out E8k8 N2048 fp32 s0 grads finite 
+  [PASS] out E8k8 N16384 fp32 s0 output equality maxdiff=0.00e+00
+  [PASS] out E8k8 N16384 fp32 s0 finite 
+  [PASS] out E8k8 N16384 fp32 s0 grad-x equality maxdiff=1.19e-07
+  [PASS] out E8k8 N16384 fp32 s0 grad-gate equality 
+  [PASS] out E8k8 N16384 fp32 s0 grad-expert0 equality 
+  [PASS] out E8k8 N16384 fp32 s0 grads finite 
+  [PASS] out E8k2 N16384 bf16 s1 output equality maxdiff=1.95e-03
+  [PASS] out E8k2 N16384 bf16 s1 finite 
+  [PASS] out E8k2 N16384 bf16 s1 grad-x equality maxdiff=1.04e-03
+  [PASS] out E8k2 N16384 bf16 s1 grad-gate equality 
+  [PASS] out E8k2 N16384 bf16 s1 grad-expert0 equality 
+  [PASS] out E8k2 N16384 bf16 s1 grads finite 
+  [PASS] out E8k2 N16384 bf16 s2 output equality maxdiff=3.91e-03
+  [PASS] out E8k2 N16384 bf16 s2 finite 
+  [PASS] out E8k2 N16384 bf16 s2 grad-x equality maxdiff=1.10e-03
+  [PASS] out E8k2 N16384 bf16 s2 grad-gate equality 
+  [PASS] out E8k2 N16384 bf16 s2 grad-expert0 equality 
+  [PASS] out E8k2 N16384 bf16 s2 grads finite 
+  [PASS] memory stability over 200 iters (no growth) base=0.12GB end=0.12GB
+  [PASS] no NaN/Inf after repeated iters 
+
+RESULT: 8 failure(s): ['out E8k2 N2048 fp32 s0 grad-gate equality', 'out E8k2 N16384 fp32 s0 grad-gate equality', 'out E8k2 N16384 fp32 s0 grad-expert0 equality', 'out E4k2 N2048 fp32 s0 grad-gate equality', 'out E4k2 N16384 fp32 s0 grad-gate equality', 'out E4k2 N16384 fp32 s0 grad-expert0 equality', 'out E16k4 N2048 fp32 s0 grad-gate equality', 'out E16k4 N16384 fp32 s0 grad-gate equality']

@@ -90,18 +90,51 @@ unmapped VA), which (a) validates the OOB-write theory for the real
 fault and (b) confirms the real code, whose indices are in bounds, must
 be faulting inside a kernel rather than at the index level.
 
-## Working hypothesis
+## Phase 3 (this branch): narrowed fix window and sparse-MoE verdict
 
-A bf16 kernel on the sparse-MoE backward path - most plausibly one of the
-variable-size routing kernels (`index_select` backward scatter,
-`index_add` backward gather, or the expert weight-grad GEMMs that only
-run when expert grads are enabled) - writes slightly out of bounds past
-its output tensor despite in-bounds indices. The write is silent when it
-lands in mapped VA; it faults ("Page not present") when the tensor's
-segment is the last in a mapped VA chunk. This explains every
-observation: backward-necessity, bf16-specificity, sparse-MoE
-specificity, layout/seed sensitivity, intermittency, the 2MB-aligned
-fault addresses, and the delayed/varying manifestation point.
+**Fix window: PyTorch commits on 2026-10-01/02.** Date-based binary search
+over the 40 nightly builds between 20260824 and 20261005 (each tested in a
+disposable uv venv, 2 reproducer runs per build): 20260913, 20260924,
+20260930 and 20261001 all fault 2/2; 20261002 passes 2/2. Boundary:
+`2.15.0.dev20261001` faults, `2.15.0.dev20261002` passes. Anchors
+re-verified first (testE 2/2 FAULT, testD 2/2 PASS, testC 2/2 PASS).
+
+**Sparse-MoE correctness (Phase C, on the known-good testC env):** the
+sparse implementation is mathematically equivalent to the dense-combined
+reference. 20 output/gradient comparisons across (E,k) in {(8,2),(4,2),
+(16,4),(8,8)}, N in {2048,16384}, bf16+fp32, seeds 0/1/2: outputs match
+everywhere; bf16 gradients match; fp32 gradient checks flagged 8 cases,
+but an fp64 ground-truth comparison (diag_grad.py) shows sparse and dense
+are equidistant from the reference (rel ~1e-6, fp32 reduction noise; my
+1e-5 rtol was too strict). Memory flat over 200 iters; no NaN/Inf.
+
+**Sparse vs dense benchmark (Phase D, on testC, bf16, batch 64, block 256,
+150 measured iters each after warmup, CUDA-event timing, medians):**
+
+| metric | sparse | dense | delta |
+|---|---|---|---|
+| forward ms | 51.34 [49.13..54.28] | 47.09 [46.71..47.66] | sparse +9% (nonzero sync overhead) |
+| backward ms | 68.23 [67.74..71.02] | 88.95 [88.26..89.47] | sparse -23% (weight-grad GEMMs run on routed subsets only, K~M vs K=16384) |
+| full step ms | 124.10 [121.62..128.83] | 140.60 [139.37..141.40] | **sparse -12%** |
+| tokens/sec | 132,027 | 116,527 | **sparse +13%** |
+| peak GPU allocated | 4.70 GB | 8.02 GB | **sparse -41%** (dense saves every expert output for every token) |
+| peak GPU reserved | 5.13 GB | 8.53 GB | sparse -40% |
+| CPU RSS max | 2604 MB | 2075 MB | sparse +529 MB (index bookkeeping + nonzero syncs) |
+| stability (3x50 iters) | +/-3% around median | +/-1% | both stable |
+
+GPU utilization sampling failed this run (`--loop` is not a valid
+rocm-smi flag); reported as not measured rather than estimated.
+
+Interesting cross-check: on the OLD torch (2.14.1), sparse trained SLOWER
+than dense (4.4-4.8 vs 5.8 it/s); on the fixed torch (2.16.0.dev) the
+order flips (sparse 8.1 vs dense 7.1 it/s) - consistent with the 2.15-cycle
+fix also improving the index kernels' performance.
+
+**Recommendation status:** the sparse implementation is correct and
+stable on torch >= 2.15.0.dev20261005; it is UNSAFE on any torch 2.14.x
+build (faults 100% in the deterministic mode). Adopt sparse MoE only
+after the training environment runs PyTorch >= 2.15 stable (or a pinned
+2.15-dev/2.16-dev build), verified with the reproducer.
 
 ## Recommendation
 

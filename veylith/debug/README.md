@@ -5,13 +5,18 @@ killed sparse-MoE training runs of veylith v2. The working dense-MoE
 v2 and all of v1 are preserved on `main`; this directory and the
 `debug/rocm-sparse-moe-fault` branch are the investigation sandbox.
 
-**Status: complete.** Root cause: a bf16 GPU kernel on the sparse-MoE
-backward path writes out of bounds despite in-bounds indices (PyTorch/ROCm
-kernel bug). Our implementation is correct; the dense-MoE application fix
-is already shipped in v2. **Cross-version:** fixed in PyTorch's 2.15 dev
-cycle (faults on 2.14.1 with ROCm 7.2 AND 7.14 and on 2.15.0.dev20260824;
-passes on 2.15.0.dev20261005 and 2.16.0.dev20261006). See
-`version-comparison.md` and `version-isolation/`.
+**Status: complete (Phase 3 done).** Root cause: a bf16 GPU kernel on the
+sparse-MoE backward path writes out of bounds despite in-bounds indices
+(PyTorch/ROCm kernel bug). Our implementation is correct. **Fix window
+narrowed to PyTorch commits on 2026-10-01/02** (date bisect over 40
+nightly builds; faults on 2.14.1 with ROCm 7.2 AND 7.14 and on
+2.15.0.dev20260824; passes on 2.15.0.dev20261002, 2.15.0.dev20261005,
+2.16.0.dev20261006). **Sparse-MoE verdict:** correct (equivalent to dense
+reference), stable, 12% faster per training step and 41% less peak memory
+than the dense workaround on the fixed build. Adopt sparse MoE when the
+training environment runs PyTorch >= 2.15 stable. See
+`version-comparison.md`, `version-isolation/`, `root-cause.md`,
+`issue-report.md` (draft, not submitted).
 
 ## Contents
 
