@@ -1,0 +1,56 @@
+=== date ===
+Fri Oct 23 11:48:59 PM CEST 2026
+=== python ===
+Python 3.14.8
+/usr/bin/python3
+=== pip torch ===
+Name: torch
+Version: 2.14.1
+Summary: Tensors and Dynamic neural networks in Python with strong GPU acceleration
+Home-page: https://pytorch.org
+Author: 
+Author-email: PyTorch Team <packages@pytorch.org>
+License-Expression: Apache-2.0 AND Apache-2.0 WITH LLVM-exception AND BSD-2-Clause AND BSD-3-Clause AND BSL-1.0 AND MIT
+Location: /usr/lib/python3.14/site-packages
+=== torch details ===
+torch 2.14.1
+hip 7.2.53211
+cuda attr None
+device AMD Radeon RX 9070 XT | cc 12 0 | vram GB 17.1
+cuda available True
+=== os/kernel ===
+Linux research-host 7.2.11-zen1-1.1-zen #1 ZEN SMP PREEMPT_DYNAMIC Sun, 18 Oct 2026 23:51:03 +0000 x86_64 GNU/Linux
+NAME="Arch Linux"
+PRETTY_NAME="Arch Linux"
+=== amdgpu driver ===
+description:    AMD GPU
+=== amd/mesa/vulkan packages ===
+amdgpu_top 0.11.5-1.1
+lib32-libdrm 2.4.134-1.1
+lib32-mesa 1:26.2.5-1
+lib32-vulkan-icd-loader 1.4.363.0-1.1
+lib32-vulkan-mesa-implicit-layers 1:26.2.5-1
+lib32-vulkan-radeon 1:26.2.5-1
+libdrm 2.4.134-1.1
+linux-firmware 20260916-1
+linux-firmware-amd 20260916-1
+linux-firmware-amdgpu 20260916-1
+linux-firmware-atheros 20260916-1
+linux-firmware-broadcom 20260916-1
+linux-firmware-cirrus 20260916-1
+linux-firmware-intel 20260916-1
+linux-firmware-mediatek 20260916-1
+=== rocm runtime ===
+7.2.4
+=== rocminfo driver fields ===
+=== env vars ===
+ROCM_PATH=/opt/rocm
+=== torch bundled rocm libs (site-packages/torch/lib) ===
+libc10_hip.so
+libtorch_hip.so
+=== ldd libtorch_cuda: rocm/hip libs and sources ===
+=== pip rocm-related packages ===
+triton                                  3.5.1+git0add6826
+=== disk ===
+tmpfs            16G  3.4G   13G  22% /tmp
+/dev/nvme0n1p2  1.9T  1.5T  424G  78% /

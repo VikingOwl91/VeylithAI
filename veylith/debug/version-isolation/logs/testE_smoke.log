@@ -1,0 +1,74 @@
+~/veylith-debug-venvs/testE/lib/python3.14/site-packages/torch/_subclasses/functional_tensor.py:376: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:84.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+python: 3.14.8
+torch: 2.15.0.dev20260824+rocm7.14 | hip: 7.14.60850 | cuda attr: None
+cuda available: True
+device: AMD Radeon RX 9070 XT | cc: 120 | vram GB: 17.1
+bf16 matmul: finite=True
+bf16 fwd+bwd: grad finite=True
+fp32 grad correct: True
+sync: ok
+loaded rocm/hip/amd libs: 61 (system /opt/rocm: 1, elsewhere: 60)
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/host-math/lib/libamd.so.3
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/host-math/lib/libcamd.so.3
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/host-math/lib/libccolamd.so.3
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/host-math/lib/libcholmod.so.5
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/host-math/lib/libcolamd.so.3
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/host-math/lib/librocm-openblas.so.0
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/host-math/lib/libsuitesparseconfig.so.7
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/libamd_comgr.so.3
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/libamd_smi.so.26
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/libamdhip64.so.7
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/libhipfile.so.0
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/libhiprtc.so.7
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/libhsa-runtime64.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/librocm-core.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/librocm_kpack.so.0
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/librocprofiler-register.so.0
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/librocprofiler-sdk.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/libroctx64.so.4
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/llvm/lib/libLLVM.so.23.0git
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/llvm/lib/libclang-cpp.so.23.0git
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_blkid.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_bz2.so
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_drm.so.2
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_drm_amdgpu.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_dw.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_elf.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_liblzma.so.5
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_mnl.so.0
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_mount.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_nl_3.so.200
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_nl_genl_3.so.200
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_numa.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_sqlite3.so
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_z.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_zstd.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/hipblaslt/library/gfx1201/Kernels.so-000-gfx1201.hsaco
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/hipblaslt/library/gfx1201/TensileLibrary_BB_BB_HA_Bias_SAV_UA_Type_BB_HPA_Contraction_l_Ailk_Bjlk_Cijk_Dijk_gfx1201.co
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/hipblaslt/library/gfx1201/TensileLibrary_BB_BB_HA_Bias_SAV_UA_Type_BB_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201.co
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/hipblaslt/library/gfx1201/TensileLibrary_SS_SS_HA_Bias_SAV_UA_Type_SS_Contraction_l_Ailk_Bjlk_Cijk_Dijk_gfx1201.co
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/hipblaslt/library/gfx1201/TensileLibrary_SS_SS_HA_Bias_SAV_UA_Type_SS_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201.co
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/libMIOpen.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/libhipblas.so.3
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/libhipblaslt.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/libhipfft.so.0
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/libhiprand.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/libhipsolver.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/libhipsparse.so.4
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/libhipsparselt.so.0
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/librccl.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/librocblas.so.5
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/librocfft.so.0
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/librocrand.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/librocroller.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/librocsolver.so.0
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/_rocm_sdk_libraries/lib/librocsparse.so.1
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/torch/lib/libc10_hip.so
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/torch/lib/libtorch_hip.so
+  ~/veylith-debug-venvs/testE/lib/python3.14/site-packages/torch/lib/libtorch_rocshmem.so
+  /opt/rocm/lib/libhsa-amd-aqlprofile64.so.1.0.0
+  /usr/lib/python3.14/lib-dynload/_multiprocessing.cpython-314-x86_64-linux-gnu.so
+  /usr/lib/python3.14/lib-dynload/_posixsubprocess.cpython-314-x86_64-linux-gnu.so
+WARN: system ROCm libraries are loaded; ROCm-version isolation may be incomplete
+SMOKE RESULT: PASS

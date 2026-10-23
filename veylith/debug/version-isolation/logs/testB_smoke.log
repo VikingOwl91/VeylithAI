@@ -1,0 +1,45 @@
+~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/_subclasses/functional_tensor.py:368: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:84.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+python: 3.14.8
+torch: 2.14.1+rocm7.2 | hip: 7.2.53211 | cuda attr: None
+cuda available: True
+device: AMD Radeon RX 9070 XT | cc: 120 | vram GB: 17.1
+bf16 matmul: finite=True
+bf16 fwd+bwd: grad finite=True
+fp32 grad correct: True
+sync: ok
+loaded rocm/hip/amd libs: 33 (system /opt/rocm: 0, elsewhere: 33)
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/hipblaslt/library/Kernels.so-000-gfx1201.hsaco
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/hipblaslt/library/TensileLibrary_BB_BB_HA_Bias_SAV_UA_Type_BB_HPA_Contraction_l_Ailk_Bjlk_Cijk_Dijk_gfx1201.co
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/hipblaslt/library/TensileLibrary_BB_BB_HA_Bias_SAV_UA_Type_BB_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201.co
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/hipblaslt/library/TensileLibrary_SS_SS_HA_Bias_SAV_UA_Type_SS_Contraction_l_Ailk_Bjlk_Cijk_Dijk_gfx1201.co
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/hipblaslt/library/TensileLibrary_SS_SS_HA_Bias_SAV_UA_Type_SS_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201.co
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libamd_comgr.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libamdhip64.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libc10_hip.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libdrm_amdgpu.so.1
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libhipblas.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libhipblaslt.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libhipfft.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libhiprand.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libhiprtc.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libhipsolver.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libhipsparse.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libhipsparselt.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libhsa-amd-aqlprofile64.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/librocblas.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/librocfft.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/librocm-core.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/librocm_smi64.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/librocprofiler-register.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/librocprofiler-sdk.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/librocrand.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/librocroller.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/librocsolver.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/librocsparse.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libroctx64.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libtorch_hip.so
+  ~/veylith-debug-venvs/testB/lib/python3.14/site-packages/torch/lib/libtorch_rocshmem.so
+  /usr/lib/python3.14/lib-dynload/_multiprocessing.cpython-314-x86_64-linux-gnu.so
+  /usr/lib/python3.14/lib-dynload/_posixsubprocess.cpython-314-x86_64-linux-gnu.so
+SMOKE RESULT: PASS

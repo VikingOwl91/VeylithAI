@@ -1,0 +1,12 @@
+~/veylith-debug-venvs/testC/lib/python3.14/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+impl=sparse device=cuda dtype=bf16 layers=6 embd=256 experts=8 topk=2 batch=64 block=256 params=25.60M
+grad_filter=experts: 120 trainable params
+iter     0 | loss 10.4816 mem=0.22GB
+  eval | val loss 10.4923
+iter    25 | loss 10.4898 mem=0.22GB
+iter    50 | loss 10.4882 mem=0.22GB
+iter    75 | loss 10.4925 mem=0.22GB
+iter    99 | loss 10.4940 mem=0.22GB
+  eval | val loss 10.4908
+COMPLETED

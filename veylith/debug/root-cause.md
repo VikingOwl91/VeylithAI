@@ -8,10 +8,15 @@ PyTorch/ROCm integration, or (c) an underlying HIP/GPU kernel issue?
 implementation's math and indices are correct (audited line by line; the
 dense-MoE rewrite of the same math is stable; a deliberate OOB-index
 control reproduces the same fault signature). The fault is a
-PyTorch-on-ROCm (or lower HIP/rocprim/rocBLAS) kernel bug. The exact
-kernel is not yet named (no compute-sanitizer/rocgdb on this box), but
-the evidence constrains it tightly. A deterministic reproducer and a draft
-upstream issue are included.
+PyTorch-on-ROCm kernel bug, and it is **fixed in newer PyTorch**: the
+version isolation study (`version-comparison.md`, this branch) shows the
+fault reproduces on torch 2.14.1 with ROCm 7.2 AND 7.14, and is gone in
+torch 2.15.0.dev20261005+rocm7.14 and 2.16.0.dev20261006+rocm7.14. The fix
+window is PyTorch commits between 2026-08-24 and 2026-10-05 in the 2.15
+dev cycle. The exact kernel is still not named (no compute-sanitizer/
+rocgdb on this box), but the cross-version evidence makes the
+classification firm. A deterministic reproducer and a draft upstream
+issue are included.
 
 ## Confirmed observations
 
@@ -104,24 +109,33 @@ fault addresses, and the delayed/varying manifestation point.
 routing (no variable-size gather/scatter), which is stable. Keep it.
 The sparse variant is preserved in git history for reference.
 
-**Upstream:** this looks like a PyTorch-on-ROCm (or ROCm/HIP kernel)
-bug, not an application bug. A complete issue report draft is in
-`issue-report.md` (NOT submitted, per instructions). The strongest
-candidate area is ATen's variable-size index kernels on ROCm for bf16 on
-gfx1201 (`index_add`/`index_select` backward), triggered by the
-routing-sized index sets of sparse MoE. The reproducer is deterministic
-and self-contained.
+**Upstream:** this is a PyTorch-on-ROCm kernel bug, fixed in the 2.15 dev
+cycle. The version isolation study (`version-comparison.md`) shows:
+torch 2.14.1 faults with ROCm 7.2 AND ROCm 7.14 (so ROCm 7.14 does not
+fix it), while torch 2.15.0.dev20261005+rocm7.14 and
+2.16.0.dev20261006+rocm7.14 pass the deterministic reproducer 0 faults in
+16 runs. The fix window is PyTorch commits between 2026-08-24 and
+2026-10-05 (2.15 dev cycle). This makes the upstream report stronger: it
+points the maintainers at a regression window and a deterministic
+reproducer. The strongest candidate area is ATen's variable-size index
+kernels on ROCm for bf16 on gfx1201 (`index_add`/`index_select`
+backward). The draft report is in `issue-report.md` (NOT submitted, per
+instructions).
 
 ## Remaining uncertainties
 
+- The exact PyTorch commit/PR that fixed it: the window is PyTorch
+  commits between 2026-08-24 and 2026-10-05 (2.15 dev cycle), narrowed by
+  dated nightlies (testE faults on 20260824, testD passes on 20261005).
+  Bisecting further would mean more dated-nightly installs.
 - The exact faulting kernel is not named: no compute-sanitizer/rocgdb on
   this box, rocprofv3 cannot finalize after a GPU fault (hangs with
   "kernels still active"), and PyTorch's memory-history stack capture is
-  partly garbled in this build. The micro-test bisection was a false
-  positive (see above).
+  partly garbled in this build.
 - Whether the bug is in PyTorch's ATen ROCm kernels or in a lower
-  rocprim/rocBLAS kernel they call is undetermined.
-- The trigger condition (which exact M/index-set/value pattern) is not
-  characterized; the fault is layout- and routing-dependent.
-- bf16-specificity is confirmed at the model level (5 seeds) but the
-  exact dtype-dependent kernel path is unidentified.
+  rocprim/rocBLAS kernel they call is undetermined; the PyTorch-side fix
+  between 2.14.1 and 2.15.0.dev20261005 suggests a PyTorch-side change.
+- PyTorch versions older than 2.14.1 untested (regression vs
+  long-standing bug unknown).
+- bf16-specificity confirmed at the model level (5 seeds); the
+  dtype-dependent kernel path is unidentified.

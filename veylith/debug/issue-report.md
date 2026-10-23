@@ -83,9 +83,30 @@ of a mapped segment whose last block is a 16-20MB fp32 tensor).
   installed on the repro machine, so we could not capture the exact
   faulting kernel. We would appreciate help identifying it.
 
+## Version isolation (already investigated - strengthens this report)
+
+The fault was tested across isolated environments (uv venvs, isolation
+verified via /proc/self/maps; identical seeds/shapes/dtypes):
+
+| torch | ROCm runtime | result |
+|---|---|---|
+| 2.14.1 (Arch pkg) | 7.2.4 (system) | FAULTS 4/4 |
+| 2.14.1+rocm7.2 (pip) | 7.2 (venv rocm-sdk) | FAULTS 4/4 |
+| 2.14.1+rocm7.14 (pip) | 7.14 / HIP 7.14.60850 (venv) | FAULTS 4/4 |
+| 2.15.0.dev20260824+rocm7.14 | 7.14 (venv) | FAULTS 4/4 |
+| 2.15.0.dev20261005+rocm7.14 | 7.14 (venv) | PASSES 4/4 |
+| 2.16.0.dev20261006+rocm7.14 | 7.14 (venv) | PASSES 12/12 |
+
+So ROCm 7.14 does NOT fix it; the fix is a PyTorch change in the 2.15 dev
+cycle between 2026-08-24 and 2026-10-05. The 2.14 stable line is
+affected on both ROCm 7.2 and 7.14.
+
 ## Request
 
-Could you help identify the faulting kernel on this path (variable-size
+Could you help identify the fix landed in the 2.15 dev cycle between
+2026-08-24 and 2026-10-05 that resolves this (so we know whether it is a
+deliberate fix or a side effect), whether it is relevant to backport to
+the 2.14 line, and the faulting kernel on this path (variable-size
 `index_select`/`index_add` backward and/or expert weight-grad GEMMs under
-bf16 autocast, gfx1201, ROCm 7.2), and confirm whether this is a known
-issue? Happy to provide more traces or test patches.
+bf16 autocast, gfx1201, ROCm 7.2/7.14)? Happy to provide more traces or
+test patches.

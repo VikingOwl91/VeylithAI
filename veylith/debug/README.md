@@ -8,7 +8,10 @@ v2 and all of v1 are preserved on `main`; this directory and the
 **Status: complete.** Root cause: a bf16 GPU kernel on the sparse-MoE
 backward path writes out of bounds despite in-bounds indices (PyTorch/ROCm
 kernel bug). Our implementation is correct; the dense-MoE application fix
-is already shipped in v2. See `root-cause.md`.
+is already shipped in v2. **Cross-version:** fixed in PyTorch's 2.15 dev
+cycle (faults on 2.14.1 with ROCm 7.2 AND 7.14 and on 2.15.0.dev20260824;
+passes on 2.15.0.dev20261005 and 2.16.0.dev20261006). See
+`version-comparison.md` and `version-isolation/`.
 
 ## Contents
 
@@ -18,6 +21,10 @@ is already shipped in v2. See `root-cause.md`.
 - `issue-report.md` - draft upstream issue report (NOT submitted).
 - `matrix.md` - reproducibility matrix (all configurations and rates).
 - `environment.md` - hardware/software manifest (raw data in `raw/`).
+- `version-isolation/` - cross-version study: baseline inventory, uv venv
+  installs (testA rocm7.14, testB rocm7.2, testC/testD nightlies,
+  testE first 2.15 nightly), smoke tests, per-env reproducer suites,
+  `version-comparison.md` matrix.
 - `reproducer.py` - minimal deterministic reproducer (random data, no
   dataset, CLI knobs; `--no_optimizer --grad_filter experts` is the
   deterministic fault mode).

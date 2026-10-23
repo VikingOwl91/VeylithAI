@@ -1,0 +1,46 @@
+python: 3.14.8
+torch: 2.14.1 | hip: 7.2.53211 | cuda attr: None
+cuda available: True
+device: AMD Radeon RX 9070 XT | cc: 120 | vram GB: 17.1
+bf16 matmul: finite=True
+bf16 fwd+bwd: grad finite=True
+fp32 grad correct: True
+sync: ok
+loaded rocm/hip/amd libs: 35 (system /opt/rocm: 30, elsewhere: 5)
+  /opt/rocm/lib/hipblaslt/library/Kernels.so-000-gfx1201.hsaco
+  /opt/rocm/lib/hipblaslt/library/TensileLibrary_BB_BB_HA_Bias_SAV_UA_Type_BB_HPA_Contraction_l_Ailk_Bjlk_Cijk_Dijk_gfx1201.co
+  /opt/rocm/lib/hipblaslt/library/TensileLibrary_BB_BB_HA_Bias_SAV_UA_Type_BB_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201.co
+  /opt/rocm/lib/hipblaslt/library/TensileLibrary_SS_SS_HA_Bias_SAV_UA_Type_SS_Contraction_l_Ailk_Bjlk_Cijk_Dijk_gfx1201.co
+  /opt/rocm/lib/hipblaslt/library/TensileLibrary_SS_SS_HA_Bias_SAV_UA_Type_SS_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201.co
+  /opt/rocm/lib/libMIOpen.so.1.0
+  /opt/rocm/lib/libamd_comgr.so.3.0.0
+  /opt/rocm/lib/libamd_smi.so.26.2.2
+  /opt/rocm/lib/libamdhip64.so.7.2.53211-3d9ef42
+  /opt/rocm/lib/libhipblas.so.3.2
+  /opt/rocm/lib/libhipblaslt.so.1.2
+  /opt/rocm/lib/libhipfft.so.0.1
+  /opt/rocm/lib/libhiprand.so.1.1
+  /opt/rocm/lib/libhiprtc.so.7.2.53211-3d9ef42
+  /opt/rocm/lib/libhipsolver.so.1.0
+  /opt/rocm/lib/libhipsparse.so.4.2.0
+  /opt/rocm/lib/libhipsparselt.so.0.2
+  /opt/rocm/lib/libhsa-amd-aqlprofile64.so.1.0.0
+  /opt/rocm/lib/libhsa-runtime64.so.1.18.0
+  /opt/rocm/lib/librccl.so.1.0
+  /opt/rocm/lib/librocblas.so.5.2
+  /opt/rocm/lib/librocfft.so.0.1
+  /opt/rocm/lib/librocm_smi64.so.1.0
+  /opt/rocm/lib/librocprofiler-register.so.0.6.0
+  /opt/rocm/lib/librocprofiler-sdk.so.1.1.0
+  /opt/rocm/lib/librocrand.so.1.1
+  /opt/rocm/lib/librocroller.so.1.0.0
+  /opt/rocm/lib/librocsolver.so.0.7
+  /opt/rocm/lib/librocsparse.so.1.0
+  /opt/rocm/lib/libroctx64.so.4.1.0
+  /usr/lib/libc10_hip.so
+  /usr/lib/libdrm_amdgpu.so.1.134.0
+  /usr/lib/libtorch_hip.so
+  /usr/lib/python3.14/lib-dynload/_multiprocessing.cpython-314-x86_64-linux-gnu.so
+  /usr/lib/python3.14/lib-dynload/_posixsubprocess.cpython-314-x86_64-linux-gnu.so
+WARN: system ROCm libraries are loaded; ROCm-version isolation may be incomplete
+SMOKE RESULT: PASS
