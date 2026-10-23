@@ -247,6 +247,11 @@ class MoE(nn.Module):
     load-balancing penalty; the frontier models in ../reference use
     aux-loss-free balancing instead (topk_method "noaux_tc" in their
     configs), which is harder to read.
+
+    Routing uses int64 index_select/index_add only. Bool-mask index_put
+    faults intermittently on ROCm at scale, and in-place writes into a
+    fresh tensor would sever the autograd graph (experts would get no
+    gradient), so the accumulation is out-of-place index_add.
     """
 
     def __init__(self, cfg):
@@ -262,21 +267,24 @@ class MoE(nn.Module):
     def forward(self, x):
         B, T, C = x.shape
         x_flat = x.reshape(B * T, C)
-        router_logits = self.gate(x_flat)                        # (N, E)
+        router_logits = self.gate(x_flat).float()              # (N, E) fp32: stable topk
         topk_weights, topk_idx = router_logits.topk(self.top_k, dim=-1)
-        topk_weights = F.softmax(topk_weights, dim=-1)         # (N, k)
+        topk_weights = F.softmax(topk_weights, dim=-1)         # (N, k), grad to router
         out = self.shared(x_flat)                              # shared expert, always on
         for e, expert in enumerate(self.experts):
-            w_e = ((topk_idx == e).float() * topk_weights).sum(-1)   # (N,)
-            mask = w_e > 0
-            if mask.any():
-                contrib = torch.zeros_like(out)
-                # autocast promotes the router softmax to fp32; cast back to match
-                contrib[mask] = (w_e[mask].unsqueeze(1) * expert(x_flat[mask])).to(out.dtype)
-                out = out + contrib
+            w_e = ((topk_idx == e).float() * topk_weights).sum(-1)   # (N,), grad to router
+            sel = (w_e > 0).nonzero(as_tuple=True)[0]              # (M,) int64
+            if sel.numel() == 0:
+                continue
+            expert_out = expert(x_flat.index_select(0, sel))       # (M, C), grad to expert
+            delta = (w_e[sel].unsqueeze(1) * expert_out).to(out.dtype)
+            out = out.index_add(0, sel, delta)                 # out-of-place: grads flow
         # load balancing: E * sum_e (routed_fraction_e * mean_router_prob_e)
         probs = F.softmax(router_logits, dim=-1)               # (N, E)
-        routed_frac = F.one_hot(topk_idx, self.n_experts).float().mean(dim=(0, 1))
+        counts = torch.zeros(self.n_experts, device=x_flat.device)
+        counts.scatter_add_(0, topk_idx.reshape(-1),
+                            torch.ones(topk_idx.numel(), device=x_flat.device))
+        routed_frac = counts / topk_idx.numel()                # (E,)
         mean_prob = probs.mean(0)                              # (E,)
         aux = self.n_experts * (routed_frac * mean_prob).sum()
         return out.view(B, T, C), aux
@@ -482,8 +490,9 @@ def main():
 
         if step % 100 == 0 or step == args.max_iters - 1:
             elapsed = time.time() - t0
+            mem = f" | mem {torch.cuda.memory_allocated() / 1e9:.1f}GB" if device == "cuda" else ""
             print(f"iter {step:5d} | loss {loss.item():.4f} | lr {lr:.2e} | "
-                  f"{step / max(elapsed, 1e-9):.1f} it/s")
+                  f"{step / max(elapsed, 1e-9):.1f} it/s{mem}")
 
         if step % args.eval_interval == 0 or step == args.max_iters - 1:
             losses = estimate_loss(model, train_data, val_data, args, device, autocast)
