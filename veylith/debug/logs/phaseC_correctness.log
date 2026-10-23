@@ -1,0 +1,19 @@
+~/veylith-debug-venvs/testC/lib/python3.14/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+=== sparse-MoE correctness (sparse vs dense reference) ===
+Traceback (most recent call last):
+  File "~/git/AI-Research/veylith/debug/correctness.py", line 140, in <module>
+    run_case(N, 256, E, k, dtype, seed=0)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "~/git/AI-Research/veylith/debug/correctness.py", line 86, in run_case
+    out_sp, aux_sp = sp(x)
+                     ~~^^^
+  File "~/veylith-debug-venvs/testC/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1787, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "~/veylith-debug-venvs/testC/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1798, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "~/git/AI-Research/veylith/debug/sparse_moe_v2_train.py", line 268, in forward
+    B, T, C = x.shape
+    ^^^^^^^
+ValueError: not enough values to unpack (expected 3, got 2)

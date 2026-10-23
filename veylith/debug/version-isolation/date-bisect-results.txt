@@ -1,0 +1,7 @@
+date,faults,completed,last_iter,note
+20260913,2,0,iter    25
+20260924,2,0,iter    25
+20260930,2,0,iter    25
+20261002,0,2,iter    99
+20261001,2,0,iter    25
+RESULT: fix window = [20261001 faults .. 20261002 passes]
