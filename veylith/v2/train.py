@@ -243,15 +243,18 @@ class SwiGLU(nn.Module):
 class MoE(nn.Module):
     """Mixture of routed experts plus one always-on shared expert.
 
+    Dense-combined: routing is still top-k, but every expert computes on
+    every token and the router weights combine the results. That is a
+    simplification of true sparse routing (only the top-k experts run per
+    token): it costs E/k times the expert FLOPs, but needs no
+    variable-size indexing (nonzero/index_select/index_add), whose
+    gather/scatter + sync pattern faults intermittently on ROCm.
+    Gradients reach experts and router through the same dense path.
+
     Returns (output, aux_loss). The aux loss is the classic Switch-style
     load-balancing penalty; the frontier models in ../reference use
     aux-loss-free balancing instead (topk_method "noaux_tc" in their
     configs), which is harder to read.
-
-    Routing uses int64 index_select/index_add only. Bool-mask index_put
-    faults intermittently on ROCm at scale, and in-place writes into a
-    fresh tensor would sever the autograd graph (experts would get no
-    gradient), so the accumulation is out-of-place index_add.
     """
 
     def __init__(self, cfg):
@@ -270,21 +273,15 @@ class MoE(nn.Module):
         router_logits = self.gate(x_flat).float()              # (N, E) fp32: stable topk
         topk_weights, topk_idx = router_logits.topk(self.top_k, dim=-1)
         topk_weights = F.softmax(topk_weights, dim=-1)         # (N, k), grad to router
+        assign = (topk_idx.unsqueeze(-1)
+                  == torch.arange(self.n_experts, device=x.device)).float()  # (N, k, E)
+        w = (assign * topk_weights.unsqueeze(-1)).sum(1)       # (N, E) dense routing weights
         out = self.shared(x_flat)                              # shared expert, always on
         for e, expert in enumerate(self.experts):
-            w_e = ((topk_idx == e).float() * topk_weights).sum(-1)   # (N,), grad to router
-            sel = (w_e > 0).nonzero(as_tuple=True)[0]              # (M,) int64
-            if sel.numel() == 0:
-                continue
-            expert_out = expert(x_flat.index_select(0, sel))       # (M, C), grad to expert
-            delta = (w_e[sel].unsqueeze(1) * expert_out).to(out.dtype)
-            out = out.index_add(0, sel, delta)                 # out-of-place: grads flow
+            out = out + (w[:, e:e + 1] * expert(x_flat)).to(out.dtype)
         # load balancing: E * sum_e (routed_fraction_e * mean_router_prob_e)
+        routed_frac = assign.mean(dim=(0, 1))                 # (E,)
         probs = F.softmax(router_logits, dim=-1)               # (N, E)
-        counts = torch.zeros(self.n_experts, device=x_flat.device)
-        counts.scatter_add_(0, topk_idx.reshape(-1),
-                            torch.ones(topk_idx.numel(), device=x_flat.device))
-        routed_frac = counts / topk_idx.numel()                # (E,)
         mean_prob = probs.mean(0)                              # (E,)
         aux = self.n_experts * (routed_frac * mean_prob).sum()
         return out.view(B, T, C), aux
@@ -362,7 +359,7 @@ def param_report(model, cfg):
         active += sum(p.numel() for p in block.attn.parameters())
         if block.is_moe:
             active += sum(p.numel() for p in block.mlp.shared.parameters())
-            active += cfg.n_experts_per_tok * sum(
+            active += cfg.n_experts * sum(  # dense-combined: all experts compute
                 p.numel() for p in block.mlp.experts[0].parameters())
         else:
             active += sum(p.numel() for p in block.mlp.parameters())
@@ -459,8 +456,8 @@ def main():
     model = GPT(cfg).to(device)
     total, active = param_report(model, cfg)
     n_moe = sum(1 for b in model.blocks if b.is_moe)
-    print(f"model: {total / 1e6:.2f}M total / ~{active / 1e6:.2f}M active per token "
-          f"({n_moe} MoE layers x {cfg.n_experts} experts, top-{cfg.n_experts_per_tok}, "
+    print(f"model: {total / 1e6:.2f}M total / ~{active / 1e6:.2f}M compute per token "
+          f"({n_moe} MoE layers x {cfg.n_experts} experts, dense-combined, top-{cfg.n_experts_per_tok} routing, "
           f"GQA {cfg.n_head}Q/{cfg.n_kv_head}KV, SWA {cfg.sliding_window}, "
           f"full every {cfg.full_attn_every}, RoPE, SwiGLU, MTP x{cfg.n_mtp})")
 

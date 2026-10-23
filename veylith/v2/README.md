@@ -30,6 +30,12 @@ python sample.py                                          # generate from checkp
 - MoE training uses the classic Switch-style auxiliary load-balancing
   loss. The frontier models in `../reference/` use aux-loss-free
   balancing instead (`topk_method: "noaux_tc"` in their configs).
+- The MoE is dense-combined: routing is top-2, but every expert computes
+  on every token and the router weights combine the results. True
+  sparse routing needs variable-size indexing (gather/scatter with
+  per-batch sizes), which faults intermittently on ROCm. Dense-combined
+  costs E/k times the expert FLOPs and avoids that entirely. Frontier
+  labs use custom grouped-GEMM kernels for sparse routing.
 - MTP here is a training-time loss (position t also predicts t+2).
   The inference-time payoff, speculative decoding, is a serving trick
   and is not wired into `sample.py`.
