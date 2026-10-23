@@ -1,0 +1,11 @@
+config,result,last_iter
+gf_all,FAULT,iter    25
+gf_experts,FAULT,iter    25
+gf_gate,COMPLETED,iter    99
+gf_shared,COMPLETED,iter    99
+gf_attn,COMPLETED,iter    99
+gf_emb_head,COMPLETED,iter    99
+gf_ln,COMPLETED,iter    99
+gf_moe_params,COMPLETED,iter    99
+gf_non_moe,COMPLETED,iter    99
+=== grad bisect done ===

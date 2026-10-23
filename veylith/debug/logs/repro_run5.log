@@ -1,0 +1,27 @@
+device: cuda (AMD Radeon RX 9070 XT)
+tokenizer: char | vocab 65 | 1,115,394 tokens (1.00 chars/token)
+model: 25.12M total / ~9.40M active per token (5 MoE layers x 8 experts, top-2, GQA 8Q/2KV, SWA 128, full every 4, RoPE, SwiGLU, MTP x1)
+mixed precision: bfloat16
+iter     0 | loss 6.3166 | lr 3.00e-06 | 0.0 it/s | mem 0.6GB
+  eval | train loss 6.2846 | val loss 6.2903
+iter   100 | loss 4.0761 | lr 3.00e-04 | 5.9 it/s | mem 0.6GB
+  eval | train loss 3.7817 | val loss 3.8404
+iter   200 | loss 3.4478 | lr 9.75e-05 | 6.4 it/s | mem 0.6GB
+iter   249 | loss 3.4127 | lr 3.00e-05 | 6.5 it/s | mem 0.6GB
+  eval | train loss 3.3143 | val loss 3.5049
+
+saved checkpoint -> /tmp/opencode/debug_repro_5.pt (best val loss 3.5049)
+
+--- sample generation (prompt: 'ROMEO:') ---
+ROMEO:
+An  I sees to eep it;an h ore a rtea sa bot.
+
+ord:
+Fo RIHOL yu good nold ofmanish
+For yus enemans,handsady i ruillw's mygaint
+of no sapect on Gprovotainst and have adwad
+i sshel the enay ter at i once of tears it pates
+Tha mse in it th take me; I'l heart he to hnuhe.
+
+UENEIS:
+Ay,all fo he gimon tal

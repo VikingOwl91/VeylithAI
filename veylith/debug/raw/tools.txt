@@ -1,0 +1,58 @@
+=== compute-sanitizer ===
+not in PATH
+not in /opt/rocm/bin
+=== rocprof ===
+/opt/rocm/bin/rocprof
+
+[0;31mWARNING: We are phasing out development and support for roctracer/rocprofiler/rocprof/rocprofv2 in favor of rocprofiler-sdk/rocprofv3 in upcoming ROCm releases. Going forward, only critical defect fixes will be addressed for older versions of profiling tools and libraries. We encourage all users to upgrade to the latest version, rocprofiler-sdk library and rocprofv3 tool, to ensure continued support and access to new features.[0m
+
+=== rocgdb ===
+not in PATH
+no gdb in /opt/rocm/llvm/bin
+=== full /opt/rocm/bin ===
+amdclang
+amdclang++
+amdclang-cl
+amdclang-cpp
+amdflang
+amdlld
+amd-smi
+ckProfiler
+hipcc
+hipcc_cmake_linker_helper
+hipconfig
+hipdemangleatp
+MIOpenDriver
+rcclras
+rdhc
+rocblas-bench
+rocblas_clients_readme.txt
+rocblas_common.yaml
+rocblas-gemm-tune
+rocblas_general.yaml
+rocblas_gentest.py
+rocblas_template.yaml
+rocm_agent_enumerator
+rocminfo
+rocm-smi
+roc-obj
+roc-obj-extract
+roc-obj-extract.bat
+roc-obj-ls
+roc-obj-ls.bat
+rocpd
+rocpd2csv
+rocpd2otf2
+rocpd2pftrace
+rocpd2summary
+rocprof
+rocprofv2
+rocprofv3
+rocprofv3-attach
+rocprofv3-avail
+rocsys
+=== rocm-smi version ===
+ROCM-SMI version: 4.0.0+unknown
+ROCM-SMI-LIB version: 7.8.0
+=== env vars of interest ===
+no HIP/HSA/ROCR/AMD/CUDA/GPU env vars set

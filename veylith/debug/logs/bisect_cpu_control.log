@@ -1,0 +1,6 @@
+impl=sparse device=cpu dtype=bf16 layers=2 embd=128 experts=8 topk=2 batch=16 block=64 params=1.65M
+iter     0 | loss 10.4060
+  eval | val loss 10.4058
+iter    19 | loss 10.4152
+  eval | val loss 10.4077
+COMPLETED

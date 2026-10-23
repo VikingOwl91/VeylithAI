@@ -1,0 +1,9 @@
+impl=sparse device=cuda dtype=bf16 layers=6 embd=256 experts=8 topk=2 batch=64 block=256 params=25.60M
+iter     0 | loss 10.4823 mem=0.40GB
+  eval | val loss 10.4919
+iter    25 | loss 10.4886 mem=0.40GB
+iter    50 | loss 10.4894 mem=0.40GB
+iter    75 | loss 10.4935 mem=0.40GB
+iter    99 | loss 10.4945 mem=0.40GB
+  eval | val loss 10.4903
+COMPLETED

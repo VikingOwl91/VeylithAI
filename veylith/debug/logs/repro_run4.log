@@ -1,0 +1,11 @@
+device: cuda (AMD Radeon RX 9070 XT)
+tokenizer: char | vocab 65 | 1,115,394 tokens (1.00 chars/token)
+model: 25.12M total / ~9.40M active per token (5 MoE layers x 8 experts, top-2, GQA 8Q/2KV, SWA 128, full every 4, RoPE, SwiGLU, MTP x1)
+mixed precision: bfloat16
+iter     0 | loss 6.3166 | lr 3.00e-06 | 0.0 it/s | mem 0.6GB
+  eval | train loss 6.2846 | val loss 6.2903
+iter   100 | loss 4.0561 | lr 3.00e-04 | 5.9 it/s | mem 0.6GB
+Memory access fault by GPU node-1 (Agent handle: 0x55ae0aa9eab0) on address 0x7f20e6a00000. Reason: Page not present or supervisor privilege.
+Failed to write segment data to pipe: Bad address
+GPU coredump: handler exited with error (status: 1)
+GPU core dump failed

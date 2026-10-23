@@ -1,0 +1,16 @@
+config,result,last_iter
+baseline,FAULT,iter    25
+no_moe,COMPLETED,iter    99
+no_mtp,FAULT,iter    25
+one_layer,COMPLETED,iter    99
+two_layers,COMPLETED,iter    99
+fp32,COMPLETED,iter    99
+experts4,COMPLETED,iter    99
+uniform_routing,COMPLETED,iter    99
+batch16,FAULT,iter     0
+block64,COMPLETED,iter    99
+mha,COMPLETED,iter    99
+no_swa,COMPLETED,iter    99
+dense_control,COMPLETED,iter    99
+cpu_control,COMPLETED,iter    19
+=== bisect done ===

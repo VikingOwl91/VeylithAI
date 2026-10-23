@@ -1,0 +1,8 @@
+impl=sparse device=cuda dtype=bf16 layers=2 embd=256 experts=8 topk=2 batch=64 block=256 params=6.08M
+grad_filter=experts: 24 trainable params
+iter     0 | loss 10.4483 mem=0.23GB
+  eval | val loss 10.4453
+Memory access fault by GPU node-1 (Agent handle: 0x555d5254eb70) on address 0x7f4593800000. Reason: Page not present or supervisor privilege.
+Failed to write segment data to pipe: Bad address
+GPU coredump: handler exited with error (status: 1)
+GPU core dump failed

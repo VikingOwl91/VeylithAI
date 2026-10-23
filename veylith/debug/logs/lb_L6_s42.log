@@ -1,0 +1,10 @@
+impl=sparse device=cuda dtype=bf16 layers=6 embd=256 experts=8 topk=2 batch=64 block=256 params=25.60M
+grad_filter=experts: 120 trainable params
+iter     0 | loss 10.4919 mem=0.38GB
+  eval | val loss 10.4904
+iter    25 | loss 10.4902 mem=0.38GB
+iter    50 | loss 10.4835 mem=0.38GB
+iter    75 | loss 10.4881 mem=0.38GB
+iter    99 | loss 10.4951 mem=0.38GB
+  eval | val loss 10.4928
+COMPLETED

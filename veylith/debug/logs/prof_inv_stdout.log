@@ -1,0 +1,14 @@
+W20261023 22:19:14.748632 140464996998528 simple_timer.cpp:55] [rocprofv3] tool initialization ::     0.001066 sec
+W20261023 22:19:14.748680 140464996998528 simple_timer.cpp:55] [rocprofv3] 'python3 -u reproducer.py --no_optimizer --iters 20' ::     0.000000 sec
+W20261023 22:19:16.512858 140464996998528 tool.cpp:2423] HSA version 1.18.0 initialized (instance=0)
+impl=sparse device=cuda dtype=bf16 layers=6 embd=256 experts=8 topk=2 batch=64 block=256 params=25.60M
+iter     0 | loss 10.4816 mem=0.40GB
+  eval | val loss 10.4923
+iter    19 | loss 10.4905 mem=0.40GB
+  eval | val loss 10.4902
+COMPLETED
+W20261023 22:19:26.411856 140464996998528 simple_timer.cpp:55] [rocprofv3] 'python3 -u reproducer.py --no_optimizer --iters 20' ::    11.663176 sec
+E20261023 22:19:26.575968 140464996998528 output_stream.cpp:111] Opened result file: /tmp/opencode/prof_inv/research-host/2630949_kernel_trace.csv
+E20261023 22:19:26.825986 140464996998528 output_stream.cpp:111] Opened result file: /tmp/opencode/prof_inv/research-host/2630949_agent_info.csv
+W20261023 22:19:26.826394 140464996998528 simple_timer.cpp:55] [rocprofv3] output generation ::     0.252961 sec
+W20261023 22:19:26.834181 140464996998528 simple_timer.cpp:55] [rocprofv3] tool finalization ::     0.260790 sec

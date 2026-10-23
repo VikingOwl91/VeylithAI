@@ -1,0 +1,17 @@
+n_layer,seed,result,last_iter
+2,1337,COMPLETED,iter    99
+2,42,COMPLETED,iter    99
+2,7,FAULT,iter     0
+3,1337,COMPLETED,iter    99
+3,42,COMPLETED,iter    99
+3,7,COMPLETED,iter    99
+4,1337,COMPLETED,iter    99
+4,42,COMPLETED,iter    99
+4,7,COMPLETED,iter    99
+5,1337,COMPLETED,iter    99
+5,42,COMPLETED,iter    99
+5,7,COMPLETED,iter    99
+6,1337,FAULT,iter    25
+6,42,COMPLETED,iter    99
+6,7,COMPLETED,iter    99
+=== layer bisect done ===
