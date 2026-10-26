@@ -10,6 +10,11 @@ Legende Aufwand: S = unter 1 Tag, M = 1 bis 2 Tage, L = mehr als 2 Tage.
 
 ### P0-1 Trainingslauf-Integritaet: atomare Checkpoints, periodisches Speichern, Resume, minimale Testbasis
 
+**Status: umgesetzt am 2026-10-26** (`--resume`, `--save-every`,
+`--stop-after`, `--state-path`, `--device`, `veylith/v2/tests/test_train.py`).
+Die deterministischen Eval-Fenster sind nach P0-2 verschoben: sie aendern die
+Evaluationssemantik und waren nicht Teil der Freigabe.
+
 - **Problem und Evidenz**: D1 (Checkpoint-Pfad ohne Verzeichnis stuerzt
   nach dem Training ab, auf CPU reproduziert) und D2 (kein Resume, kein
   periodischer Checkpoint). Dazu D4: es gibt keinen einzigen Test.
@@ -34,8 +39,8 @@ Legende Aufwand: S = unter 1 Tag, M = 1 bis 2 Tage, L = mehr als 2 Tage.
      RNG-Zustaende und einen Config-Hash; Resume bricht bei Abweichung mit
      klarer Meldung ab.
   5. `python -m pytest -q` laeuft auf CPU gruen in unter 90 s und deckt
-     Config-Invarianten, MTP-Verschiebung, Checkpoint-Roundtrip,
-     Resume-Gleichheit und deterministische Eval-Fenster ab.
+     Config-Invarianten, MTP-Verschiebung, Checkpoint-Roundtrip und
+     Resume-Gleichheit ab.
   6. Der vorhandene `v2/checkpoints/ckpt.pt` laedt weiterhin und samplet.
 
 ### P0-2 Messwerte trennen und Evaluation reproduzierbar machen

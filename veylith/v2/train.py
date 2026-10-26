@@ -18,10 +18,18 @@ Usage:
     python train.py                                           # char tokenizer, full run
     python train.py --tokenizer bpe --bpe_vocab_size 1000     # custom BPE tokenizer
     python train.py --n_layer 4 --n_embd 64 --max_iters 60    # quick smoke test
+    python train.py --device cpu                              # force CPU
+    python train.py --save-every 500 --resume                  # crash-safe, resumable
+
+Checkpoints: `--checkpoint` holds the best-validation weights for inference.
+`--state-path` (default `<checkpoint>.state.pt`) holds the full training
+state (weights, optimizer, step, RNG) for `--resume`.
 """
 
 import argparse
 import contextlib
+import hashlib
+import json
 import math
 import os
 import time
@@ -61,7 +69,10 @@ class Config:
     vocab_size: int = 0  # filled in after tokenizing
 
 
-def pick_device():
+def pick_device(device="auto"):
+    """`auto` keeps the historical pick; anything else is returned as given."""
+    if device != "auto":
+        return device
     if torch.cuda.is_available():  # NVIDIA (CUDA) and AMD (ROCm) both land here
         return "cuda"
     if torch.backends.mps.is_available():
@@ -366,6 +377,118 @@ def param_report(model, cfg):
     return total, active
 
 
+# ------------------------------------------------------------ checkpoints
+
+STATE_FORMAT = 2
+
+
+def atomic_save(obj, path):
+    """Write obj to path via a temp file in the same directory, then rename.
+
+    The target only ever holds a complete checkpoint: a crash mid-write
+    leaves the previous file untouched and removes the temp file.
+    """
+    target = os.path.abspath(path)
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    tmp = target + ".tmp"
+    try:
+        with open(tmp, "wb") as f:
+            torch.save(obj, f)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, target)
+    except BaseException:
+        if os.path.exists(tmp):
+            os.remove(tmp)
+        raise
+    return target
+
+
+def default_state_path(checkpoint):
+    """Resume state next to the output checkpoint: ckpt.pt -> ckpt.state.pt."""
+    root, _ext = os.path.splitext(os.path.abspath(checkpoint))
+    return root + ".state.pt"
+
+
+def _fingerprint_payload(cfg, args, tok_info):
+    """What a resume must match. Deliberately excluded: max_iters (extending a
+    run is allowed, but it does change the LR schedule), eval_interval,
+    save_every, seed, paths and device (the RNG state is restored)."""
+    return {
+        "config": asdict(cfg),
+        "batch_size": args.batch_size,
+        "lr": args.lr,
+        "warmup_iters": args.warmup_iters,
+        "tokenizer_type": (tok_info or {}).get("type"),
+    }
+
+
+def config_fingerprint(cfg, args, tok_info):
+    payload = json.dumps(_fingerprint_payload(cfg, args, tok_info), sort_keys=True)
+    return hashlib.sha256(payload.encode()).hexdigest()
+
+
+def capture_rng_state():
+    state = {"torch": torch.get_rng_state()}
+    if torch.cuda.is_available() and torch.cuda.is_initialized():
+        state["cuda"] = torch.cuda.get_rng_state_all()
+    return state
+
+
+def restore_rng_state(state):
+    torch.set_rng_state(state["torch"])
+    if "cuda" in state and torch.cuda.is_available():
+        torch.cuda.set_rng_state_all(state["cuda"])
+
+
+def save_train_state(path, *, model, optimizer, step, best_val, best_state,
+                     cfg, tok_info, args):
+    atomic_save({
+        "format": STATE_FORMAT,
+        "kind": "train_state",
+        "model": model.state_dict(),
+        "optimizer": optimizer.state_dict(),
+        "step": step,
+        "best_val": best_val,
+        "best_model": best_state,
+        "config": asdict(cfg),
+        "tokenizer": tok_info,
+        "args": vars(args),
+        "rng": capture_rng_state(),
+        "fingerprint": config_fingerprint(cfg, args, tok_info),
+        "fingerprint_payload": _fingerprint_payload(cfg, args, tok_info),
+    }, path)
+    return path
+
+
+def load_train_state(path, cfg, args, tok_info):
+    state = torch.load(path, map_location="cpu", weights_only=False)
+    if state.get("kind") != "train_state" or state.get("format") != STATE_FORMAT:
+        raise ValueError(
+            f"{path} is not a resumable training state "
+            f"(format {state.get('format')!r}, kind {state.get('kind')!r}). "
+            f"Use --checkpoint for the inference artifact and --state-path for resume.")
+    want = _fingerprint_payload(cfg, args, tok_info)
+    got = state.get("fingerprint_payload")
+    if got != want or state.get("fingerprint") != config_fingerprint(cfg, args, tok_info):
+        diffs = []
+        if isinstance(got, dict):
+            for key in sorted(set(want) | set(got)):
+                a, b = got.get(key), want.get(key)
+                if a != b:
+                    if key == "config" and isinstance(a, dict) and isinstance(b, dict):
+                        for name in sorted(set(a) | set(b)):
+                            if a.get(name) != b.get(name):
+                                diffs.append(f"{name}: {a.get(name)!r} in checkpoint, "
+                                             f"{b.get(name)!r} now")
+                    else:
+                        diffs.append(f"{key}: {a!r} in checkpoint, {b!r} now")
+        detail = "; ".join(diffs) if diffs else "fingerprint mismatch"
+        raise ValueError(f"resume config mismatch ({detail}). A run can only be "
+                         f"resumed with the config it was trained with.")
+    return state
+
+
 # --------------------------------------------------------------- training
 
 def lr_at(step, max_iters, warmup_iters, base_lr):
@@ -392,6 +515,59 @@ def estimate_loss(model, train_data, val_data, args, device, autocast):
     return losses
 
 
+def run_training(model, optimizer, train_data, val_data, args, device, autocast,
+                 tok_info, start_step=0, best_val=float("inf"), best_state=None):
+    """Train from start_step to args.max_iters (or args.stop_after).
+
+    Writes a resumable state every `save_every` iterations and at an early
+    stop. Returns (best_val, best_state, per-iteration losses).
+    """
+    save_every = args.eval_interval if args.save_every is None else max(0, args.save_every)
+    state_path = args.state_path or default_state_path(args.checkpoint)
+    last_step = args.max_iters if args.stop_after is None else min(args.stop_after, args.max_iters)
+    stops_early = last_step < args.max_iters
+    final_step = None if stops_early else args.max_iters - 1
+
+    losses = []
+    t0 = time.time()
+    for step in range(start_step, last_step):
+        lr = lr_at(step, args.max_iters, args.warmup_iters, args.lr)
+        for g in optimizer.param_groups:
+            g["lr"] = lr
+
+        x, y = get_batch(train_data, args.block_size, args.batch_size, device)
+        with autocast:
+            _, loss = model(x, y)
+        optimizer.zero_grad(set_to_none=True)
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        optimizer.step()
+        losses.append(loss.item())
+
+        if step % 100 == 0 or step == final_step:
+            elapsed = time.time() - t0
+            mem = f" | mem {torch.cuda.memory_allocated() / 1e9:.1f}GB" if device == "cuda" else ""
+            print(f"iter {step:5d} | loss {loss.item():.4f} | lr {lr:.2e} | "
+                  f"{(step - start_step) / max(elapsed, 1e-9):.1f} it/s{mem}")
+
+        if step % args.eval_interval == 0 or step == final_step:
+            evaluated = estimate_loss(model, train_data, val_data, args, device, autocast)
+            print(f"  eval | train loss {evaluated['train']:.4f} | val loss {evaluated['val']:.4f}")
+            if evaluated["val"] < best_val:
+                best_val = evaluated["val"]
+                # early stopping: keep the best-validation weights, not the last
+                best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+
+        due = save_every > 0 and (step + 1) % save_every == 0 and step + 1 < args.max_iters
+        if due or (stops_early and step == last_step - 1):
+            save_train_state(state_path, model=model, optimizer=optimizer, step=step + 1,
+                             best_val=best_val, best_state=best_state, cfg=model.cfg,
+                             tok_info=tok_info, args=args)
+            print(f"  state  -> {state_path} (iter {step + 1})")
+
+    return best_val, best_state, losses
+
+
 @torch.no_grad()
 def generate(model, encode, decode, device, prompt="\n", max_new_tokens=500,
              temperature=0.8, top_k=40):
@@ -409,7 +585,7 @@ def generate(model, encode, decode, device, prompt="\n", max_new_tokens=500,
     return decode(idx[0].tolist())
 
 
-def main():
+def parse_args(argv=None):
     p = argparse.ArgumentParser(description="veylith v2: train a miniature frontier-style GPT from scratch")
     p.add_argument("--tokenizer", choices=["char", "bpe"], default="char")
     p.add_argument("--bpe_vocab_size", type=int, default=1000)
@@ -435,10 +611,25 @@ def main():
     p.add_argument("--eval_iters", type=int, default=50)
     p.add_argument("--seed", type=int, default=1337)
     p.add_argument("--checkpoint", type=str, default="checkpoints/ckpt.pt")
-    args = p.parse_args()
+    p.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto",
+                   help="auto keeps the historical pick: CUDA/ROCm, then MPS, then CPU")
+    p.add_argument("--save-every", type=int, default=None,
+                   help="write a resumable state every N iterations "
+                        "(default: eval_interval, 0 disables)")
+    p.add_argument("--state-path", type=str, default=None,
+                   help="resume state path (default: next to --checkpoint, <name>.state.pt)")
+    p.add_argument("--resume", nargs="?", const="auto", default=None, metavar="PATH",
+                   help="resume from a training state; bare --resume uses the default path")
+    p.add_argument("--stop-after", type=int, default=None,
+                   help="stop after N iterations and save state; --max_iters still sets the LR schedule")
+    return p.parse_args(argv)
+
+
+def main():
+    args = parse_args()
 
     torch.manual_seed(args.seed)
-    device = pick_device()
+    device = pick_device(args.device)
     suffix = f" ({torch.cuda.get_device_name(0)})" if device == "cuda" else ""
     print(f"device: {device}{suffix}")
 
@@ -469,45 +660,47 @@ def main():
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
-    best_val = float("inf")
-    best_state = None
-    t0 = time.time()
-    for step in range(args.max_iters):
-        lr = lr_at(step, args.max_iters, args.warmup_iters, args.lr)
-        for g in optimizer.param_groups:
-            g["lr"] = lr
+    start_step, best_val, best_state = 0, float("inf"), None
+    if args.resume:
+        resume_path = (default_state_path(args.checkpoint)
+                       if args.resume == "auto" else args.resume)
+        if not os.path.exists(resume_path):
+            raise SystemExit(f"no training state at {resume_path}; "
+                             f"start a run with --save-every first")
+        state = load_train_state(resume_path, cfg, args, tok_info)
+        model.load_state_dict(state["model"])
+        optimizer.load_state_dict(state["optimizer"])
+        start_step = int(state["step"])
+        best_val = float(state["best_val"])
+        best_state = state.get("best_model")
+        restore_rng_state(state["rng"])
+        print(f"resumed {resume_path} at iteration {start_step} "
+              f"(best val loss {best_val:.4f})")
+        if start_step >= args.max_iters:
+            print(f"--max_iters {args.max_iters} already reached, nothing to do")
+            return
 
-        x, y = get_batch(train_data, args.block_size, args.batch_size, device)
-        with autocast:
-            _, loss = model(x, y)
-        optimizer.zero_grad(set_to_none=True)
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        optimizer.step()
+    best_val, best_state, losses = run_training(
+        model, optimizer, train_data, val_data, args, device, autocast, tok_info,
+        start_step=start_step, best_val=best_val, best_state=best_state)
 
-        if step % 100 == 0 or step == args.max_iters - 1:
-            elapsed = time.time() - t0
-            mem = f" | mem {torch.cuda.memory_allocated() / 1e9:.1f}GB" if device == "cuda" else ""
-            print(f"iter {step:5d} | loss {loss.item():.4f} | lr {lr:.2e} | "
-                  f"{step / max(elapsed, 1e-9):.1f} it/s{mem}")
-
-        if step % args.eval_interval == 0 or step == args.max_iters - 1:
-            losses = estimate_loss(model, train_data, val_data, args, device, autocast)
-            print(f"  eval | train loss {losses['train']:.4f} | val loss {losses['val']:.4f}")
-            if losses["val"] < best_val:
-                best_val = losses["val"]
-                # early stopping: keep the best-validation weights, not the last
-                best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+    if start_step + len(losses) < args.max_iters:
+        state_path = args.state_path or default_state_path(args.checkpoint)
+        print(f"\nstopped after {start_step + len(losses)} iterations, "
+              f"resume with --resume {state_path}")
+        return
 
     if best_state is not None:
         model.load_state_dict(best_state)
 
-    os.makedirs(os.path.dirname(args.checkpoint), exist_ok=True)
-    torch.save({
+    atomic_save({
+        "format": STATE_FORMAT,
+        "kind": "model",
         "model": model.state_dict(),
         "config": asdict(cfg),  # plain dict: pickles without a __main__ class reference
         "tokenizer": tok_info,
         "val_loss": best_val,
+        "step": start_step + len(losses),
         "args": vars(args),
     }, args.checkpoint)
     print(f"\nsaved checkpoint -> {args.checkpoint} (best val loss {best_val:.4f})")

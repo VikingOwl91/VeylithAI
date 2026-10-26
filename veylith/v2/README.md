@@ -25,6 +25,39 @@ python train.py --tokenizer bpe --bpe_vocab_size 1000     # custom BPE
 python sample.py                                          # generate from checkpoint
 ```
 
+## Checkpoints and resume
+
+Two files, each with one job:
+
+| file | default | contents |
+|---|---|---|
+| inference artifact | `--checkpoint`, `checkpoints/ckpt.pt` | best-validation weights, config, tokenizer; what `sample.py` loads |
+| training state | `--state-path`, `<checkpoint>.state.pt` | weights, optimizer state, global step, best weights, RNG state; for `--resume` |
+
+- Writes are atomic (temp file plus `os.replace`), so a crash never leaves a
+  truncated file and never damages the previous checkpoint.
+- The resumable state is written every `--save-every` iterations (default:
+  `--eval_interval`, `0` disables) and when `--stop-after N` pauses a run.
+- `--stop-after N` pauses without writing the inference artifact; continue with
+  `--resume`.
+- `--resume` restores weights, optimizer, global step, best-validation state and
+  RNG. On CPU the continuation matches an uninterrupted run exactly, including
+  the per-iteration losses.
+- Resume is refused when the training config changed. Allowed: raising
+  `--max_iters` (this changes the LR schedule, so the curve is not the same),
+  `--eval_interval`, `--save-every`, `--seed`, `--device` and paths. Rejected:
+  every field of the model config (`n_layer`, `n_embd`, `n_experts`,
+  `block_size`, `dropout`, ...), `--batch_size`, `--lr`, `--warmup_iters` and
+  the tokenizer type.
+- A state file is about 410 MB for the default model: weights, two Adam moments
+  and the best weights.
+
+Tests run on CPU only:
+
+```bash
+python -m pytest veylith/v2/tests -q
+```
+
 ## Notes
 
 - MoE training uses the classic Switch-style auxiliary load-balancing
