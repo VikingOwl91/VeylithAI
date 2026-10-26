@@ -47,6 +47,8 @@ def build_parser() -> argparse.ArgumentParser:
     inspect.add_argument("--backend", default="auto", choices=["auto", "http", "datasets"])
     inspect.add_argument("--path", default=None, help="local-jsonl source file")
     inspect.add_argument("--limit", type=int, default=10)
+    inspect.add_argument("--page-delay", type=float, default=0.0,
+                         help="seconds between source pages (rate-limit pacing)")
     inspect.add_argument("--chars", type=int, default=100, help="preview characters")
     inspect.set_defaults(func=cmd_inspect)
 
@@ -66,6 +68,8 @@ def build_parser() -> argparse.ArgumentParser:
     prep.add_argument("--near-dup-hamming", type=int, default=3)
     prep.add_argument("--max-rows", type=int, default=None)
     prep.add_argument("--seed", type=int, default=0)
+    prep.add_argument("--page-delay", type=float, default=0.0,
+                      help="seconds between source pages (rate-limit pacing)")
     prep.add_argument("--resume", action="store_true")
     prep.set_defaults(func=cmd_prepare)
 
@@ -78,7 +82,17 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--root", default=DEFAULT_ROOT)
     verify.add_argument("--deep", action="store_true",
                         help="decode every token span and compare text hashes")
+    verify.add_argument("--near-dups", action="store_true",
+                        help="recompute SimHashes and fail on near-duplicate pairs")
+    verify.add_argument("--near-dup-hamming", type=int, default=3)
     verify.set_defaults(func=cmd_verify)
+
+    compare = sub.add_parser("compare-tokenizers",
+                             help="train and compare BPE vocabularies on the train split")
+    compare.add_argument("--root", default=DEFAULT_ROOT)
+    compare.add_argument("--vocabs", default="4096,8192")
+    compare.add_argument("--out", default=None)
+    compare.set_defaults(func=cmd_compare)
 
     batches = sub.add_parser("batches", help="print deterministic batch metadata")
     batches.add_argument("--root", default=DEFAULT_ROOT)
@@ -89,6 +103,8 @@ def build_parser() -> argparse.ArgumentParser:
     batches.add_argument("--epochs", type=int, default=1)
     batches.add_argument("--seed", type=int, default=0)
     batches.add_argument("--mode", default="concat", choices=["concat", "document"])
+    batches.add_argument("--start-epoch", type=int, default=0)
+    batches.add_argument("--start-batch", type=int, default=0)
     batches.set_defaults(func=cmd_batches)
     return parser
 
@@ -96,7 +112,8 @@ def build_parser() -> argparse.ArgumentParser:
 def _open(args):
     return sources.open_source(
         args.source, config=args.config, revision=args.revision,
-        backend=args.backend, path=getattr(args, "path", None))
+        backend=args.backend, path=getattr(args, "path", None),
+        page_delay=getattr(args, "page_delay", 0.0))
 
 
 def cmd_source_info(args) -> int:
@@ -160,13 +177,43 @@ def cmd_tokenize(args) -> int:
 
 def cmd_verify(args) -> int:
     result = ds.verify_corpus(args.root, deep=args.deep)
-    if result["ok"]:
-        print(f"ok: digest={result['digest']} counts={json.dumps(result['counts'])}")
-        return 0
-    print("FAILED:")
-    for problem in result["problems"]:
-        print(f"  - {problem}")
-    return 1
+    if not result["ok"]:
+        print("FAILED:")
+        for problem in result["problems"]:
+            print(f"  - {problem}")
+        return 1
+    print(f"ok: digest={result['digest']} counts={json.dumps(result['counts'])}")
+    if args.near_dups:
+        near = prepare.find_near_duplicate_pairs(args.root, hamming=args.near_dup_hamming)
+        print(f"near-duplicates: checked={near['checked']} pairs={len(near['pairs'])} "
+              f"skipped_buckets={near['skipped_buckets']}")
+        if near["pairs"]:
+            for pair in near["pairs"][:20]:
+                print(f"  - {pair['left']} ({pair['left_split']}) ~ "
+                      f"{pair['right']} ({pair['right_split']}) hamming={pair['hamming']}")
+            return 1
+    return 0
+
+
+def cmd_compare(args) -> int:
+    from . import tokenizer_compare
+    vocabs = [int(value) for value in args.vocabs.split(",") if value.strip()]
+    if not vocabs:
+        raise ValueError("--vocabs must list at least one size")
+    out = args.out or os.path.join(ds.corpus_dir(args.root), "tokenizer-comparison.json")
+    payload = tokenizer_compare.write_comparison(args.root, out, vocabs=vocabs)
+    print(f"wrote {out}")
+    for vocab in sorted(payload["vocabs"], key=int):
+        entry = payload["vocabs"][vocab]
+        print(f"  vocab {vocab:>5}: chars/token {entry['chars_per_token']:.4f} "
+              f"fertility {entry['fertility_tokens_per_word']:.4f} "
+              f"tokens/doc mean {entry['tokens_per_doc']['mean']:.1f} "
+              f"doc_chunks {entry['document_chunks_seq256']} "
+              f"train {entry['train_seconds']:.1f}s "
+              f"rss {entry['peak_rss_bytes'] / 1e6:.0f}MB "
+              f"roundtrip_failures {entry['roundtrip_failures']}")
+    print(f"preliminary default: {payload['preliminary_default']}")
+    return 0
 
 
 def cmd_batches(args) -> int:
@@ -180,7 +227,9 @@ def cmd_batches(args) -> int:
           f"mode={plan['mode']}, seq_len={plan['seq_len']}")
     for batch in loader.iter_batches(plan, args.root, batch_size=args.batch_size,
                                      epochs=args.epochs, seed=args.seed,
-                                     max_batches=args.batches):
+                                     max_batches=args.batches,
+                                     start_epoch=args.start_epoch,
+                                     start_batch=args.start_batch):
         print(f"epoch={batch['epoch']} batch={batch['batch']} "
               f"indices={batch['indices']} lengths={batch['lengths']} "
               f"order={batch['order_digest'][:16]}")

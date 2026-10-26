@@ -212,3 +212,19 @@ def test_manifest_records_revision_license_and_filters(tmp_path):
     assert manifest["split_policy"]["val_permille"] == 200
     assert manifest["dedup"]["canonical"] == "min doc_key of the cluster"
     assert len(manifest["digest"]) == 64
+
+
+def test_near_duplicate_pairs_are_clean_after_dedup(tmp_path):
+    docs = support.make_docs(12)
+    shared = support.make_text(500)
+    docs.append({"id": "near-a", "text": shared,
+                 "meta": {"language": "en", "language_score": 0.95, "int_score": 4}})
+    docs.append({"id": "near-b", "text": shared + " " + shared,
+                 "meta": {"language": "en", "language_score": 0.95, "int_score": 4}})
+    source = support.FakeSource(docs)
+    root, manifest = support.prepare_root(tmp_path, source, docs=len(docs),
+                                          val_permille=300, test_permille=300)
+    assert manifest["counts"]["near_duplicates"] >= 1
+    result = prepare.find_near_duplicate_pairs(root)
+    assert result["pairs"] == []
+    assert result["checked"] == sum(manifest["counts"]["documents"].values())

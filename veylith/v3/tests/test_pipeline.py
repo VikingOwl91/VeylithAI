@@ -186,9 +186,11 @@ def test_cli_end_to_end_with_a_local_source(tmp_path):
     assert token_cmd.returncode == 0, token_cmd.stderr
     assert "total tokens:" in token_cmd.stdout
 
-    verify_cmd = _run_cli(["verify", "--root", str(root), "--deep"], cwd=tmp_path)
+    verify_cmd = _run_cli(["verify", "--root", str(root), "--deep", "--near-dups"],
+                          cwd=tmp_path)
     assert verify_cmd.returncode == 0, verify_cmd.stderr
     assert verify_cmd.stdout.startswith("ok: digest=")
+    assert "near-duplicates: checked=" in verify_cmd.stdout
 
     batch_cmd = _run_cli(["batches", "--root", str(root), "--seq-len", "16",
                           "--batch-size", "2", "--batches", "1"], cwd=tmp_path)
@@ -242,3 +244,40 @@ def test_fineweb_http_smoke():
     assert documents[0].doc_key.startswith(
         "HuggingFaceFW/fineweb-edu@" + documents[0].revision)
     assert documents[0].text
+
+
+def test_iter_batches_resumes_at_a_saved_position(tmp_path):
+    source = support.FakeSource(support.make_docs(20))
+    root, manifest, tokenization = support.stage_and_tokenize(tmp_path, source, docs=20)
+    plan = loader.plan_sequences(root, split="train", seq_len=16, mode="concat")
+    full = list(loader.iter_batches(plan, root, batch_size=3, seed=7))
+    tail = list(loader.iter_batches(plan, root, batch_size=3, seed=7, start_batch=2))
+    assert [batch["indices"] for batch in tail] == [batch["indices"] for batch in full[2:]]
+    assert [batch["batch"] for batch in tail] == [batch["batch"] for batch in full[2:]]
+    assert [batch["order_digest"] for batch in tail] == [
+        batch["order_digest"] for batch in full[2:]]
+
+    second = list(loader.iter_batches(plan, root, batch_size=3, seed=7, start_epoch=1))
+    sampler = loader.EpochSampler(len(plan["sequences"]), seed=7)
+    assert second[0]["epoch"] == 1
+    assert second[0]["indices"] == sampler.order(1)[:3].tolist()
+    assert second[0]["order_digest"] == sampler.digest(1)
+
+
+def test_tokenizer_comparison_reports_the_expected_metrics(tmp_path):
+    from data_pipeline import tokenizer_compare
+    source = support.FakeSource(support.make_docs(20))
+    root, manifest, tokenization = support.stage_and_tokenize(tmp_path, source, docs=20)
+    payload = tokenizer_compare.build_comparison(root, vocabs=(300, 512))
+    assert set(payload["vocabs"]) == {"300", "512"}
+    assert payload["heldout_documents"] > 0
+    assert payload["preliminary_default"] in (300, 512)
+    for vocab, entry in payload["vocabs"].items():
+        assert entry["chars_per_token"] > 0
+        assert entry["fertility_tokens_per_word"] > 0
+        assert entry["tokens_per_doc"]["mean"] > 0
+        assert entry["roundtrip_failures"] == 0
+        assert entry["special_ids"] == {"unk": 0, "bos": 1, "eos": 2, "pad": 3}
+        expected = 25_602_304 - 2 * 1000 * 256 + 2 * int(vocab) * 256
+        assert entry["params_total_v2_shape"] == expected
+        assert entry["peak_rss_bytes"] >= 0

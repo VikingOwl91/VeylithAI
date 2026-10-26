@@ -1,0 +1,136 @@
+{
+  "corpus_digest": "e995fdead3a6bf57d6db5f768f19c4363515d44a9a0bdbf860539e454711dfdc",
+  "heldout_chars": 809138,
+  "heldout_documents": 226,
+  "heldout_words": 131031,
+  "note": "chars/token and fertility are measured on held-out text; they do not measure model quality",
+  "preliminary_default": 8192,
+  "seq_len": 256,
+  "source_revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+  "train_chars": 40674730,
+  "train_documents": 11173,
+  "vocabs": {
+    "4096": {
+      "chars_per_token": 3.4663,
+      "concat_sequences_seq256": 912,
+      "document_chunks_seq256": 1025,
+      "fertility_tokens_per_word": 1.7815,
+      "heldout_tokens": 233433,
+      "model": "tokenizer/bpe4096.model",
+      "model_sha256": "ac9c655c6215f2308d13e2e337d472aa8c0821faaaefb13c07356fea83986bda",
+      "params_embedding_and_head": 2097152,
+      "params_total_v2_shape": 27187456,
+      "peak_rss_bytes": 444137472,
+      "probes": {
+        "cjk": {
+          "roundtrip": true,
+          "tokens": 24,
+          "unk_used": false
+        },
+        "combining": {
+          "roundtrip": true,
+          "tokens": 5,
+          "unk_used": false
+        },
+        "emoji": {
+          "roundtrip": true,
+          "tokens": 10,
+          "unk_used": false
+        },
+        "empty": {
+          "roundtrip": true,
+          "tokens": 0,
+          "unk_used": false
+        },
+        "unknown_token": {
+          "roundtrip": true,
+          "tokens": 4,
+          "unk_used": false
+        },
+        "whitespace": {
+          "roundtrip": true,
+          "tokens": 7,
+          "unk_used": false
+        }
+      },
+      "roundtrip_failures": 0,
+      "special_ids": {
+        "bos": 1,
+        "eos": 2,
+        "pad": 3,
+        "unk": 0
+      },
+      "tokens_per_doc": {
+        "max": 5170,
+        "mean": 1032.889,
+        "median": 733.5,
+        "p95": 3161.75
+      },
+      "train_seconds": 2.414,
+      "train_text_sha256": "f44dcf7de18d2ac7230517fbe5158db94829f38e7009d73c29c4e8ceba3c3585",
+      "unk_usage_in_heldout": 0,
+      "vocab_sha256": "901e42b208748270ba99fd640acc9bf6e2473d39301f4110a7ff3697b3049b30"
+    },
+    "8192": {
+      "chars_per_token": 3.9412,
+      "concat_sequences_seq256": 802,
+      "document_chunks_seq256": 922,
+      "fertility_tokens_per_word": 1.5668,
+      "heldout_tokens": 205301,
+      "model": "tokenizer/bpe8192.model",
+      "model_sha256": "537afa0a4c64690bb5131db1f3d7e1c490f378a6647c35b57c7f73e252a61df6",
+      "params_embedding_and_head": 4194304,
+      "params_total_v2_shape": 29284608,
+      "peak_rss_bytes": 453341184,
+      "probes": {
+        "cjk": {
+          "roundtrip": true,
+          "tokens": 24,
+          "unk_used": false
+        },
+        "combining": {
+          "roundtrip": true,
+          "tokens": 5,
+          "unk_used": false
+        },
+        "emoji": {
+          "roundtrip": true,
+          "tokens": 10,
+          "unk_used": false
+        },
+        "empty": {
+          "roundtrip": true,
+          "tokens": 0,
+          "unk_used": false
+        },
+        "unknown_token": {
+          "roundtrip": true,
+          "tokens": 3,
+          "unk_used": false
+        },
+        "whitespace": {
+          "roundtrip": true,
+          "tokens": 7,
+          "unk_used": false
+        }
+      },
+      "roundtrip_failures": 0,
+      "special_ids": {
+        "bos": 1,
+        "eos": 2,
+        "pad": 3,
+        "unk": 0
+      },
+      "tokens_per_doc": {
+        "max": 4693,
+        "mean": 908.412,
+        "median": 659.5,
+        "p95": 2783.25
+      },
+      "train_seconds": 2.558,
+      "train_text_sha256": "f44dcf7de18d2ac7230517fbe5158db94829f38e7009d73c29c4e8ceba3c3585",
+      "unk_usage_in_heldout": 0,
+      "vocab_sha256": "4181b0c390a02fc9cd5df67df395eebbccee1ae755c1829cfa1c28f1452ddf60"
+    }
+  }
+}

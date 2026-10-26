@@ -130,3 +130,37 @@ def test_planned_sources_are_documented_but_not_implemented():
 def test_local_source_requires_a_path():
     with pytest.raises(sources.SourceError):
         sources.open_source("local-jsonl")
+
+
+def test_http_429_uses_a_longer_bounded_backoff():
+    url = "https://datasets-server.huggingface.co/rows"
+    items = [urllib.error.HTTPError(url, 429, "rate limited", {}, None),
+             rows_payload(1)]
+    opener, calls = make_opener(items)
+    delays = []
+    source = sources.FineWebEdu(revision="rev-123", opener=opener,
+                                sleep=delays.append)
+    documents = list(source.iter_documents(limit_rows=1))
+    assert len(documents) == 1
+    assert delays == [10.0]
+
+
+def test_page_delay_is_applied_only_between_pages():
+    opener, calls = make_opener([rows_payload(100), rows_payload(1)])
+    delays = []
+    source = sources.FineWebEdu(revision="rev-123", opener=opener,
+                                sleep=delays.append, page_delay=0.25)
+    documents = list(source.iter_documents(limit_rows=101))
+    assert len(documents) == 101
+    assert delays == [0.25]
+    assert len(calls) == 2
+
+
+def test_datasets_backend_reports_a_missing_dependency():
+    import importlib.util
+    if importlib.util.find_spec("datasets") is not None:
+        pytest.skip("datasets is installed; the missing-dependency path is not reachable")
+    source = sources.FineWebEdu(revision="rev-123", backend="datasets")
+    with pytest.raises(sources.MissingDependencyError) as err:
+        list(source._iter_datasets("rev-123", 0, None, 1))
+    assert "not installed" in str(err.value)

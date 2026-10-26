@@ -1,0 +1,315 @@
+{
+  "counts": {
+    "accepted": 11400,
+    "chars": {
+      "test": 342051,
+      "train": 40674730,
+      "validation": 467087
+    },
+    "documents": {
+      "test": 101,
+      "train": 11173,
+      "validation": 125
+    },
+    "exact_duplicates": 1,
+    "near_duplicates": 0,
+    "rejected": {
+      "too_long": 354
+    },
+    "rows_seen": 11754
+  },
+  "dedup": {
+    "canonical": "min doc_key of the cluster",
+    "exact": "sha256(normalized_text)",
+    "horizon": "all documents staged in this run",
+    "max_bucket": 4096,
+    "near": "simhash64 over word 5-grams, 4 bands x 16 bits, hamming <= 3"
+  },
+  "digest": "e995fdead3a6bf57d6db5f768f19c4363515d44a9a0bdbf860539e454711dfdc",
+  "documents": {
+    "test": [
+      {
+        "bytes": 385158,
+        "chars": 342051,
+        "docs": 101,
+        "path": "documents/test/test-00000.jsonl",
+        "sha256": "8b003ef0fc207aded22b405db1204d6b11cb6b3ff678d15f8e62e8bfcd22cfcd"
+      }
+    ],
+    "train": [
+      {
+        "bytes": 4287103,
+        "chars": 3858939,
+        "docs": 1000,
+        "path": "documents/train/train-00000.jsonl",
+        "sha256": "e180c4c6df2422ce1db0284833a9eb2ca53e4a61e457e4b28d9982076ec23748"
+      },
+      {
+        "bytes": 4067410,
+        "chars": 3640978,
+        "docs": 1000,
+        "path": "documents/train/train-00001.jsonl",
+        "sha256": "54bc2f9a016e7c5074152bbf3076d5baf0cf19df10855fb1d04f58e4bcd5fee2"
+      },
+      {
+        "bytes": 4099702,
+        "chars": 3674159,
+        "docs": 1000,
+        "path": "documents/train/train-00002.jsonl",
+        "sha256": "3cc7d1b3a12f73c685abaf2cab6b39b41af8385ec8e3be511e68a2f51f91a74b"
+      },
+      {
+        "bytes": 4096227,
+        "chars": 3672709,
+        "docs": 1000,
+        "path": "documents/train/train-00003.jsonl",
+        "sha256": "38603f573f785250485cb00719551400b8f1144a0dcec370de959234d979a154"
+      },
+      {
+        "bytes": 4190981,
+        "chars": 3766362,
+        "docs": 1000,
+        "path": "documents/train/train-00004.jsonl",
+        "sha256": "cace2fe07080658fa74d0f4ea9806e3b5f3a76c9347248a003b4e8a983a13bcc"
+      },
+      {
+        "bytes": 4059754,
+        "chars": 3631951,
+        "docs": 1000,
+        "path": "documents/train/train-00005.jsonl",
+        "sha256": "bf368176aeaf085734be32e729aeef2f585008fd474b1c8c186436f1e8919054"
+      },
+      {
+        "bytes": 3984427,
+        "chars": 3558783,
+        "docs": 1000,
+        "path": "documents/train/train-00006.jsonl",
+        "sha256": "c196534d4dd16c52cd9d021a5b801867a1237c3f4d56f58f89ce30eeba90c6d0"
+      },
+      {
+        "bytes": 3983458,
+        "chars": 3558570,
+        "docs": 1000,
+        "path": "documents/train/train-00007.jsonl",
+        "sha256": "61853334b48c82aeb84a53870ffd4fa544f34b7e369ca2d04073e87de73ccb27"
+      },
+      {
+        "bytes": 3941886,
+        "chars": 3516909,
+        "docs": 1000,
+        "path": "documents/train/train-00008.jsonl",
+        "sha256": "b2c2f6925c83d3a257a57da750873d5976243e139093ba9e8d19c568542c4acb"
+      },
+      {
+        "bytes": 3998936,
+        "chars": 3571554,
+        "docs": 1000,
+        "path": "documents/train/train-00009.jsonl",
+        "sha256": "23bb923c0ea539e0807dc39a52e792e4f5550f106ca1ae34e108957012a379c0"
+      },
+      {
+        "bytes": 3974507,
+        "chars": 3549639,
+        "docs": 1000,
+        "path": "documents/train/train-00010.jsonl",
+        "sha256": "6740b211fbd9e49bda63b9da57ec4920a6cead18b6392d640f50e13ee00c5100"
+      },
+      {
+        "bytes": 750216,
+        "chars": 674177,
+        "docs": 173,
+        "path": "documents/train/train-00011.jsonl",
+        "sha256": "3af70170706dacd1a1a09051fe8fcabdffbdafb994fc5437e2e773a98a955e49"
+      }
+    ],
+    "validation": [
+      {
+        "bytes": 520784,
+        "chars": 467087,
+        "docs": 125,
+        "path": "documents/validation/validation-00000.jsonl",
+        "sha256": "09166e539f0fdaf9bac42cd116d92271d71044cce3338fdd81b8a75e01800fc0"
+      }
+    ]
+  },
+  "filter_version": "v1",
+  "filters": {
+    "filter_version": "v1",
+    "max_chars": 20000,
+    "max_replacement_ratio": 0.01,
+    "min_chars": 200,
+    "min_int_score": 3,
+    "min_language_score": 0.65,
+    "min_letter_ratio": 0.5,
+    "require_language": "en"
+  },
+  "format_version": 1,
+  "pipeline_version": "0.1.0",
+  "seed": 0,
+  "source": {
+    "access": "public",
+    "backend": "http",
+    "config": "sample-10BT",
+    "dataset_id": "HuggingFaceFW/fineweb-edu",
+    "license": "odc-by",
+    "license_url": "https://opendatacommons.org/licenses/by/1-0/",
+    "name": "fineweb-edu",
+    "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+    "split": "train"
+  },
+  "split_policy": {
+    "assignment": "int(sha256(doc_key)[:8],16) % 1000; test < test_permille, validation < test+val, else train",
+    "test_permille": 10,
+    "val_permille": 10
+  },
+  "tokenization": {
+    "special_ids": {
+      "bos": 1,
+      "eos": 2,
+      "pad": 3,
+      "unk": 0
+    },
+    "splits": {
+      "test": {
+        "docs": 101,
+        "shards": [
+          {
+            "bytes": 172038,
+            "docs": 101,
+            "meta": "tokens/test/test-00000.meta.json",
+            "path": "tokens/test/test-00000.tokens.npy",
+            "sha256": "8a651c79edc9a3e51eb9081a3edab8466ee9b86838e701398b3da6399a302fed",
+            "tokens": 85955
+          }
+        ],
+        "tokens": 85955
+      },
+      "train": {
+        "docs": 11173,
+        "shards": [
+          {
+            "bytes": 1960490,
+            "docs": 1000,
+            "meta": "tokens/train/train-00000.meta.json",
+            "path": "tokens/train/train-00000.tokens.npy",
+            "sha256": "ebed188b0356d14aa71ec8bd0e9794b083253588f1f2cd8cc7e031f5d9ae0609",
+            "tokens": 980181
+          },
+          {
+            "bytes": 1863308,
+            "docs": 1000,
+            "meta": "tokens/train/train-00001.meta.json",
+            "path": "tokens/train/train-00001.tokens.npy",
+            "sha256": "52c2756baba206ed7633c35fe56b85320852ff345642ca5bbb87bcdee3832c3d",
+            "tokens": 931590
+          },
+          {
+            "bytes": 1875142,
+            "docs": 1000,
+            "meta": "tokens/train/train-00002.meta.json",
+            "path": "tokens/train/train-00002.tokens.npy",
+            "sha256": "0be484f74904052dfe164f4445d8e83985954b6002c59b19ce998c9a9acf93ba",
+            "tokens": 937507
+          },
+          {
+            "bytes": 1865968,
+            "docs": 1000,
+            "meta": "tokens/train/train-00003.meta.json",
+            "path": "tokens/train/train-00003.tokens.npy",
+            "sha256": "0f9aeea41ef7ade25a8f95ab16b71d613a9cf5eb3504b36f7441750e969b8735",
+            "tokens": 932920
+          },
+          {
+            "bytes": 1920404,
+            "docs": 1000,
+            "meta": "tokens/train/train-00004.meta.json",
+            "path": "tokens/train/train-00004.tokens.npy",
+            "sha256": "d4f0deee9f771d2cafb7cf243ba07dab00bdb76f8fe6661f3c263bf84be3f97c",
+            "tokens": 960138
+          },
+          {
+            "bytes": 1845758,
+            "docs": 1000,
+            "meta": "tokens/train/train-00005.meta.json",
+            "path": "tokens/train/train-00005.tokens.npy",
+            "sha256": "adb8d5b46ea886cc4e9015683d730969b050e4157333f80952801f17c2bd0d64",
+            "tokens": 922815
+          },
+          {
+            "bytes": 1814156,
+            "docs": 1000,
+            "meta": "tokens/train/train-00006.meta.json",
+            "path": "tokens/train/train-00006.tokens.npy",
+            "sha256": "2d11ddeb297565015bfa788671e0fa476288658bde8265dd76947e2462a8c7b0",
+            "tokens": 907014
+          },
+          {
+            "bytes": 1792936,
+            "docs": 1000,
+            "meta": "tokens/train/train-00007.meta.json",
+            "path": "tokens/train/train-00007.tokens.npy",
+            "sha256": "8a880001d5273f8e156baf2c615fe4a3c119d96c8e919c706177bd8ca045a89d",
+            "tokens": 896404
+          },
+          {
+            "bytes": 1791338,
+            "docs": 1000,
+            "meta": "tokens/train/train-00008.meta.json",
+            "path": "tokens/train/train-00008.tokens.npy",
+            "sha256": "f93052fa537f77718c31543270027777f40a9a9277cb3a4869c15c9e46c9364b",
+            "tokens": 895605
+          },
+          {
+            "bytes": 1800136,
+            "docs": 1000,
+            "meta": "tokens/train/train-00009.meta.json",
+            "path": "tokens/train/train-00009.tokens.npy",
+            "sha256": "3db2ecad9272e77e5b7969deeb2f2e48448f73c195f5fbb6cdc0c6955edc2ee4",
+            "tokens": 900004
+          },
+          {
+            "bytes": 1791904,
+            "docs": 1000,
+            "meta": "tokens/train/train-00010.meta.json",
+            "path": "tokens/train/train-00010.tokens.npy",
+            "sha256": "6e09acb58d0bc9ad2dedc754a8bada1464d472d0986a560fdd9741318dcdb0cd",
+            "tokens": 895888
+          },
+          {
+            "bytes": 346324,
+            "docs": 173,
+            "meta": "tokens/train/train-00011.meta.json",
+            "path": "tokens/train/train-00011.tokens.npy",
+            "sha256": "f453f5d2aff55304db4f231ef3053c53dc5382ff0ec16ffd3755a93dcd407a87",
+            "tokens": 173098
+          }
+        ],
+        "tokens": 10333164
+      },
+      "validation": {
+        "docs": 125,
+        "shards": [
+          {
+            "bytes": 239272,
+            "docs": 125,
+            "meta": "tokens/validation/validation-00000.meta.json",
+            "path": "tokens/validation/validation-00000.tokens.npy",
+            "sha256": "ce8b5ff4aa0eb58bd149cc608af66ea5a54e8a8e334f1f59b36a7f9b8b2cafec",
+            "tokens": 119572
+          }
+        ],
+        "tokens": 119572
+      }
+    },
+    "tokenizer": {
+      "model": "tokenizer/bpe8192.model",
+      "sha256": "537afa0a4c64690bb5131db1f3d7e1c490f378a6647c35b57c7f73e252a61df6",
+      "train_text": "tokenizer/bpe8192.train.txt",
+      "train_text_sha256": "f44dcf7de18d2ac7230517fbe5158db94829f38e7009d73c29c4e8ceba3c3585",
+      "vocab": "tokenizer/bpe8192.vocab",
+      "vocab_sha256": "4181b0c390a02fc9cd5df67df395eebbccee1ae755c1829cfa1c28f1452ddf60"
+    },
+    "total_tokens": 10538691,
+    "vocab_size": 8192
+  }
+}

@@ -530,3 +530,44 @@ def _flush_documents(documents_new: str, split: str, shard_counts: dict,
     manifest_docs[split].append(entry)
     shard_counts[split] = index + 1
     buffers[split] = []
+
+
+def find_near_duplicate_pairs(root: str, hamming: int = 3,
+                              max_bucket: int = 4096) -> dict:
+    """Recompute SimHashes over kept documents and report pairs within the threshold.
+
+    Deduplication runs before split assignment, so a clean corpus has no pair
+    at or below the threshold, in particular none across splits. This is a
+    post-hoc check for the pilot evidence, not part of the write path.
+    """
+    manifest = ds.read_json(ds.manifest_path(root))
+    entries = []
+    for split in ds.SPLITS:
+        for shard in manifest["documents"][split]:
+            for record in ds.iter_jsonl(ds.resolve(ds.corpus_dir(root), shard["path"])):
+                entries.append((record["doc_key"], split, simhash64(record["text"])))
+    buckets: dict[tuple[int, int], list[tuple]] = {}
+    for entry in entries:
+        for band in range(BANDS):
+            signature = (entry[2] >> (BAND_BITS * band)) & ((1 << BAND_BITS) - 1)
+            buckets.setdefault((band, signature), []).append(entry)
+    pairs: dict[tuple[str, str], dict] = {}
+    skipped = 0
+    for bucket in buckets.values():
+        if len(bucket) < 2:
+            continue
+        if len(bucket) > max_bucket:
+            skipped += 1
+            continue
+        for left_index in range(len(bucket)):
+            for right_index in range(left_index + 1, len(bucket)):
+                left, right = bucket[left_index], bucket[right_index]
+                distance = hamming64(int(left[2]), int(right[2]))
+                if distance <= hamming:
+                    key = tuple(sorted((left[0], right[0])))
+                    pairs[key] = {"left": left[0], "left_split": left[1],
+                                  "right": right[0], "right_split": right[1],
+                                  "hamming": distance}
+    return {"checked": len(entries),
+            "pairs": sorted(pairs.values(), key=lambda item: (item["left"], item["right"])),
+            "skipped_buckets": skipped}

@@ -46,7 +46,7 @@ data-only iteration.
 - No model implementation or architecture change; v2 remains the reference.
 - No GPU training, benchmarking or fault reproduction.
 - No changes to ROCm, PyTorch, the kernel, drivers or system packages.
-- No full 10M/100M-token download in this step.
+- No 100M-token download and no model training in this step.
 - No remote push, no dataset or checkpoint publication.
 - No secrets, no auth tokens in files, logs or manifests.
 
@@ -130,9 +130,10 @@ vocabulary decision is recorded before any model work.
 
 | stage | budget | purpose |
 |---|---|---|
-| streaming smoke | 20 documents, one page | prove adapter, schema, revision |
+| streaming smoke | 100 documents, one page | prove adapter, schema, revision |
 | pilot | 2,000 documents, max 2M characters | prove the full pipeline and tokenizer |
-| 10M-token pilot | about 10M tokens, about 40MB text | first training-data pilot, later |
+| 10M-token pilot | 11,400 documents, 10,333,164 train tokens, 194 MB | done 2026-10-26; 8192 BPE |
+| 100M-token pilot | later, new budget, `datasets` backend | not started, no automatic escalation |
 | 1B-token corpus | later, multi-GB | real v3 pretraining, not this step |
 
 The pilot root lives outside git (`--root`), with only manifests and reports
@@ -172,13 +173,16 @@ committed. No corpus or token shard is committed.
 | M3 tokenizer and tokens | done, 8192 BPE on train only, deep verification |
 | M4 loader | done, concat and document packing, deterministic sampling |
 | M5 pilot | done, 2000 documents / 1.92M tokens, verified |
-| 10M-token pilot | not started, see section 11 |
+| 10M-token pilot | done, 11,399 documents / 10.33M train tokens, 8192 BPE, deep + near-dup verification green |
+| 100M-token pilot | not started, needs a separate budget and the `datasets` backend |
 
 ## 11. Next steps after this step
 
-1. 10M-token pilot on the same pipeline with the `datasets` backend or the
-   paged backend if rate limits allow.
-2. Train the 8192-vocab tokenizer on the 10M-token train split and measure
-   fertility on held-out text.
-3. Only then define the v3 model width/depth and request GPU approval.
-4. Compare against the frozen v2 numbers with the bits/char protocol.
+1. v3.1 starts only with a separate approval: define the v3 model
+   width/depth and compute budget, then exactly one GPU run.
+2. Compare against the frozen v2 numbers with the bits/char protocol; do not
+   compare raw token losses across tokenizers.
+3. Use the 8192 tokenizer as the preliminary default (fertility 1.57 vs
+   1.78 for 4096 on held-out text); no model quality is claimed yet.
+4. A 100M-token pilot is a new, separately approved step with the `datasets`
+   backend, 1 % validation/test and a new root. No automatic escalation.

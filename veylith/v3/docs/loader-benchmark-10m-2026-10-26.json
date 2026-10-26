@@ -1,0 +1,18 @@
+{
+  "batch_size": 8,
+  "batches_per_second": 1095.6,
+  "measured_batches": 200,
+  "measured_tokens": 409600,
+  "order_digest": "27c26f8dc7c71940b7f01b981ea6319c0dbebc37148bc2bcd2ff1f70e10877fa",
+  "peak_rss_mb": 79.6,
+  "plan_seconds": 0.068,
+  "plan_sequences": 40364,
+  "plan_tokens": 10333164,
+  "resume_equal": true,
+  "root": "~/veylith-v3-data/fineweb-10m-20261026",
+  "seq_len": 256,
+  "split": "train",
+  "tokens_per_second": 2243848.5,
+  "verified": true,
+  "wall_seconds": 0.183
+}

@@ -150,18 +150,31 @@ class EpochSampler:
 
 
 def iter_batches(plan: dict, root: str, *, batch_size: int = 4, epochs: int = 1,
-                 seed: int = 0, max_batches: int | None = None):
+                 seed: int = 0, max_batches: int | None = None,
+                 start_epoch: int = 0, start_batch: int = 0,
+                 max_cached_shards: int = 8):
+    """Yield batches; resume at (start_epoch, start_batch) by deterministic skip.
+
+    The skip is exact but linear in the skipped batches. A training loop can
+    checkpoint ``{"epoch": epoch, "batch": batch}`` after each batch and pass
+    the values back to continue the same order.
+    """
     if batch_size <= 0:
         raise ValueError("batch_size must be positive")
+    if start_epoch < 0 or start_batch < 0:
+        raise ValueError("start_epoch and start_batch must be non-negative")
     sequences = plan["sequences"]
     seq_len = plan["seq_len"]
     sampler = EpochSampler(len(sequences), seed)
     cache: dict = {}
     produced = 0
-    for epoch in range(int(epochs)):
+    for epoch in range(int(start_epoch), int(start_epoch) + int(epochs)):
         order = sampler.order(epoch)
         digest = sampler.digest(epoch)
-        for start in range(0, len(order), batch_size):
+        first_batch = int(start_batch) if epoch == int(start_epoch) else 0
+        for batch_index, start in enumerate(range(0, len(order), batch_size)):
+            if batch_index < first_batch:
+                continue
             indices = order[start:start + batch_size]
             tokens = np.full((len(indices), seq_len), plan["pad_id"], dtype=np.uint16)
             lengths = []
@@ -174,9 +187,11 @@ def iter_batches(plan: dict, root: str, *, batch_size: int = 4, epochs: int = 1,
                         f"seq_len is {seq_len}")
                 tokens[row, :len(values)] = values
                 lengths.append(len(values))
+            while len(cache) > max(1, int(max_cached_shards)):
+                cache.pop(next(iter(cache)))
             yield {
                 "epoch": epoch,
-                "batch": start // batch_size,
+                "batch": batch_index,
                 "indices": [int(value) for value in indices],
                 "tokens": tokens,
                 "lengths": lengths,
@@ -210,16 +225,17 @@ def verify_plan(plan: dict, expected_tokens: int | None = None,
             if sequence.length != plan["seq_len"]:
                 problems.append(f"short window {sequence.index} before the end")
     if check_coverage:
-        seen: dict[str, set[int]] = {}
+        spans_by_path: dict[str, list[tuple[int, int]]] = {}
         for sequence in sequences:
             for path, start, take in sequence.segments:
-                bucket = seen.setdefault(path, set())
-                for position in range(start, start + take):
-                    if position in bucket:
-                        problems.append(f"token reuse at {path}:{position}")
-                    bucket.add(position)
-        for path, positions in seen.items():
-            if positions and sorted(positions) != list(range(min(positions),
-                                                              max(positions) + 1)):
-                problems.append(f"coverage gap in {path}")
+                spans_by_path.setdefault(path, []).append((start, start + take))
+        for path, spans in spans_by_path.items():
+            spans.sort()
+            position = 0
+            for start, end in spans:
+                if start < position:
+                    problems.append(f"token reuse at {path}:{start}")
+                elif start > position:
+                    problems.append(f"coverage gap in {path}:{position}..{start}")
+                position = max(position, end)
     return problems

@@ -140,10 +140,12 @@ def _http_json(url: str, *, timeout: float = 60.0, retries: int = 3,
             if exc.code == 429 or 500 <= exc.code < 600:
                 last_error = exc
                 if attempt + 1 < retries:
-                    delay = 1.0 * (2 ** attempt)
                     retry_after = exc.headers.get("Retry-After") if exc.headers else None
-                    if retry_after and str(retry_after).isdigit():
-                        delay = min(float(retry_after), 30.0)
+                    if exc.code == 429:
+                        delay = min(float(retry_after), 120.0) if (
+                            retry_after and str(retry_after).isdigit()) else 10.0 * (2 ** attempt)
+                    else:
+                        delay = 1.0 * (2 ** attempt)
                     sleep(delay)
                     continue
                 raise SourceNetworkError(
@@ -191,8 +193,8 @@ class FineWebEdu:
 
     def __init__(self, config: str = "sample-10BT", revision: str | None = None,
                  backend: str = "auto", timeout: float = 60.0,
-                 retries: int = 3, sleep=time.sleep,
-                 opener=urllib.request.urlopen):
+                 retries: int = 3, page_delay: float = 0.0,
+                 sleep=time.sleep, opener=urllib.request.urlopen):
         spec = SOURCES[self.name]
         self.spec = spec
         self.config = config
@@ -200,6 +202,7 @@ class FineWebEdu:
         self.backend = backend
         self.timeout = timeout
         self.retries = retries
+        self.page_delay = float(page_delay)
         self.sleep = sleep
         self.opener = opener
         self._info = None
@@ -257,6 +260,8 @@ class FineWebEdu:
                 length = min(length, limit_rows - yielded)
             if length <= 0:
                 return
+            if row > offset and self.page_delay:
+                self.sleep(self.page_delay)
             query = {
                 "dataset": spec.dataset_id,
                 "config": self.config,
@@ -423,7 +428,7 @@ def source_spec(name: str) -> SourceSpec:
 
 def open_source(name: str, *, config: str | None = None, revision: str | None = None,
                 backend: str = "auto", path: str | None = None,
-                timeout: float = 60.0, retries: int = 3,
+                timeout: float = 60.0, retries: int = 3, page_delay: float = 0.0,
                 sleep=time.sleep, opener=urllib.request.urlopen):
     spec = source_spec(name)
     if name == "local-jsonl":
@@ -433,5 +438,5 @@ def open_source(name: str, *, config: str | None = None, revision: str | None = 
     if name == "fineweb-edu":
         return FineWebEdu(config=config or spec.config, revision=revision,
                           backend=backend, timeout=timeout, retries=retries,
-                          sleep=sleep, opener=opener)
+                          page_delay=page_delay, sleep=sleep, opener=opener)
     raise SourceError(f"no adapter for {name}")

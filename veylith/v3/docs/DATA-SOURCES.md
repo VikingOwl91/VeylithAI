@@ -49,12 +49,13 @@ as an access error with a pointer to that login, exit code 2.
 | `http` (default) | datasets-server `/rows`, 100 rows per request, `revision` pinned, bounded retries | none | pilot, constrained environments |
 | `datasets` | `datasets.load_dataset(..., streaming=True)` | `datasets` (not installed in the system Python) | scale path |
 
-The rows API is paginated and rate limited. The pilot's 21 requests for
-2068 rows succeeded; an immediate second full materialization hit HTTP 429
-after three bounded retries (exit 3, no partial manifest). Long runs should
-use the `datasets` backend or space requests out. HF streaming order is not
-a stable contract across library versions; the pinned revision plus the
-local manifest is the reproducibility anchor.
+The rows API is paginated and rate limited. The 10M pilot read 11,754 rows
+in 119 pages with 2.5 s pacing and no 429. An immediate second full
+2000-document materialization in the earlier session hit HTTP 429 after
+three bounded retries (exit 3, no partial manifest). Long runs should use the
+`datasets` backend or space requests out. HF streaming order is not a stable
+contract across library versions; the pinned revision plus the local
+manifest is the reproducibility anchor.
 
 ## Planned sources (documented extension points)
 
@@ -79,6 +80,17 @@ Requirements for adding a source:
 5. For share-alike sources (for example Wikipedia), decide explicitly how
    the derived corpus is licensed before redistribution.
 
+## Materialized pilots
+
+| pilot | documents kept | train tokens | root | digest |
+|---|---:|---:|---|---|
+| 2k pilot | 2,000 | 1,906,893 | `~/veylith-v3-data/pilot-20261026` | `16af7cf3...` |
+| 10M pilot | 11,399 | 10,333,164 | `~/veylith-v3-data/fineweb-10m-20261026` | `e995fdea...` |
+
+Both use revision `87f09149ef4734204d70ed1d046ddc9ca3f2b8f9`, ODC-By 1.0 and
+the same filters; the 10M pilot uses 10/10 permille and 8192 BPE. The roots
+are outside git; only manifests and reports are committed.
+
 ## Corpus handling
 
 - Normalization: NFC, CRLF to LF, control characters removed, trailing
@@ -87,7 +99,8 @@ Requirements for adding a source:
   ratio, language and language score, `int_score >= 3` when present.
 - Deduplication: exact and near-identical, global over the staged set; the
   kept document is the one with the smallest `doc_key`.
-- Splits: pure function of `doc_key`, test < 5 permille, validation < 10
-  permille, train otherwise. Change the permille values per run and record
-  them in the manifest; never assign splits by arrival order.
+- Splits: pure function of `doc_key`, test < test_permille, validation <
+  test+val permille, train otherwise. The 10M pilot used 10/10 (98 / 1 / 1);
+  each run records its values in the manifest. Never assign splits by
+  arrival order.
 - The tokenizer is trained on final train-split documents only.

@@ -12,6 +12,11 @@ token shards) from Hugging Face sources and feeds deterministic training
 batches. The model architecture is not part of this step; v2 remains the
 reference.
 
+The v3.0 pilot is materialized: 11,399 FineWeb-Edu documents, 10,333,164
+train tokens, 8192-token BPE, 98/1/1 splits, deep verification green. See
+`docs/PILOT-10M-2026-10-26.md` for timings, tokenizer comparison and
+limitations.
+
 See `PLAN.md` for goals and milestones, `docs/DATA-SOURCES.md` for sources
 and licenses, `docs/REPRODUCE.md` for commands, and
 `STATUS-2026-10-26.md` for the current status and test report.
@@ -24,8 +29,10 @@ and licenses, `docs/REPRODUCE.md` for commands, and
 | `data_pipeline/prepare.py` | normalization, filtering, deterministic split assignment, exact and near deduplication |
 | `data_pipeline/dataset.py` | document shards, manifests, atomic writes, integrity verification |
 | `data_pipeline/tokenize.py` | BPE training on the train split, token shards with document offsets |
-| `data_pipeline/loader.py` | non-overlapping sequence packing, deterministic epoch sampling |
-| `data_pipeline/cli.py` | CLI for inspect, prepare, tokenize, verify and batches |
+| `data_pipeline/loader.py` | non-overlapping sequence packing, deterministic epoch sampling, mid-epoch resume |
+| `data_pipeline/tokenizer_compare.py` | train and compare BPE vocabularies on the train split |
+| `data_pipeline/cli.py` | CLI for inspect, prepare, tokenize, compare, verify and batches |
+| `benchmark_loader.py` | CPU loader throughput and peak-RSS benchmark |
 | `pipeline.py` | entry point, `python3 veylith/v3/pipeline.py --help` |
 
 ## Guarantees
@@ -51,7 +58,11 @@ and licenses, `docs/REPRODUCE.md` for commands, and
   has a digest over all fields and is the single commit point.
 - **No token reuse.** The concat packer cuts the token stream into
   non-overlapping windows; one epoch uses every sequence exactly once. The
-  document packer never merges two documents into one window.
+  document packer never merges two documents into one window. The batch
+  cache is bounded to 8 token shards.
+- **Resumable loader.** `iter_batches(..., start_epoch, start_batch)` skips
+  deterministically to a saved position; a training loop can checkpoint
+  `(epoch, batch)` after every step.
 - **No secrets.** Public sources need no credential. The pipeline never
   reads, writes or logs authentication tokens; gated datasets use Hugging
   Face's own login store outside this repository.
@@ -62,22 +73,38 @@ and licenses, `docs/REPRODUCE.md` for commands, and
 # source metadata and schema (no download)
 python3 veylith/v3/pipeline.py source-info --source fineweb-edu
 
-# bounded streaming smoke: 20 documents, one page, nothing written
-python3 veylith/v3/pipeline.py inspect --source fineweb-edu --limit 20
+# bounded streaming smoke: 100 documents, one page, nothing written
+python3 veylith/v3/pipeline.py inspect --source fineweb-edu --limit 100 \
+    --page-delay 2.5
 
-# materialize 2000 documents (outside the repository)
-python3 veylith/v3/pipeline.py prepare --source fineweb-edu --docs 2000 \
-    --root ~/veylith-v3-data/pilot --shard-docs 500
+# materialize the 10M-token pilot (outside the repository)
+python3 veylith/v3/pipeline.py prepare --source fineweb-edu --docs 11400 \
+    --root ~/veylith-v3-data/fineweb-10m-20261026 --shard-docs 1000 \
+    --val-permille 10 --test-permille 10 --page-delay 2.5
 
 # train the 8192 BPE tokenizer on the train split, write token shards
-python3 veylith/v3/pipeline.py tokenize --root ~/veylith-v3-data/pilot --vocab 8192
+python3 veylith/v3/pipeline.py tokenize \
+    --root ~/veylith-v3-data/fineweb-10m-20261026 --vocab 8192
 
-# verify shard hashes, split isolation and every decoded document span
-python3 veylith/v3/pipeline.py verify --root ~/veylith-v3-data/pilot --deep
+# train and compare 4096 against 8192 on the same train split
+python3 veylith/v3/pipeline.py compare-tokenizers \
+    --root ~/veylith-v3-data/fineweb-10m-20261026 --vocabs 4096,8192
 
-# deterministic batch sample
-python3 veylith/v3/pipeline.py batches --root ~/veylith-v3-data/pilot \
-    --seq-len 256 --batch-size 4 --batches 2
+# verify shard hashes, splits, decoded spans and near-duplicate isolation
+python3 veylith/v3/pipeline.py verify \
+    --root ~/veylith-v3-data/fineweb-10m-20261026 --deep --near-dups
+
+# deterministic batch sample and mid-epoch resume
+python3 veylith/v3/pipeline.py batches \
+    --root ~/veylith-v3-data/fineweb-10m-20261026 \
+    --seq-len 256 --batch-size 8 --batches 2
+python3 veylith/v3/pipeline.py batches \
+    --root ~/veylith-v3-data/fineweb-10m-20261026 \
+    --seq-len 256 --batch-size 8 --batches 2 --start-batch 2
+
+# loader throughput and peak RSS
+python3 veylith/v3/benchmark_loader.py \
+    --root ~/veylith-v3-data/fineweb-10m-20261026
 ```
 
 Exit codes: 0 success, 1 validation or local error, 2 access denied,
@@ -118,18 +145,28 @@ Cosmopedia v2, Python-Edu. See `docs/DATA-SOURCES.md`.
 
 ## Tokenizer
 
-BPE, 8192 tokens, byte fallback, trained on the train split only. Special
-tokens: `<unk>` 0, `<s>` 1, `</s>` 2, `<pad>` 3. Each document ends with
-`</s>`; per-document token offsets are stored next to the array. Identity
-normalization, no dummy prefix, deterministic training
+BPE, 8192 tokens (preliminary default), byte fallback, trained on the train
+split only. Special tokens: `<unk>` 0, `<s>` 1, `</s>` 2, `<pad>` 3. Each
+document ends with `</s>`; per-document token offsets are stored next to the
+array. Identity normalization, no dummy prefix, deterministic training
 (`num_threads=1`, `shuffle_input_sentence=False`, fixed document order).
 The training text is written with `sentence_iterator`/`model_writer`, so the
 model bytes do not embed a root-specific path.
 
-Parameter effect for the v2-shaped reference model: the untied token
-embedding and output head grow by `(8192 - 1000) * 256 * 2 = 3,682,304`
-parameters, so about 29.28M total instead of 25.60M, with the same 9.89M
-active per token.
+Measured on 226 held-out documents of the 10M pilot:
+
+| metric | 4096 | 8192 |
+|---|---:|---:|
+| chars/token | 3.4663 | 3.9412 |
+| fertility (tokens/word) | 1.7815 | 1.5668 |
+| tokens/doc mean | 1032.9 | 908.4 |
+| embedding+head params | 2,097,152 | 4,194,304 |
+| total params, v2 shape | 27,187,456 | 29,284,608 |
+| training time / peak RSS | 2.414 s / 444 MB | 2.558 s / 453 MB |
+| roundtrip failures | 0 | 0 |
+
+8192 is chosen for the 12 % lower fertility at 2.1M extra parameters; no
+model quality is claimed.
 
 ## Tests
 
@@ -137,25 +174,29 @@ active per token.
 python3 -m pytest veylith/v3/tests -q
 ```
 
-The suite is CPU-only and offline. It covers normalization and filters,
-split determinism and isolation, exact and near deduplication, shard and
-manifest integrity, resume, tokenizer reproducibility and train-only
-training, token roundtrips and document boundaries, packing coverage and
-sampling determinism, source error classes and the CLI end to end. The
-network smoke test is opt-in: `VEYLITH_NETWORK_TESTS=1`.
+The suite is CPU-only and offline: 36 passed, 1 skipped. The full
+repository suite is 125 passed, 1 skipped. It covers normalization and
+filters, split determinism and isolation, exact and near deduplication,
+shard and manifest integrity, resume, tokenizer reproducibility and
+train-only training, tokenizer comparison, token roundtrips and document
+boundaries, packing coverage, mid-epoch resume and sampling determinism,
+source error classes and the CLI end to end. The network smoke test is
+opt-in: `VEYLITH_NETWORK_TESTS=1`.
 
 ## Limits
 
 - The prepare step holds the index metadata of all staged documents in
-  memory (about 250 bytes per document). Fine for the 2k pilot; before 10M
-  documents it needs bucketing or external sorting.
+  memory and on disk (about 320 bytes per document on disk). The 10M pilot
+  peaked at 87.8 MB RSS for 11.4k documents. 100k documents should stay
+  under a few hundred MB; 10M documents need bucketing or external sorting.
 - Near-duplicate detection targets shared boilerplate and near-identical
   text. Small edits in otherwise unique text can exceed the Hamming
   threshold; MinHash or embedding-based dedup is future work.
-- The paged HTTP backend is rate limited by the datasets-server. A second
-  full 2000-document materialization hit HTTP 429 after three bounded
-  retries. The `datasets` backend is the scale path; the local materialized
-  corpus is the reproducibility anchor.
-- The tokenizer plan (8192 BPE) is a decision for v3; it is not a claim
-  about the best vocabulary for the final corpus.
-- No GPU code, no model training, no benchmark in this step.
+- The paged HTTP backend is rate limited by the datasets-server. The 10M
+  pilot used 2.5 s pacing over 119 pages without a 429; an immediate second
+  full 2000-document run hit HTTP 429 after three bounded retries. The
+  `datasets` backend is the scale path; the local materialized corpus is the
+  reproducibility anchor.
+- Validation and test in the 10M pilot have 125 and 101 documents. Enough
+  for tokenizer measurements, not for model quality claims.
+- No GPU code, no model training, no model benchmark in this step.
