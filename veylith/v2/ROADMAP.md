@@ -113,6 +113,10 @@ Dependency-Manifest, 29 zusaetzliche CPU-Tests).
 
 ### P1-1 Ursache des Wall-Clock-Abstands messen, dann gezielt optimieren
 
+**Status: Phase A (Instrumentierung) umgesetzt am 2026-10-26. Phase B
+(GPU-Messung) ist vorbereitet, aber nicht gestartet; sie wartet auf eine
+gesonderte Freigabe.**
+
 - **Problem und Evidenz**: D8 und W3. Bei Batch 64 stehen 148.93 ms
   GPU-Step (110 010 tok/s) etwa 5.5 it/s Wall-Clock gegenueber. Datenladen
   ist gemessen 0.79 ms und damit nicht die Ursache. Kandidaten: amortisierte

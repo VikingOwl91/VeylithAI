@@ -232,6 +232,10 @@ def validate_args(args):
     _require(args.stop_after is None or args.stop_after >= 0,
              f"--stop-after must be >= 0, got {args.stop_after}")
     _require(bool(args.checkpoint), "--checkpoint must not be empty")
+    _require(args.profile_warmup >= 0,
+             f"--profile-warmup must be >= 0, got {args.profile_warmup}")
+    _require(args.profile_iters >= 1,
+             f"--profile-iters must be >= 1, got {args.profile_iters}")
 
 
 # ------------------------------------------------------------------ model
@@ -612,6 +616,209 @@ def load_train_state(path, cfg, args, tok_info):
     return state
 
 
+# --------------------------------------------------------------- profiling
+
+class _NoopPhase:
+    __slots__ = ()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc_info):
+        return False
+
+
+_NOOP_PHASE = _NoopPhase()
+
+
+def describe(values):
+    """(mean, median, p95) in the unit of the input."""
+    ordered = sorted(values)
+    n = len(ordered)
+    mean = sum(ordered) / n
+    median = (ordered[n // 2] if n % 2
+              else 0.5 * (ordered[n // 2 - 1] + ordered[n // 2]))
+    p95 = ordered[min(n - 1, math.ceil(0.95 * n) - 1)]
+    return mean, median, p95
+
+
+class _Phase:
+    __slots__ = ("profiler", "name", "t0")
+
+    def __init__(self, profiler, name):
+        self.profiler = profiler
+        self.name = name
+
+    def __enter__(self):
+        self.t0 = time.perf_counter()
+        return self
+
+    def __exit__(self, *exc_info):
+        if self.profiler.device == "cuda":
+            sync_start = time.perf_counter()
+            torch.cuda.synchronize()
+            sync_ms = (time.perf_counter() - sync_start) * 1000.0
+        else:
+            sync_ms = 0.0
+        self.profiler._record_phase(self.name,
+                                    (time.perf_counter() - self.t0) * 1000.0,
+                                    sync_ms)
+        return False
+
+
+class PhaseProfiler:
+    """Optional per-phase wall-clock timing for the training loop.
+
+    Disabled by default; all hooks are then cheap no-ops. When enabled on
+    CUDA, every phase is followed by a device synchronize, so a phase's
+    wall-clock includes the work it queued. The waiting time inside
+    synchronize is reported separately and is already part of the phase time.
+
+    The four phases and the iteration window differ by the loss read and any
+    bookkeeping outside them; that remainder is reported as "other".
+    """
+
+    PHASES = ("data", "forward", "backward", "optimizer")
+
+    def __init__(self, enabled=False, warmup=20, measure=50, device="cpu"):
+        self.enabled = bool(enabled)
+        self.warmup = int(warmup)
+        self.measure = int(measure)
+        self.device = device
+        self._seen = 0
+        self._recorded = 0
+        self._recording = False
+        self._t_iter = 0.0
+        self._current = None
+        self._phase_samples = []
+        self._iteration_samples = []
+        self._other_samples = []
+        self._first_step = None
+        self._last_step = None
+
+    def begin_iteration(self, step=None):
+        if not self.enabled:
+            return
+        index = self._seen
+        self._seen += 1
+        self._recording = index >= self.warmup and self._recorded < self.measure
+        if not self._recording:
+            return
+        if self.device == "cuda" and self._recorded == 0:
+            torch.cuda.synchronize()  # drain warmup outside the measurement
+        self._t_iter = time.perf_counter()
+        self._current = {}
+        if step is not None:
+            if self._first_step is None:
+                self._first_step = step
+            self._last_step = step
+
+    def phase(self, name):
+        if not self.enabled or not self._recording:
+            return _NOOP_PHASE
+        return _Phase(self, name)
+
+    def end_iteration(self):
+        if not self.enabled or not self._recording:
+            return
+        total_ms = (time.perf_counter() - self._t_iter) * 1000.0
+        phases = self._current or {}
+        accounted = sum(value[0] for value in phases.values())
+        self._phase_samples.append(phases)
+        self._iteration_samples.append(total_ms)
+        self._other_samples.append(max(0.0, total_ms - accounted))
+        self._recorded += 1
+        self._recording = False
+        self._current = None
+
+    def _record_phase(self, name, duration_ms, sync_ms):
+        if self._current is not None:
+            self._current[name] = (duration_ms, sync_ms)
+
+    def summary(self):
+        payload = {
+            "iterations": {"seen": self._seen, "warmup": self.warmup,
+                           "measured": self._recorded},
+            "device": self.device,
+            "device_sync": self.device == "cuda",
+            "env": {
+                "PYTORCH_HIP_ALLOC_CONF": os.environ.get("PYTORCH_HIP_ALLOC_CONF"),
+                "torch": torch.__version__,
+            },
+            "phases": {},
+        }
+        for name in self.PHASES:
+            durations = [item[name][0] for item in self._phase_samples if name in item]
+            if not durations:
+                continue
+            waits = [item[name][1] for item in self._phase_samples if name in item]
+            payload["phases"][name] = self._stats(durations, waits)
+        if self._iteration_samples:
+            payload["phases"]["iteration"] = self._stats(self._iteration_samples)
+            payload["phases"]["other"] = self._stats(self._other_samples)
+            mean_iteration = payload["phases"]["iteration"]["mean_ms"]
+            payload["iters_per_s"] = round(1000.0 / mean_iteration, 3) if mean_iteration else None
+        if self._first_step is not None:
+            payload["steps"] = {"first_measured": self._first_step,
+                                "last_measured": self._last_step}
+        return payload
+
+    @staticmethod
+    def _stats(durations, waits=None):
+        mean, median, p95 = describe(durations)
+        entry = {"count": len(durations), "mean_ms": round(mean, 4),
+                 "median_ms": round(median, 4), "p95_ms": round(p95, 4)}
+        if waits is not None:
+            entry["sync_wait_mean_ms"] = round(sum(waits) / len(waits), 4)
+        return entry
+
+    def format_table(self):
+        if not self._recorded:
+            return (f"profile: no iterations measured (warmup {self.warmup}, "
+                    f"measure {self.measure})")
+        summary = self.summary()
+        env = summary["env"]["PYTORCH_HIP_ALLOC_CONF"]
+        warmup = min(self.warmup, self._seen)
+        lines = [
+            f"profile: {self._recorded} measured iterations after {warmup} warmup "
+            f"(device {self.device}{', sync per phase' if summary['device_sync'] else ''})",
+            f"profile env: PYTORCH_HIP_ALLOC_CONF={env if env else '(unset)'}",
+            f"{'phase':<10}{'mean ms':>10}{'median ms':>12}{'p95 ms':>10}",
+        ]
+        for name in (*self.PHASES, "iteration", "other"):
+            entry = summary["phases"].get(name)
+            if entry is None:
+                continue
+            lines.append(f"{name:<10}{entry['mean_ms']:>10.2f}"
+                         f"{entry['median_ms']:>12.2f}{entry['p95_ms']:>10.2f}")
+        if summary["device_sync"]:
+            wait = sum(summary["phases"][name]["sync_wait_mean_ms"]
+                       for name in self.PHASES if name in summary["phases"])
+            lines.append(f"device sync inside phases: {wait:.1f} ms/iteration "
+                         f"(included in the phase times)")
+        if summary.get("iters_per_s"):
+            lines.append(f"profile: {summary['iters_per_s']:.1f} iterations/s "
+                         f"(mean iteration)")
+        if summary.get("steps"):
+            lines.append(f"profile steps: {summary['steps']['first_measured']}"
+                         f"..{summary['steps']['last_measured']}")
+        return "\n".join(lines)
+
+
+def write_json(path, payload):
+    """Write a small JSON file atomically (temp file plus rename)."""
+    target = os.path.abspath(path)
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    tmp = target + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2, sort_keys=True)
+        handle.write("\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(tmp, target)
+    return target
+
+
 # --------------------------------------------------------------- training
 
 def lr_at(step, max_iters, warmup_iters, base_lr):
@@ -669,14 +876,16 @@ def estimate_loss(model, train_data, val_data, args, device, autocast):
 
 def run_training(model, optimizer, train_data, val_data, args, device, autocast,
                  tok_info, start_step=0, best_val=float("inf"), best_state=None,
-                 best_metrics=None, stats=None):
+                 best_metrics=None, stats=None, profiler=None):
     """Train from start_step to args.max_iters (or args.stop_after).
 
     Writes a resumable state every `save_every` iterations and at an early
     stop. `best_val` is the best value of the configured selection metric.
     Returns (best_val, best_state, per-iteration losses); `stats`, if given,
     receives the full validation metrics of the selected checkpoint.
+    `profiler` is optional; the default is a disabled PhaseProfiler.
     """
+    profiler = profiler if profiler is not None else PhaseProfiler(enabled=False)
     save_every = args.eval_interval if args.save_every is None else max(0, args.save_every)
     state_path = args.state_path or default_state_path(args.checkpoint)
     last_step = args.max_iters if args.stop_after is None else min(args.stop_after, args.max_iters)
@@ -690,14 +899,20 @@ def run_training(model, optimizer, train_data, val_data, args, device, autocast,
         for g in optimizer.param_groups:
             g["lr"] = lr
 
-        x, y = get_batch(train_data, args.block_size, args.batch_size, device)
-        with autocast:
-            _, loss = model(x, y)
-        optimizer.zero_grad(set_to_none=True)
-        loss.backward()
-        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
-        optimizer.step()
+        profiler.begin_iteration(step)
+        with profiler.phase("data"):
+            x, y = get_batch(train_data, args.block_size, args.batch_size, device)
+        with profiler.phase("forward"):
+            with autocast:
+                _, loss = model(x, y)
+        with profiler.phase("backward"):
+            optimizer.zero_grad(set_to_none=True)
+            loss.backward()
+        with profiler.phase("optimizer"):
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            optimizer.step()
         losses.append(loss.item())
+        profiler.end_iteration()
 
         if step % 100 == 0 or step == final_step:
             elapsed = time.time() - t0
@@ -812,6 +1027,14 @@ def parse_args(argv=None):
                    help="resume from a training state; bare --resume uses the default path")
     p.add_argument("--stop-after", type=int, default=None,
                    help="stop after N iterations and save state; --max_iters still sets the LR schedule")
+    p.add_argument("--profile", action="store_true",
+                   help="measure per-phase wall-clock time of the training loop")
+    p.add_argument("--profile-warmup", type=int, default=20,
+                   help="iterations to skip before measuring (default 20)")
+    p.add_argument("--profile-iters", type=int, default=50,
+                   help="iterations to measure (default 50)")
+    p.add_argument("--profile-json", type=str, default=None,
+                   help="write the profile summary as JSON (implies --profile)")
     return p.parse_args(argv)
 
 
@@ -882,12 +1105,23 @@ def main():
             print(f"--max_iters {args.max_iters} already reached, nothing to do")
             return
 
+    profile_enabled = args.profile or args.profile_json is not None
+    profiler = PhaseProfiler(enabled=profile_enabled, warmup=args.profile_warmup,
+                             measure=args.profile_iters, device=device)
+
     stats = {}
     best_val, best_state, losses = run_training(
         model, optimizer, train_data, val_data, args, device, autocast, tok_info,
         start_step=start_step, best_val=best_val, best_state=best_state,
-        best_metrics=best_metrics, stats=stats)
+        best_metrics=best_metrics, stats=stats, profiler=profiler)
     best_metrics = stats.get("best_metrics")
+
+    if profiler.enabled:
+        print()
+        print(profiler.format_table())
+        if args.profile_json:
+            profile_path = write_json(args.profile_json, profiler.summary())
+            print(f"profile json -> {profile_path}")
 
     if start_step + len(losses) < args.max_iters:
         state_path = args.state_path or default_state_path(args.checkpoint)

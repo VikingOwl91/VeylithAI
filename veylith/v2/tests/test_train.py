@@ -9,6 +9,7 @@ called directly); no test touches a GPU.
 """
 
 import contextlib
+import json
 import math
 import os
 import subprocess
@@ -569,6 +570,8 @@ def test_config_rejects_invalid_values(over, needle):
     ({"stop_after": -1}, "--stop-after"),
     ({"checkpoint": ""}, "--checkpoint"),
     ({"block_size": 1}, "block_size"),
+    ({"profile_warmup": -1}, "--profile-warmup"),
+    ({"profile_iters": 0}, "--profile-iters"),
 ])
 def test_validate_args_rejects_invalid_values(tmp_path, over, needle):
     args = make_args(tmp_path / "ckpt.pt")
@@ -673,3 +676,93 @@ def test_cli_skips_a_sample_it_cannot_encode(tmp_path):
     assert "sample generation skipped" in run.stdout
     assert "'R'" in run.stdout
     assert (tmp_path / "ckpt.pt").exists()
+
+
+# ------------------------------------------------------------ profiling (P1-1)
+
+def test_describe_returns_mean_median_p95():
+    assert T.describe([1.0, 2.0, 3.0, 4.0, 100.0]) == (22.0, 3.0, 100.0)
+    assert T.describe([1.0, 2.0, 3.0, 4.0]) == (2.5, 2.5, 4.0)
+
+
+def test_profiler_records_only_the_measurement_window():
+    profiler = T.PhaseProfiler(enabled=True, warmup=2, measure=3, device="cpu")
+    for step in range(10):
+        profiler.begin_iteration(step)
+        for name in T.PhaseProfiler.PHASES:
+            with profiler.phase(name):
+                pass
+        profiler.end_iteration()
+
+    summary = profiler.summary()
+    assert summary["iterations"] == {"seen": 10, "warmup": 2, "measured": 3}
+    assert summary["steps"] == {"first_measured": 2, "last_measured": 4}
+    assert set(summary["phases"]) == set(T.PhaseProfiler.PHASES) | {"iteration", "other"}
+    assert summary["device_sync"] is False
+    assert summary["env"]["torch"] == torch.__version__
+
+
+def test_disabled_profiler_records_nothing():
+    profiler = T.PhaseProfiler(enabled=False)
+    profiler.begin_iteration(0)
+    with profiler.phase("data"):
+        pass
+    profiler.end_iteration()
+    assert profiler.summary()["iterations"]["measured"] == 0
+    assert profiler.format_table().startswith("profile: no iterations measured")
+
+
+def test_cuda_profiler_synchronizes_once_per_phase(monkeypatch):
+    calls = []
+    monkeypatch.setattr(torch.cuda, "synchronize", lambda: calls.append(True))
+    profiler = T.PhaseProfiler(enabled=True, warmup=0, measure=1, device="cuda")
+    profiler.begin_iteration(0)
+    for name in T.PhaseProfiler.PHASES:
+        with profiler.phase(name):
+            pass
+    profiler.end_iteration()
+    # one drain before the first measured iteration, then one per phase
+    assert len(calls) == 1 + len(T.PhaseProfiler.PHASES)
+    assert profiler.summary()["phases"]["data"]["sync_wait_mean_ms"] >= 0.0
+
+
+def test_profiling_does_not_change_training(tmp_path):
+    cfg = make_cfg()
+    data = make_data()
+
+    plain_args = make_args(tmp_path / "plain" / "ckpt.pt")
+    plain_model, plain_opt = fresh_model(cfg, plain_args)
+    torch.manual_seed(99)
+    _, _, plain_losses = train_once(plain_model, plain_opt, plain_args, data)
+
+    profiled_args = make_args(tmp_path / "profiled" / "ckpt.pt")
+    profiled_model, profiled_opt = fresh_model(cfg, profiled_args)
+    torch.manual_seed(99)
+    profiler = T.PhaseProfiler(enabled=True, warmup=0, measure=100, device="cpu")
+    _, _, profiled_losses = T.run_training(
+        profiled_model, profiled_opt, data, data, profiled_args, "cpu",
+        contextlib.nullcontext(), {"type": "char"}, profiler=profiler)
+
+    assert plain_losses == profiled_losses
+    assert_same_model(plain_model, profiled_model)
+    assert_same_optimizer(plain_opt, profiled_opt)
+    assert profiler.summary()["iterations"]["measured"] == len(profiled_losses)
+
+
+def test_cli_profiling_writes_table_and_json(tmp_path):
+    cmd = _tiny_cli(tmp_path, "ROMEO: abc\n" * 200, [
+        "--max_iters", "4", "--profile-warmup", "1", "--profile-iters", "2",
+        "--profile-json", "profile.json",
+    ])
+    run = subprocess.run(cmd, cwd=tmp_path, capture_output=True, text=True, timeout=180)
+    assert run.returncode == 0, run.stderr
+    assert "profile: 2 measured iterations after 1 warmup" in run.stdout
+    assert "profile env: PYTORCH_HIP_ALLOC_CONF=(unset)" in run.stdout
+    assert "phase" in run.stdout and "iteration" in run.stdout
+
+    payload = json.loads((tmp_path / "profile.json").read_text(encoding="utf-8"))
+    assert payload["iterations"]["measured"] == 2
+    assert payload["device"] == "cpu"
+    assert set(payload["phases"]) >= {"data", "forward", "backward", "optimizer",
+                                      "iteration"}
+    assert payload["env"]["PYTORCH_HIP_ALLOC_CONF"] is None

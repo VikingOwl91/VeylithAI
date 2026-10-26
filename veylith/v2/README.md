@@ -136,6 +136,46 @@ Errors surface before training starts and name the parameter.
   at the end of a run is skipped with that message, so a finished run still
   writes its checkpoint. BPE tokenizers use byte fallback and encode anything.
 
+## Profiling
+
+`--profile` measures the training loop per phase. It is off by default and
+the loop without it is unchanged.
+
+```bash
+python train.py --tokenizer bpe --bpe_vocab_size 1000 \
+    --profile --profile-warmup 20 --profile-iters 100 \
+    --profile-json /tmp/profile.json
+```
+
+| flag | default | meaning |
+|---|---|---|
+| `--profile` | off | enable measurement |
+| `--profile-warmup N` | 20 | iterations to skip (they still train) |
+| `--profile-iters M` | 50 | iterations to record |
+| `--profile-json PATH` | none | write the summary as JSON (implies `--profile`) |
+
+Phases: `data` (batch construction plus the device copy), `forward`,
+`backward` (zero_grad plus backward), `optimizer` (clip plus step). The
+iteration window starts before `data` and ends after the loss read; the small
+remainder that is not inside a phase is reported as `other`.
+
+On CUDA each phase is followed by `torch.cuda.synchronize()`, so a phase's
+wall-clock includes the kernels it queued. The time spent waiting inside
+synchronize is reported per phase as `sync_wait_mean_ms` and is already part
+of the phase time. The first measured iteration starts with a device drain so
+warmup work does not leak into it. Draining at every phase boundary removes
+cross-phase pipelining, so these numbers are not directly comparable with an
+unsynchronized loop or with event-timed microbenchmarks.
+
+Output: mean, median and p95 per phase plus iterations/s. The JSON contains
+`iterations` (seen, warmup, measured), `steps`, `device`, `device_sync`,
+`phases` and `env` (`PYTORCH_HIP_ALLOC_CONF`, torch version), so a GPU
+measurement records whether the allocator setting was active.
+
+The instrumentation itself costs about 4.4 microseconds per iteration on CPU
+(measured with a tight loop). End-to-end differences on CPU runs were within
+run-to-run noise.
+
 ## Notes
 
 - MoE training uses the classic Switch-style auxiliary load-balancing
