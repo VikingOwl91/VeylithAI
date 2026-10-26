@@ -86,3 +86,8 @@ Evaluate every checkpoint on the shared CPU protocol (no GPU, writes
 ```bash
 python3 veylith/evaluate.py
 ```
+
+The v2 baseline is frozen (tag `v2-research-freeze-2026-10-26`):
+architecture, protocols, results, limitations and checkpoint hashes are
+recorded in `v2/FREEZE-2026-10-26.md`. v3 data work happens on
+`v3/data-pipeline`.
