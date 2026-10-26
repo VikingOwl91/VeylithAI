@@ -1,0 +1,195 @@
+{
+  "counts": {
+    "accepted": 2000,
+    "chars": {
+      "test": 28168,
+      "train": 7469712,
+      "validation": 14387
+    },
+    "documents": {
+      "test": 9,
+      "train": 1986,
+      "validation": 5
+    },
+    "exact_duplicates": 0,
+    "near_duplicates": 0,
+    "rejected": {
+      "too_long": 68
+    },
+    "rows_seen": 2068
+  },
+  "dedup": {
+    "canonical": "min doc_key of the cluster",
+    "exact": "sha256(normalized_text)",
+    "horizon": "all documents staged in this run",
+    "max_bucket": 4096,
+    "near": "simhash64 over word 5-grams, 4 bands x 16 bits, hamming <= 3"
+  },
+  "digest": "16af7cf3f93a598ff5fea898c0b4fd3323a0dbdec3ad94b386dedb81e6c380c4",
+  "documents": {
+    "test": [
+      {
+        "bytes": 31987,
+        "chars": 28168,
+        "docs": 9,
+        "path": "documents/test/test-00000.jsonl",
+        "sha256": "7f6401724ff0d8aec5b93f2ad1cadecd87b80a332dd506744acdcdff25627f25"
+      }
+    ],
+    "train": [
+      {
+        "bytes": 2108375,
+        "chars": 1894792,
+        "docs": 500,
+        "path": "documents/train/train-00000.jsonl",
+        "sha256": "91f239a759c4515ce7716cb57b18cb6c52cf695087cc8ab2f1aa8fafb03080e7"
+      },
+      {
+        "bytes": 2182363,
+        "chars": 1968114,
+        "docs": 500,
+        "path": "documents/train/train-00001.jsonl",
+        "sha256": "edb0a33fe5e64fce264f7ee30105f8a537bf8fa18b38b9e8db6bfd3838f5bd08"
+      },
+      {
+        "bytes": 2080308,
+        "chars": 1866750,
+        "docs": 500,
+        "path": "documents/train/train-00002.jsonl",
+        "sha256": "01d60c1dfaaf0a613a5ab1743c06493f78e69fe1b626fcc2792364251aec4db9"
+      },
+      {
+        "bytes": 1947401,
+        "chars": 1740056,
+        "docs": 486,
+        "path": "documents/train/train-00003.jsonl",
+        "sha256": "fe1d0f4ad458cab22919a071a81a7a9f849a82c02c655673d2da84698125b727"
+      }
+    ],
+    "validation": [
+      {
+        "bytes": 16475,
+        "chars": 14387,
+        "docs": 5,
+        "path": "documents/validation/validation-00000.jsonl",
+        "sha256": "f1d05b3f666c42d23d72878f3fbe4fe1f0f393bf8d8a9291c46bfa9bd77be0d2"
+      }
+    ]
+  },
+  "filter_version": "v1",
+  "filters": {
+    "filter_version": "v1",
+    "max_chars": 20000,
+    "max_replacement_ratio": 0.01,
+    "min_chars": 200,
+    "min_int_score": 3,
+    "min_language_score": 0.65,
+    "min_letter_ratio": 0.5,
+    "require_language": "en"
+  },
+  "format_version": 1,
+  "pipeline_version": "0.1.0",
+  "seed": 0,
+  "source": {
+    "access": "public",
+    "backend": "http",
+    "config": "sample-10BT",
+    "dataset_id": "HuggingFaceFW/fineweb-edu",
+    "license": "odc-by",
+    "license_url": "https://opendatacommons.org/licenses/by/1-0/",
+    "name": "fineweb-edu",
+    "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+    "split": "train"
+  },
+  "split_policy": {
+    "assignment": "int(sha256(doc_key)[:8],16) % 1000; test < test_permille, validation < test+val, else train",
+    "test_permille": 5,
+    "val_permille": 5
+  },
+  "tokenization": {
+    "special_ids": {
+      "bos": 1,
+      "eos": 2,
+      "pad": 3,
+      "unk": 0
+    },
+    "splits": {
+      "test": {
+        "docs": 9,
+        "shards": [
+          {
+            "bytes": 15126,
+            "docs": 9,
+            "meta": "tokens/test/test-00000.meta.json",
+            "path": "tokens/test/test-00000.tokens.npy",
+            "sha256": "82be1a4d63418a139d2ddeea0eeb0ee9da39a34eaff217f0050abc17a4ceb0b6",
+            "tokens": 7499
+          }
+        ],
+        "tokens": 7499
+      },
+      "train": {
+        "docs": 1986,
+        "shards": [
+          {
+            "bytes": 963312,
+            "docs": 500,
+            "meta": "tokens/train/train-00000.meta.json",
+            "path": "tokens/train/train-00000.tokens.npy",
+            "sha256": "c86fae0ae9af881d3e927f2ddaf78c56f530d7b8a3e389402284d9bfb24db219",
+            "tokens": 481592
+          },
+          {
+            "bytes": 998212,
+            "docs": 500,
+            "meta": "tokens/train/train-00001.meta.json",
+            "path": "tokens/train/train-00001.tokens.npy",
+            "sha256": "c677bea55f7071e71b71220102150b3d3ae5b29e0c656b24e1dfc594369207d4",
+            "tokens": 499042
+          },
+          {
+            "bytes": 962544,
+            "docs": 500,
+            "meta": "tokens/train/train-00002.meta.json",
+            "path": "tokens/train/train-00002.tokens.npy",
+            "sha256": "870d96b3ccb1d250952a97da6b83cb080220e03bbcc9facde174c0bbb29034ee",
+            "tokens": 481208
+          },
+          {
+            "bytes": 890230,
+            "docs": 486,
+            "meta": "tokens/train/train-00003.meta.json",
+            "path": "tokens/train/train-00003.tokens.npy",
+            "sha256": "b680245431ee496796887442a7220f3c70c93556f22e8561f0460133caa45491",
+            "tokens": 445051
+          }
+        ],
+        "tokens": 1906893
+      },
+      "validation": {
+        "docs": 5,
+        "shards": [
+          {
+            "bytes": 7602,
+            "docs": 5,
+            "meta": "tokens/validation/validation-00000.meta.json",
+            "path": "tokens/validation/validation-00000.tokens.npy",
+            "sha256": "8a566bb40b4fa48fe3a4a31b51994ad099438073dabdc63bba54d42ea34b76c5",
+            "tokens": 3737
+          }
+        ],
+        "tokens": 3737
+      }
+    },
+    "tokenizer": {
+      "model": "tokenizer/bpe8192.model",
+      "sha256": "dd738886aea9e9ec27b114ecb75d152b1890a87d88e24e2664cba04d755c8663",
+      "train_text": "tokenizer/bpe8192.train.txt",
+      "train_text_sha256": "3f9fbdf855f315ceb533ab2971631fe657fc08a8530d0f62e94723568876dc73",
+      "vocab": "tokenizer/bpe8192.vocab",
+      "vocab_sha256": "bb167f10025eb6e2b5360d116f5ef06f4ce9e0ee798ba25dcb77c84abaf8cd0d"
+    },
+    "total_tokens": 1918129,
+    "vocab_size": 8192
+  }
+}

@@ -5,6 +5,22 @@ Status 2026-10-26. Branch `v3/data-pipeline`, based on the frozen v2 tag
 step: a modular, streaming-capable pretraining data pipeline. It does not
 change the v2 baseline.
 
+## Project classification
+
+v1.x and v2.x are experimental research prototypes and feasibility studies,
+not finished or production-ready language models. The version labels are:
+
+| label | meaning |
+|---|---|
+| v1.x | Experimental Transformer Baselines |
+| v2.x | Experimental MoE Architecture Research |
+| v3.0 | Pretraining Data Infrastructure |
+| v3.1 | Initial Pretraining Experiments |
+
+This plan covers v3.0 only. It produces data, not a model. v3.1 starts only
+after the data pipeline and tokenizer are validated and a GPU run is
+explicitly approved.
+
 ## 1. Why data first
 
 The P1-3 run showed v2 overfitting after 500 steps on 0.44M training
@@ -146,7 +162,19 @@ committed. No corpus or token shard is committed.
 | license drift | license and revision in every manifest; DATA-SOURCES.md records the terms |
 | accidental commits | pipeline data root is gitignored; no tokens or credentials are read or stored |
 
-## 10. Next steps after this step
+## 10. Milestone status
+
+| milestone | status |
+|---|---|
+| M0 frozen v2 | done, tag `v2-research-freeze-2026-10-26` |
+| M1 sources | done, FineWeb-Edu smoke at a pinned revision |
+| M2 documents | done, deterministic shards, dedup and split tests |
+| M3 tokenizer and tokens | done, 8192 BPE on train only, deep verification |
+| M4 loader | done, concat and document packing, deterministic sampling |
+| M5 pilot | done, 2000 documents / 1.92M tokens, verified |
+| 10M-token pilot | not started, see section 11 |
+
+## 11. Next steps after this step
 
 1. 10M-token pilot on the same pipeline with the `datasets` backend or the
    paged backend if rate limits allow.

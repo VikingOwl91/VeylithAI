@@ -36,6 +36,9 @@ release.
 - `v2/` - the upgrade: RoPE, RMSNorm, GQA, sliding-window attention,
   SwiGLU, Mixture-of-Experts, multi-token prediction. A miniature of a
   2026 frontier architecture, still trained from scratch in minutes.
+- `v3/` - pretraining data infrastructure (v3.0): a streaming,
+  manifest-backed corpus pipeline with 8192-token BPE, CPU only. No v3
+  model yet. See `v3/README.md`.
 - `reference/` - `config.json` files of DeepSeek-V4-Pro, GLM-5,
   Muse Glimmer 30B and MiMo-V2.5. Ground truth for every design choice
   in v2. Grep them: `grep num_experts reference/*.json`.
@@ -115,3 +118,8 @@ The v2 baseline is frozen (tag `v2-research-freeze-2026-10-26`):
 architecture, protocols, results, limitations and checkpoint hashes are
 recorded in `v2/FREEZE-2026-10-26.md`. v3 data work happens on
 `v3/data-pipeline`.
+
+v3.0 is data infrastructure, not a model. The first pilot materialized
+2000 FineWeb-Edu documents (1.92M tokens, eight shards, 8192-token BPE) on
+CPU, with a manifest digest, shard hashes and deep verification. Numbers,
+limitations and the 10M-token plan are in `v3/STATUS-2026-10-26.md`.

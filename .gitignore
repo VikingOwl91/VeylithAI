@@ -3,3 +3,6 @@ __pycache__/
 .pytest_cache/
 *.pt.tmp
 *.state.pt
+
+# v3 data pipeline: materialized corpora, tokenizer and shards stay out of git
+veylith/v3/data/
