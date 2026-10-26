@@ -197,6 +197,16 @@ gesonderte Freigabe.**
 - **Abnahme**: Audit reproduzierbar (byte-identisch), Empfehlung E1
   dokumentiert.
 
+**Nachtrag E1 (2026-10-26)**: E1 lief als ein kontrollierter GPU-Lauf
+(5000 Schritte, feste Selektionsabschnitte, Main-CE-Selektion, keine
+Architekturaenderung). Ergebnis: der beste Checkpoint liegt bei Schritt 500
+(3.278 auf der Selektionsmenge), Val-CE steigt danach bis 4.75; auf den
+unveraenderten Testabschnitten 3.1581 main CE / 2.0456 bits/char gegen
+3.1800/2.0598 (bisheriges v2) und 2.9671/1.9219 (v1-bpe). Der Unterschied
+zum bisherigen v2 (-0.024 +/- 0.026 nats/token) ist nicht signifikant, der
+Rueckstand zu v1 (+0.189 +/- 0.034) bleibt. Details:
+`veylith/evaluation/P1-3-REPORT.md`. E2 ist damit der naechste Schritt.
+
 ## P2: Architektur und Modellqualitaet
 
 ### P2-1 MTP-Gewicht und MTP-Kopf
@@ -218,7 +228,11 @@ gesonderte Freigabe.**
 - **Problem und Evidenz**: D12. 25.6M Parameter auf 0.5M Token; die
   Validierung dreht frueh nach oben. Kontrollierte Evaluation: v2 liegt trotz
   4.8-facher Parameterzahl 0.138 bits/char ueber v1 (paarweise, SE 0.025),
-  bei gleichem Tokenizer.
+  bei gleichem Tokenizer. Der kontrollierte 5000-Schritte-Lauf (E1)
+  bestaetigt die Ueberanpassung: Minimum bei Schritt 500, danach steigt die
+  Val-CE, waehrend die Train-CE auf 0.59 faellt; der Rueckstand zu v1
+  schrumpft nur auf +0.124 bits/char (SE 0.023) und der Gap auf festen
+  Abschnitten waechst auf +0.498 nats.
 - **Nutzen**: wahrscheinlich der groesste Qualitaetssprung, entweder
   durch mehr Daten oder durch ein kleineres Modell.
 - **Aufwand**: M bis L, **GPU-Freigabe noetig**, plus Datenbeschaffung.

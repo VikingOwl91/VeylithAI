@@ -1,0 +1,1595 @@
+{
+  "attention": {
+    "p1-3-v2": {
+      "full_attn_every": 4,
+      "full_layers": [
+        3
+      ],
+      "note": "SWA attends to the last `window` positions including the current one; the full layers see the whole prefix. With a full layer at depth 3, every earlier position can reach the final layer through it, so the theoretical reach is the full context; the empirical use is not measured.",
+      "swa_layers": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "window": 128
+    },
+    "v1-bpe": {
+      "full_layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "note": "v1 uses full causal attention in every layer",
+      "swa_layers": [],
+      "window": null
+    },
+    "v1-bpe-5000it": {
+      "full_layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "note": "v1 uses full causal attention in every layer",
+      "swa_layers": [],
+      "window": null
+    },
+    "v1-char": {
+      "full_layers": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "note": "v1 uses full causal attention in every layer",
+      "swa_layers": [],
+      "window": null
+    },
+    "v2-bpe": {
+      "full_attn_every": 4,
+      "full_layers": [
+        3
+      ],
+      "note": "SWA attends to the last `window` positions including the current one; the full layers see the whole prefix. With a full layer at depth 3, every earlier position can reach the final layer through it, so the theoretical reach is the full context; the empirical use is not measured.",
+      "swa_layers": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "window": 128
+    },
+    "v2-p1-1-temp": {
+      "full_attn_every": 4,
+      "full_layers": [
+        3
+      ],
+      "note": "SWA attends to the last `window` positions including the current one; the full layers see the whole prefix. With a full layer at depth 3, every earlier position can reach the final layer through it, so the theoretical reach is the full context; the empirical use is not measured.",
+      "swa_layers": [
+        0,
+        1,
+        2,
+        4,
+        5
+      ],
+      "window": 128
+    }
+  },
+  "checkpoints": [
+    {
+      "accounting": {
+        "active_per_token_main": 4837953,
+        "always_active": 4837953,
+        "categories": {
+          "attention": 1579008,
+          "dense_ffn": 3153408,
+          "norms": 6656,
+          "other": 0,
+          "output_head": 16705,
+          "position_embedding": 65536,
+          "routed_experts": 0,
+          "router": 0,
+          "shared_expert": 0,
+          "token_embedding": 16640
+        },
+        "convention": "full dense matrices and full embedding tables count as active; top_k routed experts active per token; MTP reuses trunk and head",
+        "experts_per_layer": null,
+        "inactive_per_token": 0,
+        "moe_layers": 0,
+        "mtp_extra_parameters": 0,
+        "routed_expert_size": null,
+        "top_k": null,
+        "total_to_active_ratio": 1.0,
+        "total_trainable": 4837953
+      },
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": null,
+        "mlp_ratio": null,
+        "n_embd": 256,
+        "n_experts": null,
+        "n_experts_per_tok": null,
+        "n_head": 8,
+        "n_kv_head": null,
+        "n_layer": 6,
+        "n_mtp": null,
+        "vocab_size": 65
+      },
+      "buffers": 393216,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": null,
+          "max_iters": 5000,
+          "seed": 1337,
+          "tokenizer": null
+        },
+        "format": null,
+        "kind": null,
+        "metrics": null,
+        "selection": null,
+        "step": null,
+        "val_loss": 1.4748872518539429
+      },
+      "family": "v1",
+      "name": "v1-char",
+      "params": 4837953,
+      "path": "veylith/v1/checkpoints/ckpt_char.pt",
+      "sha256": "77730c24e408fedc7d4fa302e549ccdd0e020d66006c536deecbbb5300e025f6",
+      "size_bytes": 20950745,
+      "status": "ok",
+      "temporary": false,
+      "tokenizer": "char",
+      "training_budget": {
+        "batch_size": 64,
+        "block_size": 256,
+        "corpus_passes": 81.605,
+        "expected_unseen_fraction": 0.727,
+        "mean_draws_per_start": 0.3189,
+        "possible_window_starts": 1003599,
+        "sampling": "uniform random windows, not epochs",
+        "status": "reconstructed from stored args and config",
+        "steps": 5000,
+        "token_positions": 81920000,
+        "tokens_per_step": 16384,
+        "train_tokens": 1003854,
+        "windows_drawn": 320000
+      }
+    },
+    {
+      "accounting": {
+        "active_per_token_main": 5317608,
+        "always_active": 5317608,
+        "categories": {
+          "attention": 1579008,
+          "dense_ffn": 3153408,
+          "norms": 6656,
+          "other": 0,
+          "output_head": 257000,
+          "position_embedding": 65536,
+          "routed_experts": 0,
+          "router": 0,
+          "shared_expert": 0,
+          "token_embedding": 256000
+        },
+        "convention": "full dense matrices and full embedding tables count as active; top_k routed experts active per token; MTP reuses trunk and head",
+        "experts_per_layer": null,
+        "inactive_per_token": 0,
+        "moe_layers": 0,
+        "mtp_extra_parameters": 0,
+        "routed_expert_size": null,
+        "top_k": null,
+        "total_to_active_ratio": 1.0,
+        "total_trainable": 5317608
+      },
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": null,
+        "mlp_ratio": null,
+        "n_embd": 256,
+        "n_experts": null,
+        "n_experts_per_tok": null,
+        "n_head": 8,
+        "n_kv_head": null,
+        "n_layer": 6,
+        "n_mtp": null,
+        "vocab_size": 1000
+      },
+      "buffers": 393216,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": 1000,
+          "max_iters": 5000,
+          "seed": 1337,
+          "tokenizer": "bpe"
+        },
+        "format": null,
+        "kind": null,
+        "metrics": null,
+        "selection": null,
+        "step": null,
+        "val_loss": 3.290318250656128
+      },
+      "family": "v1",
+      "name": "v1-bpe",
+      "params": 5317608,
+      "path": "veylith/v1/checkpoints/ckpt.pt",
+      "sha256": "8986876e7b69007df783668345018b62a0e0cac19a16a360e06882c4b08c4243",
+      "size_bytes": 22868185,
+      "status": "ok",
+      "temporary": false,
+      "tokenizer": "bpe",
+      "training_budget": {
+        "batch_size": 64,
+        "block_size": 256,
+        "corpus_passes": 184.689,
+        "expected_unseen_fraction": 0.4858,
+        "mean_draws_per_start": 0.7219,
+        "possible_window_starts": 443301,
+        "sampling": "uniform random windows, not epochs",
+        "status": "reconstructed from stored args and config",
+        "steps": 5000,
+        "token_positions": 81920000,
+        "tokens_per_step": 16384,
+        "train_tokens": 443556,
+        "windows_drawn": 320000
+      }
+    },
+    {
+      "accounting": {
+        "active_per_token_main": 5317608,
+        "always_active": 5317608,
+        "categories": {
+          "attention": 1579008,
+          "dense_ffn": 3153408,
+          "norms": 6656,
+          "other": 0,
+          "output_head": 257000,
+          "position_embedding": 65536,
+          "routed_experts": 0,
+          "router": 0,
+          "shared_expert": 0,
+          "token_embedding": 256000
+        },
+        "convention": "full dense matrices and full embedding tables count as active; top_k routed experts active per token; MTP reuses trunk and head",
+        "experts_per_layer": null,
+        "inactive_per_token": 0,
+        "moe_layers": 0,
+        "mtp_extra_parameters": 0,
+        "routed_expert_size": null,
+        "top_k": null,
+        "total_to_active_ratio": 1.0,
+        "total_trainable": 5317608
+      },
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": null,
+        "mlp_ratio": null,
+        "n_embd": 256,
+        "n_experts": null,
+        "n_experts_per_tok": null,
+        "n_head": 8,
+        "n_kv_head": null,
+        "n_layer": 6,
+        "n_mtp": null,
+        "vocab_size": 1000
+      },
+      "buffers": 393216,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": 1000,
+          "max_iters": 5000,
+          "seed": 1337,
+          "tokenizer": "bpe"
+        },
+        "format": null,
+        "kind": null,
+        "metrics": null,
+        "selection": null,
+        "step": null,
+        "val_loss": 4.1755757331848145
+      },
+      "family": "v1",
+      "name": "v1-bpe-5000it",
+      "params": 5317608,
+      "path": "veylith/v1/checkpoints/ckpt_bpe_5000it.pt",
+      "sha256": "b104d781620da47eb2fa7ec05cf629ab5c2dc665f13afd2bc52601e87f1a635e",
+      "size_bytes": 22868185,
+      "status": "ok",
+      "temporary": false,
+      "tokenizer": "bpe",
+      "training_budget": {
+        "batch_size": 64,
+        "block_size": 256,
+        "corpus_passes": 184.689,
+        "expected_unseen_fraction": 0.4858,
+        "mean_draws_per_start": 0.7219,
+        "possible_window_starts": 443301,
+        "sampling": "uniform random windows, not epochs",
+        "status": "reconstructed from stored args and config",
+        "steps": 5000,
+        "token_positions": 81920000,
+        "tokens_per_step": 16384,
+        "train_tokens": 443556,
+        "windows_drawn": 320000
+      }
+    },
+    {
+      "accounting": {
+        "active_per_token_main": 9889024,
+        "always_active": 4651264,
+        "categories": {
+          "attention": 983040,
+          "dense_ffn": 523776,
+          "norms": 3328,
+          "other": 0,
+          "output_head": 256000,
+          "position_embedding": 0,
+          "routed_experts": 20951040,
+          "router": 10240,
+          "shared_expert": 2618880,
+          "token_embedding": 256000
+        },
+        "convention": "full dense matrices and full embedding tables count as active; top_k routed experts active per token; MTP reuses trunk and head",
+        "experts_per_layer": 8,
+        "inactive_per_token": 15713280,
+        "moe_layers": 5,
+        "mtp_extra_parameters": 0,
+        "routed_expert_size": 523776,
+        "top_k": 2,
+        "total_to_active_ratio": 2.588962,
+        "total_trainable": 25602304
+      },
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": 1,
+        "mlp_ratio": 2.6666666666666665,
+        "n_embd": 256,
+        "n_experts": 8,
+        "n_experts_per_tok": 2,
+        "n_head": 8,
+        "n_kv_head": 2,
+        "n_layer": 6,
+        "n_mtp": 1,
+        "vocab_size": 1000
+      },
+      "buffers": 49152,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": 1000,
+          "max_iters": 3000,
+          "seed": 1337,
+          "tokenizer": "bpe"
+        },
+        "format": null,
+        "kind": null,
+        "metrics": null,
+        "selection": null,
+        "step": null,
+        "val_loss": 6.035802841186523
+      },
+      "family": "v2",
+      "name": "v2-bpe",
+      "params": 25602304,
+      "path": "veylith/v2/checkpoints/ckpt.pt",
+      "sha256": "4b4232dd1d8ec91b8f8cf74967ea5340da82b4cf28f5bfe842229ee1c4f9d785",
+      "size_bytes": 102471775,
+      "status": "ok",
+      "temporary": false,
+      "tokenizer": "bpe",
+      "training_budget": {
+        "batch_size": 64,
+        "block_size": 256,
+        "corpus_passes": 110.814,
+        "expected_unseen_fraction": 0.6485,
+        "mean_draws_per_start": 0.4331,
+        "possible_window_starts": 443301,
+        "sampling": "uniform random windows, not epochs",
+        "selected_corpus_passes": 18.469,
+        "selected_step": 500,
+        "selected_token_positions": 8192000,
+        "status": "reconstructed from stored args and config",
+        "steps": 3000,
+        "token_positions": 49152000,
+        "tokens_per_step": 16384,
+        "train_tokens": 443556,
+        "windows_drawn": 192000
+      }
+    },
+    {
+      "accounting": {
+        "active_per_token_main": 9889024,
+        "always_active": 4651264,
+        "categories": {
+          "attention": 983040,
+          "dense_ffn": 523776,
+          "norms": 3328,
+          "other": 0,
+          "output_head": 256000,
+          "position_embedding": 0,
+          "routed_experts": 20951040,
+          "router": 10240,
+          "shared_expert": 2618880,
+          "token_embedding": 256000
+        },
+        "convention": "full dense matrices and full embedding tables count as active; top_k routed experts active per token; MTP reuses trunk and head",
+        "experts_per_layer": 8,
+        "inactive_per_token": 15713280,
+        "moe_layers": 5,
+        "mtp_extra_parameters": 0,
+        "routed_expert_size": 523776,
+        "top_k": 2,
+        "total_to_active_ratio": 2.588962,
+        "total_trainable": 25602304
+      },
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": 1,
+        "mlp_ratio": 2.6666666666666665,
+        "n_embd": 256,
+        "n_experts": 8,
+        "n_experts_per_tok": 2,
+        "n_head": 8,
+        "n_kv_head": 2,
+        "n_layer": 6,
+        "n_mtp": 1,
+        "vocab_size": 1000
+      },
+      "buffers": 49152,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": 1000,
+          "max_iters": 120,
+          "seed": 1337,
+          "tokenizer": "bpe"
+        },
+        "format": 2,
+        "kind": "model",
+        "metrics": {
+          "aux_loss": 5.010425567626953,
+          "composite_loss": 7.39903450012207,
+          "main_ce": 4.689386367797852,
+          "main_perplexity": 108.78640448082058,
+          "mtp_ce": 5.319087982177734
+        },
+        "selection": {
+          "metric": "composite",
+          "value": 7.39903450012207
+        },
+        "step": 120,
+        "val_loss": 7.39903450012207
+      },
+      "family": "v2",
+      "name": "v2-p1-1-temp",
+      "params": 25602304,
+      "path": "/tmp/opencode/p1-1-phaseb/ckpt.pt",
+      "sha256": "508065ca622147faa5aa5e453c855560f9d61a17ded49981a92c5c8d7d76212b",
+      "size_bytes": 102484179,
+      "status": "ok",
+      "temporary": true,
+      "tokenizer": "bpe",
+      "training_budget": {
+        "batch_size": 64,
+        "block_size": 256,
+        "corpus_passes": 4.433,
+        "expected_unseen_fraction": 0.9828,
+        "mean_draws_per_start": 0.0173,
+        "possible_window_starts": 443301,
+        "sampling": "uniform random windows, not epochs",
+        "status": "reconstructed from stored args and config",
+        "steps": 120,
+        "token_positions": 1966080,
+        "tokens_per_step": 16384,
+        "train_tokens": 443556,
+        "windows_drawn": 7680
+      }
+    },
+    {
+      "accounting": {
+        "active_per_token_main": 9889024,
+        "always_active": 4651264,
+        "categories": {
+          "attention": 983040,
+          "dense_ffn": 523776,
+          "norms": 3328,
+          "other": 0,
+          "output_head": 256000,
+          "position_embedding": 0,
+          "routed_experts": 20951040,
+          "router": 10240,
+          "shared_expert": 2618880,
+          "token_embedding": 256000
+        },
+        "convention": "full dense matrices and full embedding tables count as active; top_k routed experts active per token; MTP reuses trunk and head",
+        "experts_per_layer": 8,
+        "inactive_per_token": 15713280,
+        "moe_layers": 5,
+        "mtp_extra_parameters": 0,
+        "routed_expert_size": 523776,
+        "top_k": 2,
+        "total_to_active_ratio": 2.588962,
+        "total_trainable": 25602304
+      },
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": 1,
+        "mlp_ratio": 2.6666666666666665,
+        "n_embd": 256,
+        "n_experts": 8,
+        "n_experts_per_tok": 2,
+        "n_head": 8,
+        "n_kv_head": 2,
+        "n_layer": 6,
+        "n_mtp": 1,
+        "vocab_size": 1000
+      },
+      "buffers": 49152,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": 1000,
+          "max_iters": 5000,
+          "seed": 1337,
+          "tokenizer": "bpe"
+        },
+        "format": 2,
+        "kind": "model",
+        "metrics": {
+          "aux_loss": 5.1363844871521,
+          "composite_loss": 5.791182500416074,
+          "main_ce": 3.277874198382153,
+          "main_perplexity": 26.519337885135833,
+          "mtp_ce": 4.9238889143248015
+        },
+        "selection": {
+          "metric": "main_ce",
+          "step": 500,
+          "value": 3.277874198382153
+        },
+        "step": 5000,
+        "val_loss": 5.791182500416074
+      },
+      "family": "v2",
+      "name": "p1-3-v2",
+      "params": 25602304,
+      "path": "~/veylith-runs/p1-3-20261026/ckpt_best.pt",
+      "sha256": "be2d72912b222e8e2ca0df4bdca802b24f01bdb3cc694aaec789156b31e77f3f",
+      "size_bytes": 102484435,
+      "status": "ok",
+      "temporary": false,
+      "tokenizer": "bpe",
+      "training_budget": {
+        "batch_size": 64,
+        "block_size": 256,
+        "corpus_passes": 184.689,
+        "expected_unseen_fraction": 0.4858,
+        "mean_draws_per_start": 0.7219,
+        "possible_window_starts": 443301,
+        "sampling": "uniform random windows, not epochs",
+        "status": "reconstructed from stored args and config",
+        "steps": 5000,
+        "token_positions": 81920000,
+        "tokens_per_step": 16384,
+        "train_tokens": 443556,
+        "windows_drawn": 320000
+      }
+    }
+  ],
+  "device": "cpu",
+  "documented_decomposition": {
+    "derived": {
+      "share_pct_of_composite": {
+        "aux_weighted": 0.843119,
+        "main_ce": 58.634215,
+        "mtp_weighted": 40.522666
+      },
+      "weighted_terms": {
+        "aux_weighted": 0.050889,
+        "main_ce": 3.539044,
+        "mtp_weighted": 2.445867
+      }
+    },
+    "measured": {
+      "composite": 6.0358,
+      "main_bits_per_char": 2.256,
+      "main_nats_per_token_implied": 3.539044,
+      "mtp_ce_implied": 4.891734
+    },
+    "source": "commit 347aa70 message (training-time eval, random windows)"
+  },
+  "gaps": {
+    "p1-3-v2": {
+      "derived": {
+        "bits_per_char_gap": 0.334229,
+        "ce_gap_nats": 0.497749,
+        "val_train_ratio": 1.187097
+      },
+      "train": {
+        "derived": {
+          "bits_per_char": 1.711386,
+          "main_ce": 2.660375,
+          "main_perplexity": 14.301647,
+          "nats_per_char": 1.186243
+        },
+        "measured": {
+          "chars": 3068,
+          "nats": 3639.392639,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 516.615051,
+              "tokens": 228
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 616.559937,
+              "tokens": 225
+            },
+            {
+              "chars": 512,
+              "index": 2,
+              "nats": 652.291016,
+              "tokens": 241
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 705.087952,
+              "tokens": 221
+            },
+            {
+              "chars": 512,
+              "index": 4,
+              "nats": 630.759766,
+              "tokens": 222
+            },
+            {
+              "chars": 511,
+              "index": 5,
+              "nats": 518.078918,
+              "tokens": 231
+            }
+          ],
+          "tokens": 1368
+        }
+      },
+      "val": {
+        "derived": {
+          "bits_per_char": 2.045615,
+          "main_ce": 3.158124,
+          "main_perplexity": 23.526428,
+          "nats_per_char": 1.417912
+        },
+        "measured": {
+          "chars": 3067,
+          "nats": 4348.737305,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 689.361084,
+              "tokens": 235
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 788.859802,
+              "tokens": 225
+            },
+            {
+              "chars": 510,
+              "index": 2,
+              "nats": 657.334045,
+              "tokens": 206
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 694.11499,
+              "tokens": 226
+            },
+            {
+              "chars": 512,
+              "index": 4,
+              "nats": 748.159546,
+              "tokens": 234
+            },
+            {
+              "chars": 512,
+              "index": 5,
+              "nats": 770.907837,
+              "tokens": 251
+            }
+          ],
+          "tokens": 1377
+        }
+      }
+    },
+    "v1-bpe": {
+      "derived": {
+        "bits_per_char_gap": 0.316003,
+        "ce_gap_nats": 0.470738,
+        "val_train_ratio": 1.188566
+      },
+      "train": {
+        "derived": {
+          "bits_per_char": 1.605908,
+          "main_ce": 2.496406,
+          "main_perplexity": 12.138794,
+          "nats_per_char": 1.11313
+        },
+        "measured": {
+          "chars": 3068,
+          "nats": 3415.084015,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 489.197845,
+              "tokens": 228
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 511.009827,
+              "tokens": 225
+            },
+            {
+              "chars": 512,
+              "index": 2,
+              "nats": 659.022766,
+              "tokens": 241
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 678.367432,
+              "tokens": 221
+            },
+            {
+              "chars": 512,
+              "index": 4,
+              "nats": 631.709351,
+              "tokens": 222
+            },
+            {
+              "chars": 511,
+              "index": 5,
+              "nats": 445.776794,
+              "tokens": 231
+            }
+          ],
+          "tokens": 1368
+        }
+      },
+      "val": {
+        "derived": {
+          "bits_per_char": 1.921911,
+          "main_ce": 2.967144,
+          "main_perplexity": 19.436329,
+          "nats_per_char": 1.332167
+        },
+        "measured": {
+          "chars": 3067,
+          "nats": 4085.757202,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 638.047546,
+              "tokens": 235
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 753.183411,
+              "tokens": 225
+            },
+            {
+              "chars": 510,
+              "index": 2,
+              "nats": 640.69574,
+              "tokens": 206
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 650.021545,
+              "tokens": 226
+            },
+            {
+              "chars": 512,
+              "index": 4,
+              "nats": 671.64856,
+              "tokens": 234
+            },
+            {
+              "chars": 512,
+              "index": 5,
+              "nats": 732.1604,
+              "tokens": 251
+            }
+          ],
+          "tokens": 1377
+        }
+      }
+    },
+    "v1-bpe-5000it": {
+      "derived": {
+        "bits_per_char_gap": 1.85469,
+        "ce_gap_nats": 2.857477,
+        "val_train_ratio": 4.328977
+      },
+      "train": {
+        "derived": {
+          "bits_per_char": 0.552176,
+          "main_ce": 0.858365,
+          "main_perplexity": 2.359301,
+          "nats_per_char": 0.382739
+        },
+        "measured": {
+          "chars": 3068,
+          "nats": 1174.243607,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 210.120392,
+              "tokens": 228
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 178.439331,
+              "tokens": 225
+            },
+            {
+              "chars": 512,
+              "index": 2,
+              "nats": 180.569672,
+              "tokens": 241
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 243.071213,
+              "tokens": 221
+            },
+            {
+              "chars": 512,
+              "index": 4,
+              "nats": 188.137238,
+              "tokens": 222
+            },
+            {
+              "chars": 511,
+              "index": 5,
+              "nats": 173.905762,
+              "tokens": 231
+            }
+          ],
+          "tokens": 1368
+        }
+      },
+      "val": {
+        "derived": {
+          "bits_per_char": 2.406866,
+          "main_ce": 3.715842,
+          "main_perplexity": 41.093189,
+          "nats_per_char": 1.668313
+        },
+        "measured": {
+          "chars": 3067,
+          "nats": 5116.714966,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 769.674194,
+              "tokens": 235
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 1011.647949,
+              "tokens": 225
+            },
+            {
+              "chars": 510,
+              "index": 2,
+              "nats": 767.526794,
+              "tokens": 206
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 780.494873,
+              "tokens": 226
+            },
+            {
+              "chars": 512,
+              "index": 4,
+              "nats": 896.444092,
+              "tokens": 234
+            },
+            {
+              "chars": 512,
+              "index": 5,
+              "nats": 890.927063,
+              "tokens": 251
+            }
+          ],
+          "tokens": 1377
+        }
+      }
+    },
+    "v1-char": {
+      "derived": {
+        "bits_per_char_gap": 0.35717,
+        "ce_gap_nats": 0.247572,
+        "val_train_ratio": 1.229528
+      },
+      "train": {
+        "derived": {
+          "bits_per_char": 1.556111,
+          "main_ce": 1.078614,
+          "main_perplexity": 2.940602,
+          "nats_per_char": 1.078614
+        },
+        "measured": {
+          "chars": 3066,
+          "nats": 3307.031403,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 490.068741,
+              "tokens": 511
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 545.341919,
+              "tokens": 511
+            },
+            {
+              "chars": 511,
+              "index": 2,
+              "nats": 635.142426,
+              "tokens": 511
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 607.486664,
+              "tokens": 511
+            },
+            {
+              "chars": 511,
+              "index": 4,
+              "nats": 587.614471,
+              "tokens": 511
+            },
+            {
+              "chars": 511,
+              "index": 5,
+              "nats": 441.377182,
+              "tokens": 511
+            }
+          ],
+          "tokens": 3066
+        }
+      },
+      "val": {
+        "derived": {
+          "bits_per_char": 1.913281,
+          "main_ce": 1.326186,
+          "main_perplexity": 3.766649,
+          "nats_per_char": 1.326186
+        },
+        "measured": {
+          "chars": 3066,
+          "nats": 4066.085114,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 608.95993,
+              "tokens": 511
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 765.883881,
+              "tokens": 511
+            },
+            {
+              "chars": 511,
+              "index": 2,
+              "nats": 639.800903,
+              "tokens": 511
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 681.97879,
+              "tokens": 511
+            },
+            {
+              "chars": 511,
+              "index": 4,
+              "nats": 662.579102,
+              "tokens": 511
+            },
+            {
+              "chars": 511,
+              "index": 5,
+              "nats": 706.882507,
+              "tokens": 511
+            }
+          ],
+          "tokens": 3066
+        }
+      }
+    },
+    "v2-bpe": {
+      "derived": {
+        "bits_per_char_gap": 0.287368,
+        "ce_gap_nats": 0.424753,
+        "val_train_ratio": 1.154162
+      },
+      "train": {
+        "derived": {
+          "bits_per_char": 1.772407,
+          "main_ce": 2.755232,
+          "main_perplexity": 15.724687,
+          "nats_per_char": 1.228539
+        },
+        "measured": {
+          "chars": 3068,
+          "nats": 3769.157196,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 499.066132,
+              "tokens": 228
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 636.790466,
+              "tokens": 225
+            },
+            {
+              "chars": 512,
+              "index": 2,
+              "nats": 733.4552,
+              "tokens": 241
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 713.695618,
+              "tokens": 221
+            },
+            {
+              "chars": 512,
+              "index": 4,
+              "nats": 668.957581,
+              "tokens": 222
+            },
+            {
+              "chars": 511,
+              "index": 5,
+              "nats": 517.1922,
+              "tokens": 231
+            }
+          ],
+          "tokens": 1368
+        }
+      },
+      "val": {
+        "derived": {
+          "bits_per_char": 2.059775,
+          "main_ce": 3.179985,
+          "main_perplexity": 24.046398,
+          "nats_per_char": 1.427727
+        },
+        "measured": {
+          "chars": 3067,
+          "nats": 4378.839661,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 668.020752,
+              "tokens": 235
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 794.027771,
+              "tokens": 225
+            },
+            {
+              "chars": 510,
+              "index": 2,
+              "nats": 677.977356,
+              "tokens": 206
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 701.619263,
+              "tokens": 226
+            },
+            {
+              "chars": 512,
+              "index": 4,
+              "nats": 763.278015,
+              "tokens": 234
+            },
+            {
+              "chars": 512,
+              "index": 5,
+              "nats": 773.916504,
+              "tokens": 251
+            }
+          ],
+          "tokens": 1377
+        }
+      }
+    },
+    "v2-p1-1-temp": {
+      "derived": {
+        "bits_per_char_gap": 0.006204,
+        "ce_gap_nats": -0.022613,
+        "val_train_ratio": 0.995181
+      },
+      "train": {
+        "derived": {
+          "bits_per_char": 3.018761,
+          "main_ce": 4.692707,
+          "main_perplexity": 109.14822,
+          "nats_per_char": 2.092446
+        },
+        "measured": {
+          "chars": 3068,
+          "nats": 6419.622864,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 1018.676025,
+              "tokens": 228
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 1062.950928,
+              "tokens": 225
+            },
+            {
+              "chars": 512,
+              "index": 2,
+              "nats": 1186.637085,
+              "tokens": 241
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 1087.564819,
+              "tokens": 221
+            },
+            {
+              "chars": 512,
+              "index": 4,
+              "nats": 1064.305908,
+              "tokens": 222
+            },
+            {
+              "chars": 511,
+              "index": 5,
+              "nats": 999.488098,
+              "tokens": 231
+            }
+          ],
+          "tokens": 1368
+        }
+      },
+      "val": {
+        "derived": {
+          "bits_per_char": 3.024965,
+          "main_ce": 4.670094,
+          "main_perplexity": 106.707724,
+          "nats_per_char": 2.096746
+        },
+        "measured": {
+          "chars": 3067,
+          "nats": 6430.718811,
+          "sections": [
+            {
+              "chars": 511,
+              "index": 0,
+              "nats": 1046.377808,
+              "tokens": 235
+            },
+            {
+              "chars": 511,
+              "index": 1,
+              "nats": 1094.352295,
+              "tokens": 225
+            },
+            {
+              "chars": 510,
+              "index": 2,
+              "nats": 1007.556335,
+              "tokens": 206
+            },
+            {
+              "chars": 511,
+              "index": 3,
+              "nats": 1053.33728,
+              "tokens": 226
+            },
+            {
+              "chars": 512,
+              "index": 4,
+              "nats": 1079.339111,
+              "tokens": 234
+            },
+            {
+              "chars": 512,
+              "index": 5,
+              "nats": 1149.755981,
+              "tokens": 251
+            }
+          ],
+          "tokens": 1377
+        }
+      }
+    }
+  },
+  "generated_by": "veylith/audit.py",
+  "gradients": {
+    "p1-3-v2": {
+      "batches": [
+        {
+          "derived": {
+            "cosine_composite_main": 0.935208,
+            "cosine_main_aux": -0.028624,
+            "cosine_main_mtp": 0.2203,
+            "mtp_share_of_composite_norm": 0.394914
+          },
+          "measured": {
+            "grad_norm_aux": 2.904881,
+            "grad_norm_aux_weighted": 0.029049,
+            "grad_norm_composite": 8.586013,
+            "grad_norm_main": 7.190796,
+            "grad_norm_mtp": 6.781478,
+            "grad_norm_mtp_weighted": 3.390739,
+            "params_without_grad": {
+              "aux": 29,
+              "main": 0,
+              "mtp": 0
+            }
+          },
+          "tokens": 235
+        },
+        {
+          "derived": {
+            "cosine_composite_main": 0.921503,
+            "cosine_main_aux": -0.042114,
+            "cosine_main_mtp": 0.285797,
+            "mtp_share_of_composite_norm": 0.431914
+          },
+          "measured": {
+            "grad_norm_aux": 2.225011,
+            "grad_norm_aux_weighted": 0.02225,
+            "grad_norm_composite": 8.356841,
+            "grad_norm_main": 6.581592,
+            "grad_norm_mtp": 7.218875,
+            "grad_norm_mtp_weighted": 3.609437,
+            "params_without_grad": {
+              "aux": 29,
+              "main": 0,
+              "mtp": 0
+            }
+          },
+          "tokens": 225
+        }
+      ],
+      "status": "measured",
+      "weights_unchanged": true
+    },
+    "v2-bpe": {
+      "batches": [
+        {
+          "derived": {
+            "cosine_composite_main": 0.926583,
+            "cosine_main_aux": 0.092568,
+            "cosine_main_mtp": 0.239558,
+            "mtp_share_of_composite_norm": 0.415197
+          },
+          "measured": {
+            "grad_norm_aux": 3.284671,
+            "grad_norm_aux_weighted": 0.032847,
+            "grad_norm_composite": 8.13225,
+            "grad_norm_main": 6.62676,
+            "grad_norm_mtp": 6.752971,
+            "grad_norm_mtp_weighted": 3.376485,
+            "params_without_grad": {
+              "aux": 29,
+              "main": 0,
+              "mtp": 0
+            }
+          },
+          "tokens": 235
+        },
+        {
+          "derived": {
+            "cosine_composite_main": 0.939681,
+            "cosine_main_aux": 0.003914,
+            "cosine_main_mtp": 0.339178,
+            "mtp_share_of_composite_norm": 0.396796
+          },
+          "measured": {
+            "grad_norm_aux": 2.689816,
+            "grad_norm_aux_weighted": 0.026898,
+            "grad_norm_composite": 8.749496,
+            "grad_norm_main": 6.951686,
+            "grad_norm_mtp": 6.943538,
+            "grad_norm_mtp_weighted": 3.471769,
+            "params_without_grad": {
+              "aux": 29,
+              "main": 0,
+              "mtp": 0
+            }
+          },
+          "tokens": 225
+        }
+      ],
+      "status": "measured",
+      "weights_unchanged": true
+    },
+    "v2-p1-1-temp": {
+      "batches": [
+        {
+          "derived": {
+            "cosine_composite_main": 0.857811,
+            "cosine_main_aux": -0.00445,
+            "cosine_main_mtp": -0.282453,
+            "mtp_share_of_composite_norm": 0.54671
+          },
+          "measured": {
+            "grad_norm_aux": 2.210811,
+            "grad_norm_aux_weighted": 0.022108,
+            "grad_norm_composite": 2.795338,
+            "grad_norm_main": 2.807796,
+            "grad_norm_mtp": 3.056481,
+            "grad_norm_mtp_weighted": 1.52824,
+            "params_without_grad": {
+              "aux": 29,
+              "main": 0,
+              "mtp": 0
+            }
+          },
+          "tokens": 235
+        },
+        {
+          "derived": {
+            "cosine_composite_main": 0.881435,
+            "cosine_main_aux": 0.062292,
+            "cosine_main_mtp": 0.177012,
+            "mtp_share_of_composite_norm": 0.492227
+          },
+          "measured": {
+            "grad_norm_aux": 2.908554,
+            "grad_norm_aux_weighted": 0.029086,
+            "grad_norm_composite": 3.055624,
+            "grad_norm_main": 2.407706,
+            "grad_norm_mtp": 3.008122,
+            "grad_norm_mtp_weighted": 1.504061,
+            "params_without_grad": {
+              "aux": 29,
+              "main": 0,
+              "mtp": 0
+            }
+          },
+          "tokens": 225
+        }
+      ],
+      "status": "measured",
+      "weights_unchanged": true
+    }
+  },
+  "loss_decomposition": {
+    "p1-3-v2": {
+      "derived": {
+        "share_pct_of_composite": {
+          "aux_weighted": 0.916262,
+          "main_ce": 55.90728,
+          "mtp_weighted": 43.176458
+        },
+        "weighted_terms": {
+          "aux_weighted": 0.051758,
+          "main_ce": 3.158124,
+          "mtp_weighted": 2.438978
+        }
+      },
+      "measured": {
+        "aux_loss_raw": 5.175838,
+        "aux_weight": 0.01,
+        "composite": 5.648861,
+        "main_ce": 3.158124,
+        "mtp_ce": 4.877956,
+        "mtp_weight": 0.5,
+        "tokens": 1377
+      }
+    },
+    "v2-bpe": {
+      "derived": {
+        "share_pct_of_composite": {
+          "aux_weighted": 0.914106,
+          "main_ce": 56.014566,
+          "mtp_weighted": 43.071328
+        },
+        "weighted_terms": {
+          "aux_weighted": 0.051894,
+          "main_ce": 3.179985,
+          "mtp_weighted": 2.445189
+        }
+      },
+      "measured": {
+        "aux_loss_raw": 5.189441,
+        "aux_weight": 0.01,
+        "composite": 5.677068,
+        "main_ce": 3.179985,
+        "mtp_ce": 4.890378,
+        "mtp_weight": 0.5,
+        "tokens": 1377
+      }
+    },
+    "v2-p1-1-temp": {
+      "derived": {
+        "share_pct_of_composite": {
+          "aux_weighted": 0.687273,
+          "main_ce": 63.524184,
+          "mtp_weighted": 35.788543
+        },
+        "weighted_terms": {
+          "aux_weighted": 0.050526,
+          "main_ce": 4.670094,
+          "mtp_weighted": 2.631059
+        }
+      },
+      "measured": {
+        "aux_loss_raw": 5.052607,
+        "aux_weight": 0.01,
+        "composite": 7.351678,
+        "main_ce": 4.670094,
+        "mtp_ce": 5.262117,
+        "mtp_weight": 0.5,
+        "tokens": 1377
+      }
+    }
+  },
+  "protocol": {
+    "boundaries": {
+      "bpe_model_start_char": 1008119,
+      "bpe_model_start_token": 443556,
+      "char_model_start": 1003854,
+      "shared_start": 1008119
+    },
+    "corpus": "veylith/v2/data/tinyshakespeare.txt",
+    "corpus_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+    "evaluation": "main next-token CE only; same chunking as evaluate.py",
+    "gradients": "one separate backward per loss term, no optimizer step",
+    "train_sections": [
+      {
+        "chars": 512,
+        "end": 50512,
+        "index": 0,
+        "sha256": "3e10a9f2d246fe5ccd6674e917b8f5b6a6b14833f124f29b095b5a826ee42c80",
+        "start": 50000
+      },
+      {
+        "chars": 512,
+        "end": 51152,
+        "index": 1,
+        "sha256": "3888fd681dcaa29ed4882872d48be7d6f1bcd3577d605dc1864c9643e9851b4b",
+        "start": 50640
+      },
+      {
+        "chars": 512,
+        "end": 51792,
+        "index": 2,
+        "sha256": "08560564fb7264ddcea69e18f8fd222ba27147f650318b90155deb0048f18d3e",
+        "start": 51280
+      },
+      {
+        "chars": 512,
+        "end": 52432,
+        "index": 3,
+        "sha256": "a75fb00a85e3ff485d9c937c89886e62bb12674dbea5718ad4d94770d91e97db",
+        "start": 51920
+      },
+      {
+        "chars": 512,
+        "end": 53072,
+        "index": 4,
+        "sha256": "194742ac54f0f038973f67f17e2e604cb8f02e9efb13492915daa043ff98f26d",
+        "start": 52560
+      },
+      {
+        "chars": 512,
+        "end": 53712,
+        "index": 5,
+        "sha256": "060ccdf7859684c7a19d71cf582a9aac9484d094d544e43a9ad453e578c53a9d",
+        "start": 53200
+      }
+    ],
+    "val_sections": [
+      {
+        "chars": 512,
+        "end": 1008631,
+        "index": 0,
+        "sha256": "8491abe49171aec3d069edfbe896510e5bf558f3a6ad1f63ea62c9e98cde9e38",
+        "start": 1008119
+      },
+      {
+        "chars": 512,
+        "end": 1009271,
+        "index": 1,
+        "sha256": "2887561709b921f9be6d45cf7229b1d2d0ead418f86fa14afd11c4eafbe1261b",
+        "start": 1008759
+      },
+      {
+        "chars": 512,
+        "end": 1009911,
+        "index": 2,
+        "sha256": "28e198e70f9caa0684a0cd4750254a1e98c8a76c4b0b5911fcd59584856e9801",
+        "start": 1009399
+      },
+      {
+        "chars": 512,
+        "end": 1010551,
+        "index": 3,
+        "sha256": "909a59a22a2869cc192e4d829a7abcdca02b55e8ee7d05584e1d2cf508ec5191",
+        "start": 1010039
+      },
+      {
+        "chars": 512,
+        "end": 1011191,
+        "index": 4,
+        "sha256": "a4e87f44f9360ddb5aca2a03b7181cb3bb5ba17721530d18a7a7e448ef739a6f",
+        "start": 1010679
+      },
+      {
+        "chars": 512,
+        "end": 1011831,
+        "index": 5,
+        "sha256": "71494d1a5936665345370b59ab52770a0ffd51316a1480363bfedae9aaeb9942",
+        "start": 1011319
+      }
+    ]
+  },
+  "torch": "2.14.1"
+}

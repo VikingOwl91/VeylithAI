@@ -383,7 +383,8 @@ def build_audit(args):
     corpus = E.read_corpus()
     train_sections = make_train_sections(corpus, args.sections, args.section_chars, args.gap_chars)
     val_sections, marks = E.make_sections(corpus, args.sections, args.section_chars, args.gap_chars)
-    records = [E.load_entry(entry) for entry in E.CHECKPOINTS]
+    entries = E.CHECKPOINTS + E.parse_extra_checkpoints(args.extra_checkpoint)
+    records = [E.load_entry(entry) for entry in entries]
     loaded = [record for record in records if record["status"] == "ok"]
     val_chunks = {record["name"]: model_chunks(record, val_sections) for record in loaded}
 
@@ -449,6 +450,8 @@ def parse_args(argv=None):
     parser.add_argument("--section-chars", type=int, default=512)
     parser.add_argument("--gap-chars", type=int, default=128)
     parser.add_argument("--grad-batches", type=int, default=2)
+    parser.add_argument("--extra-checkpoint", action="append", default=[], metavar="NAME=PATH",
+                        help="also audit this checkpoint; repeatable")
     return parser.parse_args(argv)
 
 

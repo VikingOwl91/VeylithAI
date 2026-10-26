@@ -48,20 +48,26 @@ evaluation procedure also differ.
 
 A controlled evaluation on six shared validation sections (identical text,
 main next-token CE only) gives 1.913 bits/char for v1 char, 1.922 for v1
-BPE, 2.060 for v2 BPE and 3.025 for the 120-step diagnostic checkpoint. On
-the same BPE tokens v2 is 0.213 nats/token worse than v1 (paired over
-sections, SE 0.038). Protocol, router analysis and generation examples:
-`evaluation/REPORT.md`; raw numbers in `evaluation/results.json`.
+BPE, 2.060 for the shipped v2 BPE checkpoint, 2.046 for the v2 checkpoint
+from the controlled 5000-step run (selected at step 500 by main CE) and
+3.025 for the 120-step diagnostic checkpoint. On the same BPE tokens the
+controlled v2 is 0.189 nats/token worse than v1 (paired over sections,
+SE 0.034); against the shipped v2 it is 0.024 +/- 0.026 nats/token better,
+inside one standard error. Protocol, router analysis and generation
+examples: `evaluation/REPORT.md` and `evaluation/P1-3-REPORT.md`; raw
+numbers in `evaluation/results.json` and `evaluation/p1-3-results.json`.
 
 From the original training run (log not stored in this repo), v2's
 validation loss bottomed around iter 500 (6.0358) and the final evaluation
 at iter 3000 was 8.06 while the training loss was 1.39: 25.6M params on
 0.5M tokens is too much capacity for the data, and early stopping kept the
-best weights. A check of the saved checkpoint on three validation batches
-gives a mean router probability between 0.080 and 0.208 per expert
-(target 0.125), with no collapsed expert. The lesson: capacity must match
-data. A fancier architecture does not beat a smaller model when the corpus
-is tiny.
+best weights. The controlled run reproduces that shape on fixed sections:
+selection CE bottoms at step 500 (3.278) and rises to 4.75 at step 4999
+while training CE falls to 0.59. A check of the saved checkpoint on three
+validation batches gives a mean router probability between 0.080 and 0.208
+per expert (target 0.125), with no collapsed expert. The lesson: capacity
+must match data. A fancier architecture does not beat a smaller model when
+the corpus is tiny.
 
 ## Run
 

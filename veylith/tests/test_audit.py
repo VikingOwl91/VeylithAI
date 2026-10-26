@@ -125,3 +125,9 @@ def test_evaluate_reuses_the_same_metrics():
     result = E.evaluate_model(v2, sections)
     assert result["measured"]["tokens"] > 0
     assert result["derived"]["main_ce"] > 0
+
+
+def test_extra_checkpoint_flag_is_accepted():
+    args = A.parse_args(["--extra-checkpoint", "p1-3-v2=/runs/ckpt_best.pt"])
+    assert args.extra_checkpoint == ["p1-3-v2=/runs/ckpt_best.pt"]
+    assert A.parse_args([]).extra_checkpoint == []
