@@ -36,9 +36,11 @@ Per-character conversion, for reference only:
 `bits/char = nats/token / (chars/token * ln 2)` with
 `chars/token = 1,115,394 / 492,841 = 2.2632` for this corpus, and one
 character per token for the char model. That gives 2.128 (v1 char),
-2.097 (v1 BPE) and 2.033 (v2 main CE). The previously published values
-2.181 and 2.256 cannot be reconstructed from the documented inputs and are
-withdrawn.
+2.097 (v1 BPE) and 2.033 (v2 main CE). The previously published 2.181 (v1)
+could not be reconstructed. The v2 value 2.256 matches a training-time main
+CE of 3.539 nats/token reported in commit 347aa70 (random windows), not the
+3.18 measured here on fixed sections. Both old numbers are withdrawn as
+comparison values; they are not comparable to the values above.
 
 Do not compare rows directly: v1 reports the plain next-token CE, v2
 reports a composite that includes the MTP term, and tokenizer, corpus and

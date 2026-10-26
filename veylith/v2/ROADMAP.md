@@ -175,6 +175,28 @@ gesonderte Freigabe.**
 - **Abnahme**: erfuellt. Zwei unabhaengige Laeufe erzeugen identische
   `results.json`.
 
+### P1-5 Trainings-Audit und Ablationsplanung
+
+**Status: umgesetzt am 2026-10-26** (`veylith/audit.py`,
+`veylith/evaluation/TRAINING-AUDIT.md`, `veylith/evaluation/audit.json`).
+
+- **Problem und Evidenz**: v2-bpe liegt auf identischen Token 0.213 nats/token
+  hinter v1-bpe; die Ursache (Budget, Kapazitaet, Ziel, Attention) war offen.
+- **Ergebnis**: der ausgelieferte v2-Checkpoint ist *nicht* staerker
+  ueberangepasst als v1 (Train/Val-Gap 0.425 vs 0.471 nats), sondern passt
+  sich auf den Trainingsabschnitten schlechter an (2.755 vs 2.496) und wurde
+  nach 18.5 Korpus-Durchlaeufen selektiert. Spaeter ueberfittet der Lauf stark
+  (laut Log 1.39 vs 8.06). MTP traegt 43 % des Composite-Werts und rund 40 %
+  der Gradientennorm, ist aber positiv zum Hauptziel ausgerichtet
+  (Cosinus +0.24..+0.34). Aktiv pro Token: 9.89M bei 25.60M total (v1: 5.32M).
+  Attention: nur Schicht 3 ist full, fuenf sind SWA 128.
+- **Nutzen**: der naechste Schritt ist keine Architekturaenderung, sondern ein
+  sauberer v2-Baseline-Lauf mit fester Evaluation und Main-CE-Selektion.
+- **Risiken**: der Selektionsschritt von v1 ist nicht rekonstruierbar; ohne
+  neue Kurve bleibt der Budget-Einfluss offen.
+- **Abnahme**: Audit reproduzierbar (byte-identisch), Empfehlung E1
+  dokumentiert.
+
 ## P2: Architektur und Modellqualitaet
 
 ### P2-1 MTP-Gewicht und MTP-Kopf
