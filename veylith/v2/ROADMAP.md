@@ -45,6 +45,10 @@ Evaluationssemantik und waren nicht Teil der Freigabe.
 
 ### P0-2 Messwerte trennen und Evaluation reproduzierbar machen
 
+**Status: umgesetzt am 2026-10-26** (`--eval-mode`, `--eval-seed`,
+`--select-metric`, Komponenten im Log und in den Metadaten, feste
+Eval-Fenster, Selektionsziel in Checkpoint und State).
+
 - **Problem und Evidenz**: D3 und D6. Die gemeldete Loss ist eine
   Mischung (5.7144 = 3.1895 Haupt + 2.474 MTP + 0.051 Aux), MTP stellt
   43 %. Eval-Fenster sind zufaellig, also zwischen Laeufen nicht

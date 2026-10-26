@@ -155,9 +155,13 @@ def load_data(tokenizer, bpe_vocab_size):
     return data[:n], data[n:], encode, decode, vocab_size, info
 
 
-def get_batch(split_data, block_size, batch_size, device):
-    """Random (x, y) windows; y is x shifted by one token."""
-    ix = torch.randint(len(split_data) - block_size, (batch_size,))
+def get_batch(split_data, block_size, batch_size, device, generator=None):
+    """Random (x, y) windows; y is x shifted by one token.
+
+    `generator` pins the window choice without touching the global RNG
+    (used by the fixed evaluation mode).
+    """
+    ix = torch.randint(len(split_data) - block_size, (batch_size,), generator=generator)
     x = torch.stack([split_data[i:i + block_size] for i in ix])
     y = torch.stack([split_data[i + 1:i + 1 + block_size] for i in ix])
     return x.to(device), y.to(device)
@@ -339,7 +343,7 @@ class GPT(nn.Module):
         if isinstance(m, (nn.Linear, nn.Embedding)):
             nn.init.normal_(m.weight, std=0.02)
 
-    def forward(self, idx, targets=None):
+    def forward(self, idx, targets=None, return_metrics=False):
         B, T = idx.shape
         x = self.tok_emb(idx)  # RoPE encodes positions, no position table
         aux_total = x.new_zeros(())
@@ -349,16 +353,27 @@ class GPT(nn.Module):
         x = self.ln_f(x)
         logits = self.head(x)  # position t predicts token t+1
         loss = None
+        metrics = None
         if targets is not None:
-            loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+            main_ce = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+            loss = main_ce
+            mtp_ce = None
             if self.cfg.n_mtp >= 1:
                 # multi-token prediction: position t also predicts token t+2
                 mtp_logits = logits[:, :-1]
                 mtp_targets = targets[:, 1:]
-                mtp_loss = F.cross_entropy(mtp_logits.reshape(-1, logits.size(-1)),
-                                           mtp_targets.reshape(-1))
-                loss = loss + self.cfg.mtp_weight * mtp_loss
+                mtp_ce = F.cross_entropy(mtp_logits.reshape(-1, logits.size(-1)),
+                                         mtp_targets.reshape(-1))
+                loss = loss + self.cfg.mtp_weight * mtp_ce
             loss = loss + self.cfg.moe_aux_weight * aux_total
+            metrics = {
+                "main_ce": main_ce,
+                "mtp_ce": mtp_ce,
+                "aux_loss": aux_total,
+                "composite_loss": loss,
+            }
+        if return_metrics:
+            return logits, loss, metrics
         return logits, loss
 
 
@@ -428,6 +443,37 @@ def config_fingerprint(cfg, args, tok_info):
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
+def _eval_meta(args):
+    """Evaluation settings, stored for traceability."""
+    return {
+        "mode": args.eval_mode,
+        "seed": args.eval_seed if args.eval_mode == "fixed" else None,
+        "iters": args.eval_iters,
+        "batch_size": args.batch_size,
+        "block_size": args.block_size,
+    }
+
+
+def _eval_compat(args):
+    """The evaluation and selection settings a resume must match."""
+    return {
+        "mode": args.eval_mode,
+        "seed": args.eval_seed if args.eval_mode == "fixed" else None,
+        "metric": args.select_metric,
+    }
+
+
+def _stored_eval_compat(state):
+    """Same view for a state file; P0-1 states fall back to the old defaults."""
+    evaluation = state.get("evaluation") or {}
+    saved = state.get("args") or {}
+    mode = evaluation.get("mode", saved.get("eval_mode", "legacy"))
+    seed = evaluation.get("seed", saved.get("eval_seed"))
+    metric = (state.get("selection") or {}).get("metric",
+                                                saved.get("select_metric", "composite"))
+    return {"mode": mode, "seed": seed if mode == "fixed" else None, "metric": metric}
+
+
 def capture_rng_state():
     state = {"torch": torch.get_rng_state()}
     if torch.cuda.is_available() and torch.cuda.is_initialized():
@@ -442,7 +488,7 @@ def restore_rng_state(state):
 
 
 def save_train_state(path, *, model, optimizer, step, best_val, best_state,
-                     cfg, tok_info, args):
+                     cfg, tok_info, args, best_metrics=None):
     atomic_save({
         "format": STATE_FORMAT,
         "kind": "train_state",
@@ -451,6 +497,9 @@ def save_train_state(path, *, model, optimizer, step, best_val, best_state,
         "step": step,
         "best_val": best_val,
         "best_model": best_state,
+        "best_metrics": best_metrics,
+        "evaluation": _eval_meta(args),
+        "selection": {"metric": args.select_metric, "value": best_val},
         "config": asdict(cfg),
         "tokenizer": tok_info,
         "args": vars(args),
@@ -486,6 +535,12 @@ def load_train_state(path, cfg, args, tok_info):
         detail = "; ".join(diffs) if diffs else "fingerprint mismatch"
         raise ValueError(f"resume config mismatch ({detail}). A run can only be "
                          f"resumed with the config it was trained with.")
+    got_eval, want_eval = _stored_eval_compat(state), _eval_compat(args)
+    if got_eval != want_eval:
+        diffs = [f"{key}: {got_eval[key]!r} in checkpoint, {want_eval[key]!r} now"
+                 for key in ("mode", "seed", "metric") if got_eval[key] != want_eval[key]]
+        raise ValueError(f"resume evaluation mismatch ({'; '.join(diffs)}). Evaluation "
+                         f"mode, eval seed and selection metric must not change mid-run.")
     return state
 
 
@@ -499,28 +554,60 @@ def lr_at(step, max_iters, warmup_iters, base_lr):
     return base_lr * (0.1 + 0.9 * 0.5 * (1.0 + math.cos(math.pi * progress)))
 
 
+SCORE_KEYS = {"composite": "composite_loss", "main_ce": "main_ce"}
+METRIC_KEYS = ("main_ce", "mtp_ce", "aux_loss", "composite_loss", "main_perplexity")
+
+
 @torch.no_grad()
 def estimate_loss(model, train_data, val_data, args, device, autocast):
+    """Mean loss components per split.
+
+    `legacy` draws fresh random windows and consumes the global RNG, which
+    is the historical behaviour. `fixed` re-seeds a private generator, so
+    every evaluation uses the same windows and the training RNG is not
+    touched.
+    """
+    generator = None
+    if args.eval_mode == "fixed":
+        generator = torch.Generator().manual_seed(args.eval_seed)
     model.eval()
-    losses = {}
+    result = {}
     for split, split_data in (("train", train_data), ("val", val_data)):
-        total = torch.zeros(args.eval_iters)
-        for i in range(args.eval_iters):
-            x, y = get_batch(split_data, args.block_size, args.batch_size, device)
+        sums = {key: 0.0 for key in ("main_ce", "mtp_ce", "aux_loss", "composite_loss")}
+        mtp_seen = 0
+        for _ in range(args.eval_iters):
+            x, y = get_batch(split_data, args.block_size, args.batch_size, device,
+                             generator=generator)
             with autocast:
-                _, loss = model(x, y)
-            total[i] = loss.item()
-        losses[split] = total.mean().item()
+                _, loss, metrics = model(x, y, return_metrics=True)
+            sums["main_ce"] += metrics["main_ce"].item()
+            sums["aux_loss"] += metrics["aux_loss"].item()
+            sums["composite_loss"] += loss.item()
+            if metrics["mtp_ce"] is not None:
+                sums["mtp_ce"] += metrics["mtp_ce"].item()
+                mtp_seen += 1
+        n = args.eval_iters
+        split_result = {
+            "main_ce": sums["main_ce"] / n,
+            "mtp_ce": sums["mtp_ce"] / mtp_seen if mtp_seen else float("nan"),
+            "aux_loss": sums["aux_loss"] / n,
+            "composite_loss": sums["composite_loss"] / n,
+        }
+        split_result["main_perplexity"] = math.exp(split_result["main_ce"])
+        result[split] = split_result
     model.train()
-    return losses
+    return result
 
 
 def run_training(model, optimizer, train_data, val_data, args, device, autocast,
-                 tok_info, start_step=0, best_val=float("inf"), best_state=None):
+                 tok_info, start_step=0, best_val=float("inf"), best_state=None,
+                 best_metrics=None, stats=None):
     """Train from start_step to args.max_iters (or args.stop_after).
 
     Writes a resumable state every `save_every` iterations and at an early
-    stop. Returns (best_val, best_state, per-iteration losses).
+    stop. `best_val` is the best value of the configured selection metric.
+    Returns (best_val, best_state, per-iteration losses); `stats`, if given,
+    receives the full validation metrics of the selected checkpoint.
     """
     save_every = args.eval_interval if args.save_every is None else max(0, args.save_every)
     state_path = args.state_path or default_state_path(args.checkpoint)
@@ -552,19 +639,30 @@ def run_training(model, optimizer, train_data, val_data, args, device, autocast,
 
         if step % args.eval_interval == 0 or step == final_step:
             evaluated = estimate_loss(model, train_data, val_data, args, device, autocast)
-            print(f"  eval | train loss {evaluated['train']:.4f} | val loss {evaluated['val']:.4f}")
-            if evaluated["val"] < best_val:
-                best_val = evaluated["val"]
+            train_m, val_m = evaluated["train"], evaluated["val"]
+            print(f"  eval | train loss {train_m['composite_loss']:.4f} | "
+                  f"val loss {val_m['composite_loss']:.4f}")
+            print(f"  comp | train main {train_m['main_ce']:.4f} mtp {train_m['mtp_ce']:.4f} "
+                  f"aux {train_m['aux_loss']:.4f} | "
+                  f"val main {val_m['main_ce']:.4f} (ppl {val_m['main_perplexity']:.1f}) "
+                  f"mtp {val_m['mtp_ce']:.4f} aux {val_m['aux_loss']:.4f}")
+            score = val_m[SCORE_KEYS[args.select_metric]]
+            if score < best_val:
+                best_val = score
+                best_metrics = dict(val_m)
                 # early stopping: keep the best-validation weights, not the last
                 best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
+                print(f"  best   -> {args.select_metric} {score:.4f} (iter {step})")
 
         due = save_every > 0 and (step + 1) % save_every == 0 and step + 1 < args.max_iters
         if due or (stops_early and step == last_step - 1):
             save_train_state(state_path, model=model, optimizer=optimizer, step=step + 1,
                              best_val=best_val, best_state=best_state, cfg=model.cfg,
-                             tok_info=tok_info, args=args)
+                             tok_info=tok_info, args=args, best_metrics=best_metrics)
             print(f"  state  -> {state_path} (iter {step + 1})")
 
+    if stats is not None:
+        stats["best_metrics"] = best_metrics
     return best_val, best_state, losses
 
 
@@ -611,6 +709,14 @@ def parse_args(argv=None):
     p.add_argument("--eval_iters", type=int, default=50)
     p.add_argument("--seed", type=int, default=1337)
     p.add_argument("--checkpoint", type=str, default="checkpoints/ckpt.pt")
+    p.add_argument("--eval-mode", choices=["legacy", "fixed"], default="legacy",
+                   help="legacy: fresh random windows per evaluation (historical default); "
+                        "fixed: the same seeded windows every time, training RNG untouched")
+    p.add_argument("--eval-seed", type=int, default=12345,
+                   help="window seed for --eval-mode fixed")
+    p.add_argument("--select-metric", choices=["composite", "main_ce"], default="composite",
+                   help="criterion for best checkpoint and early stopping "
+                        "(default: composite, the historical behaviour)")
     p.add_argument("--device", choices=["auto", "cpu", "cuda", "mps"], default="auto",
                    help="auto keeps the historical pick: CUDA/ROCm, then MPS, then CPU")
     p.add_argument("--save-every", type=int, default=None,
@@ -652,6 +758,13 @@ def main():
           f"GQA {cfg.n_head}Q/{cfg.n_kv_head}KV, SWA {cfg.sliding_window}, "
           f"full every {cfg.full_attn_every}, RoPE, SwiGLU, MTP x{cfg.n_mtp})")
 
+    if args.eval_mode == "fixed":
+        eval_desc = (f"fixed windows seed {args.eval_seed}, {args.eval_iters} batches of "
+                     f"{args.batch_size} x {args.block_size} per split")
+    else:
+        eval_desc = f"legacy random windows, {args.eval_iters} batches per split"
+    print(f"eval: {eval_desc} | selection: {args.select_metric}")
+
     if device == "cuda" and torch.cuda.is_bf16_supported():
         autocast = torch.autocast(device_type="cuda", dtype=torch.bfloat16)
         print("mixed precision: bfloat16")
@@ -660,7 +773,7 @@ def main():
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
-    start_step, best_val, best_state = 0, float("inf"), None
+    start_step, best_val, best_state, best_metrics = 0, float("inf"), None, None
     if args.resume:
         resume_path = (default_state_path(args.checkpoint)
                        if args.resume == "auto" else args.resume)
@@ -673,16 +786,20 @@ def main():
         start_step = int(state["step"])
         best_val = float(state["best_val"])
         best_state = state.get("best_model")
+        best_metrics = state.get("best_metrics")
         restore_rng_state(state["rng"])
         print(f"resumed {resume_path} at iteration {start_step} "
-              f"(best val loss {best_val:.4f})")
+              f"(best {args.select_metric} {best_val:.4f})")
         if start_step >= args.max_iters:
             print(f"--max_iters {args.max_iters} already reached, nothing to do")
             return
 
+    stats = {}
     best_val, best_state, losses = run_training(
         model, optimizer, train_data, val_data, args, device, autocast, tok_info,
-        start_step=start_step, best_val=best_val, best_state=best_state)
+        start_step=start_step, best_val=best_val, best_state=best_state,
+        best_metrics=best_metrics, stats=stats)
+    best_metrics = stats.get("best_metrics")
 
     if start_step + len(losses) < args.max_iters:
         state_path = args.state_path or default_state_path(args.checkpoint)
@@ -693,17 +810,22 @@ def main():
     if best_state is not None:
         model.load_state_dict(best_state)
 
+    val_loss = best_metrics["composite_loss"] if best_metrics else best_val
     atomic_save({
         "format": STATE_FORMAT,
         "kind": "model",
         "model": model.state_dict(),
         "config": asdict(cfg),  # plain dict: pickles without a __main__ class reference
         "tokenizer": tok_info,
-        "val_loss": best_val,
+        "val_loss": val_loss,  # composite val loss at the selected checkpoint
+        "metrics": best_metrics,
+        "selection": {"metric": args.select_metric, "value": best_val},
+        "evaluation": _eval_meta(args),
         "step": start_step + len(losses),
         "args": vars(args),
     }, args.checkpoint)
-    print(f"\nsaved checkpoint -> {args.checkpoint} (best val loss {best_val:.4f})")
+    print(f"\nsaved checkpoint -> {args.checkpoint} "
+          f"(composite val loss {val_loss:.4f}, selected by {args.select_metric})")
 
     print("\n--- sample generation (prompt: 'ROMEO:') ---")
     print(generate(model, encode, decode, device, prompt="ROMEO:", max_new_tokens=300))

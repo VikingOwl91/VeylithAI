@@ -58,6 +58,57 @@ Tests run on CPU only:
 python -m pytest veylith/v2/tests -q
 ```
 
+## Loss components and evaluation
+
+The training objective is a composite. Model quality is the main next-token
+cross-entropy. Do not read the composite as a quality number.
+
+| component | meaning | weight |
+|---|---|---|
+| `main_ce` | next-token cross-entropy, position t predicts t+1 | 1.0 |
+| `mtp_ce` | multi-token term, position t predicts t+2 | `--mtp_weight`, default 0.5 |
+| `aux_loss` | Switch-style MoE load balancing, summed over MoE layers | `--moe_aux_weight`, default 0.01 |
+| `composite_loss` | `main_ce + mtp_weight * mtp_ce + moe_aux_weight * aux_loss` | training objective |
+| `main_perplexity` | `exp(main_ce)` | report only |
+
+Every evaluation prints the composite on the historical line and the components
+on a second line. A stored `val_loss` keeps its historical meaning: the
+composite at the selected checkpoint. `metrics` holds the components,
+`selection` the criterion and its value.
+
+Evaluation modes (`--eval-mode`, default `legacy`):
+
+- `legacy`: fresh random windows per evaluation, drawn from the global RNG.
+  This is the historical behaviour, and it does consume the training RNG
+  stream.
+- `fixed`: one private generator seeded with `--eval-seed`, so every
+  evaluation uses the same windows and the training RNG is untouched.
+  Identical data, seed, checkpoint and config give identical CPU results, also
+  across processes.
+
+Each split is always drawn from its own token range; train and validation are
+never mixed.
+
+Checkpoint selection and early stopping (`--select-metric`, default
+`composite`):
+
+- `composite`: historical behaviour.
+- `main_ce`: select on the main next-token CE.
+
+One criterion drives both the kept best weights and early stopping. The chosen
+criterion is printed at startup and stored in `selection`. Changing the eval
+mode, the eval seed or the selection metric mid-run is refused on resume, since
+each one changes either the data order or the selected checkpoint.
+
+Limits: exactness is verified on CPU. On GPU the GEMM reduction order is not
+deterministic, so bitwise equality is not guaranteed there.
+
+Comparing runs: v1 and v2 are not comparable on raw loss values. v1 reports the
+plain next-token CE, v2 reports a composite that includes MTP; tokenizer,
+corpus and evaluation procedure differ as well. Compare `main_ce` per token only
+against runs with the same tokenizer, corpus and eval mode, or compare bits per
+character.
+
 ## Notes
 
 - MoE training uses the classic Switch-style auxiliary load-balancing
@@ -76,4 +127,8 @@ python -m pytest veylith/v2/tests -q
   GLM-5's `first_k_dense_replace`.
 - Early stopping: the saved checkpoint holds the best-validation
   weights, not the final ones.
-- The reported loss includes the MTP term and the MoE aux term (small).
+- The reported `val_loss` is the composite training objective, not a quality
+  metric; see "Loss components and evaluation".
+- Checkpoints written before P0-2 still load: `metrics`, `selection` and
+  `evaluation` are additive fields. Training states from P0-1 resume with the
+  historical defaults (`legacy`, `composite`).

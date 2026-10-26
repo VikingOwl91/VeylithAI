@@ -1,4 +1,4 @@
-"""CPU-only tests for checkpointing, resume and the loss wiring.
+"""CPU-only tests for checkpointing, resume, loss components and evaluation.
 
 Run from the repository root:
 
@@ -9,6 +9,7 @@ called directly); no test touches a GPU.
 """
 
 import contextlib
+import math
 import os
 import subprocess
 import sys
@@ -272,3 +273,227 @@ def test_cli_pause_resume_and_bare_checkpoint(tmp_path):
     assert "resumed" in resumed.stdout
     assert (tmp_path / "checkpoint.pt").exists()
     assert "Traceback" not in resumed.stderr
+
+
+# ------------------------------------------------ loss components / evaluation
+
+def test_forward_metrics_recompose_the_composite():
+    cfg = make_cfg()
+    torch.manual_seed(5)
+    model = T.GPT(cfg).eval()
+    x = torch.randint(0, VOCAB, (3, 32))
+    y = torch.randint(0, VOCAB, (3, 32))
+    logits, loss, metrics = model(x, y, return_metrics=True)
+
+    assert metrics["composite_loss"] is loss
+    assert metrics["aux_loss"] > 0  # the tiny config has one MoE layer
+    main = F.cross_entropy(logits.view(-1, VOCAB), y.view(-1))
+    mtp = F.cross_entropy(logits[:, :-1].reshape(-1, VOCAB), y[:, 1:].reshape(-1))
+    assert torch.allclose(metrics["main_ce"], main)
+    assert torch.allclose(metrics["mtp_ce"], mtp)
+    recomposed = (metrics["main_ce"] + cfg.mtp_weight * metrics["mtp_ce"]
+                  + cfg.moe_aux_weight * metrics["aux_loss"])
+    assert torch.allclose(loss, recomposed, atol=1e-6)
+
+    # the historical two-value API still works and returns the same loss
+    _, loss_plain = model(x, y)
+    assert torch.equal(loss_plain, loss)
+
+
+def test_estimate_loss_reports_components_and_perplexity(tmp_path):
+    cfg = make_cfg()
+    torch.manual_seed(5)
+    model = T.GPT(cfg)
+    args = make_args(tmp_path / "ckpt.pt")
+    data = make_data()
+    result = T.estimate_loss(model, data, data, args, "cpu", contextlib.nullcontext())
+    for split in ("train", "val"):
+        values = result[split]
+        for key in T.METRIC_KEYS:
+            assert key in values
+        assert values["main_perplexity"] == pytest.approx(math.exp(values["main_ce"]))
+        recomposed = (values["main_ce"] + cfg.mtp_weight * values["mtp_ce"]
+                      + cfg.moe_aux_weight * values["aux_loss"])
+        # Means of per-batch components vs. the mean of per-batch composites
+        # differ only by float summation order.
+        assert values["composite_loss"] == pytest.approx(recomposed, rel=1e-6, abs=1e-6)
+
+
+def test_fixed_eval_is_reproducible_and_keeps_the_training_rng(tmp_path):
+    cfg = make_cfg()
+    torch.manual_seed(5)
+    model = T.GPT(cfg)
+    args = make_args(tmp_path / "ckpt.pt")
+    args.eval_mode, args.eval_seed = "fixed", 7
+    data = make_data()
+
+    torch.manual_seed(99)
+    before = torch.get_rng_state().clone()
+    first = T.estimate_loss(model, data, data, args, "cpu", contextlib.nullcontext())
+    assert torch.equal(before, torch.get_rng_state()), "fixed evaluation touched the training RNG"
+
+    torch.manual_seed(1234)  # a different global RNG state must not matter
+    second = T.estimate_loss(model, data, data, args, "cpu", contextlib.nullcontext())
+    assert first == second
+
+    args.eval_seed = 8
+    third = T.estimate_loss(model, data, data, args, "cpu", contextlib.nullcontext())
+    assert third != first, "a different eval seed reused the same windows"
+
+
+def test_legacy_eval_consumes_the_training_rng(tmp_path):
+    """Historical behaviour, and the reason the mode must not change mid-run."""
+    cfg = make_cfg()
+    torch.manual_seed(5)
+    model = T.GPT(cfg)
+    args = make_args(tmp_path / "ckpt.pt")
+    assert args.eval_mode == "legacy"
+    data = make_data()
+    torch.manual_seed(99)
+    before = torch.get_rng_state().clone()
+    T.estimate_loss(model, data, data, args, "cpu", contextlib.nullcontext())
+    assert not torch.equal(before, torch.get_rng_state())
+
+
+def test_defaults_are_legacy_evaluation_and_composite_selection():
+    args = T.parse_args([])
+    assert args.eval_mode == "legacy"
+    assert args.eval_seed == 12345
+    assert args.select_metric == "composite"
+
+
+# ------------------------------------------------------- selection semantics
+
+def test_selection_metric_can_change_the_best_checkpoint(tmp_path, monkeypatch):
+    """Two evaluations where main_ce and composite disagree on the better one."""
+    scripted = [
+        {"main_ce": 3.0, "mtp_ce": 5.0, "aux_loss": 1.0,
+         "composite_loss": 3.0 + 0.5 * 5.0 + 0.01 * 1.0, "main_perplexity": math.exp(3.0)},
+        {"main_ce": 3.1, "mtp_ce": 4.0, "aux_loss": 1.0,
+         "composite_loss": 3.1 + 0.5 * 4.0 + 0.01 * 1.0, "main_perplexity": math.exp(3.1)},
+    ]
+    counter = {"i": 0}
+
+    def fake_estimate(model, train_data, val_data, args, device, autocast):
+        metrics = dict(scripted[counter["i"]])
+        counter["i"] += 1
+        return {"train": dict(metrics), "val": dict(metrics)}
+
+    monkeypatch.setattr(T, "estimate_loss", fake_estimate)
+    cfg, data = make_cfg(), make_data()
+
+    def run(metric, name):
+        counter["i"] = 0
+        args = make_args(tmp_path / name / "ckpt.pt")
+        args.max_iters, args.eval_interval, args.save_every = 3, 2, 0
+        args.select_metric = metric
+        torch.manual_seed(7)
+        model = T.GPT(cfg)
+        opt = torch.optim.AdamW(model.parameters(), lr=args.lr)
+        torch.manual_seed(99)
+        stats = {}
+        best_val, best_state, _ = T.run_training(
+            model, opt, data, data, args, "cpu", contextlib.nullcontext(),
+            {"type": "char"}, stats=stats)
+        return best_val, best_state, stats["best_metrics"]
+
+    composite_value, composite_state, composite_metrics = run("composite", "composite")
+    main_value, main_state, main_metrics = run("main_ce", "main")
+
+    # composite 5.51 vs 5.11 -> second evaluation; main_ce 3.0 vs 3.1 -> first
+    assert composite_value == pytest.approx(5.11)
+    assert composite_metrics["main_ce"] == pytest.approx(3.1)
+    assert main_value == pytest.approx(3.0)
+    assert main_metrics["mtp_ce"] == pytest.approx(5.0)
+    assert any(not torch.equal(composite_state[k], main_state[k]) for k in composite_state)
+
+
+def _trained_state(tmp_path, cfg, data, *, stop_after=3, **overrides):
+    args = make_args(tmp_path / "ckpt.pt", stop_after=stop_after, **overrides)
+    model, optimizer = fresh_model(cfg, args)
+    torch.manual_seed(99)
+    train_once(model, optimizer, args, data)
+    return args, T.default_state_path(args.checkpoint)
+
+
+def test_resume_rejects_changed_selection_metric(tmp_path):
+    cfg, data = make_cfg(), make_data()
+    _, path = _trained_state(tmp_path, cfg, data)
+    changed = make_args(tmp_path / "ckpt.pt")
+    changed.select_metric = "main_ce"
+    with pytest.raises(ValueError) as err:
+        T.load_train_state(path, cfg, changed, {"type": "char"})
+    assert "metric" in str(err.value)
+
+
+def test_resume_rejects_changed_eval_mode_and_seed(tmp_path):
+    cfg, data = make_cfg(), make_data()
+    _, path = _trained_state(tmp_path, cfg, data)  # legacy
+
+    changed = make_args(tmp_path / "ckpt.pt")
+    changed.eval_mode = "fixed"
+    with pytest.raises(ValueError) as err:
+        T.load_train_state(path, cfg, changed, {"type": "char"})
+    assert "mode" in str(err.value)
+
+    # legacy ignores the eval seed, so changing it alone is not a semantic change
+    same = make_args(tmp_path / "ckpt.pt")
+    same.eval_seed = 999
+    T.load_train_state(path, cfg, same, {"type": "char"})
+
+    _, fixed_path = _trained_state(tmp_path, cfg, data, eval_mode="fixed", eval_seed=7)
+    other = make_args(tmp_path / "ckpt.pt")
+    other.eval_mode, other.eval_seed = "fixed", 8
+    with pytest.raises(ValueError) as err:
+        T.load_train_state(fixed_path, cfg, other, {"type": "char"})
+    assert "seed" in str(err.value)
+
+
+def test_p01_state_without_evaluation_metadata_still_resumes(tmp_path):
+    cfg, data = make_cfg(), make_data()
+    _, path = _trained_state(tmp_path, cfg, data)
+
+    state = torch.load(path, map_location="cpu", weights_only=False)
+    for key in ("evaluation", "selection", "best_metrics"):
+        state.pop(key, None)
+    for key in ("eval_mode", "eval_seed", "select_metric"):
+        state["args"].pop(key, None)
+    T.atomic_save(state, path)
+
+    T.load_train_state(path, cfg, make_args(tmp_path / "ckpt.pt"), {"type": "char"})
+    changed = make_args(tmp_path / "ckpt.pt")
+    changed.select_metric = "main_ce"
+    with pytest.raises(ValueError):
+        T.load_train_state(path, cfg, changed, {"type": "char"})
+
+
+def test_cli_records_evaluation_and_selection_metadata(tmp_path):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir()
+    (data_dir / "tinyshakespeare.txt").write_text(
+        "ROMEO: first citizen: before we proceed any further, hear me speak.\n" * 400,
+        encoding="utf-8")
+    cmd = [
+        sys.executable, os.path.join(V2, "train.py"), "--device", "cpu",
+        "--tokenizer", "char", "--n_layer", "2", "--n_head", "2", "--n_kv_head", "1",
+        "--n_embd", "32", "--block_size", "32", "--sliding_window", "16",
+        "--n_experts", "4", "--n_experts_per_tok", "2", "--first_k_dense", "1",
+        "--batch_size", "4", "--max_iters", "3", "--eval_interval", "1",
+        "--eval_iters", "2", "--warmup_iters", "1", "--dropout", "0.0",
+        "--save-every", "0", "--checkpoint", "ckpt.pt",
+        "--eval-mode", "fixed", "--eval-seed", "3", "--select-metric", "main_ce",
+    ]
+    run = subprocess.run(cmd, cwd=tmp_path, capture_output=True, text=True, timeout=180)
+    assert run.returncode == 0, run.stderr
+    assert "eval: fixed windows seed 3" in run.stdout
+    assert "selection: main_ce" in run.stdout
+    assert "comp | train main" in run.stdout and "ppl" in run.stdout
+
+    ckpt = torch.load(tmp_path / "ckpt.pt", map_location="cpu", weights_only=False)
+    assert ckpt["evaluation"]["mode"] == "fixed"
+    assert ckpt["evaluation"]["seed"] == 3
+    assert ckpt["selection"]["metric"] == "main_ce"
+    assert ckpt["metrics"]["main_ce"] == pytest.approx(ckpt["selection"]["value"])
+    assert ckpt["val_loss"] == pytest.approx(ckpt["metrics"]["composite_loss"])
+    assert ckpt["metrics"]["main_perplexity"] == pytest.approx(
+        math.exp(ckpt["metrics"]["main_ce"]))
