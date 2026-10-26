@@ -163,6 +163,41 @@ def load_data(tokenizer, bpe_vocab_size):
     return data[:n], data[n:], encode, decode, vocab_size, info
 
 
+def _text_sha256(text):
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _file_sha256(path):
+    with open(path, "rb") as handle:
+        return hashlib.sha256(handle.read()).hexdigest()
+
+
+def load_selection_sections(path, encode, decode):
+    """Encode the fixed train/val sections from JSON and verify their hashes."""
+    with open(path, encoding="utf-8") as handle:
+        payload = json.load(handle)
+    corpus = download_data()
+    expected = payload.get("corpus_sha256")
+    if expected and _text_sha256(corpus) != expected:
+        raise SystemExit(f"{path}: corpus hash mismatch")
+    sections = {}
+    for split in ("train", "val"):
+        id_lists = []
+        for item in payload.get(split, []):
+            text = corpus[item["start"]:item["end"]]
+            if _text_sha256(text) != item["sha256"]:
+                raise SystemExit(f"{path}: {split} section {item['index']} hash mismatch")
+            ids = encode(text)
+            if decode(ids) != text:
+                raise SystemExit(f"{path}: {split} section {item['index']} "
+                                 f"tokenizer roundtrip failed")
+            id_lists.append(ids)
+        if not id_lists:
+            raise SystemExit(f"{path}: no {split} sections")
+        sections[split] = id_lists
+    return sections
+
+
 def get_batch(split_data, block_size, batch_size, device, generator=None):
     """Random (x, y) windows; y is x shifted by one token.
 
@@ -236,6 +271,10 @@ def validate_args(args):
              f"--profile-warmup must be >= 0, got {args.profile_warmup}")
     _require(args.profile_iters >= 1,
              f"--profile-iters must be >= 1, got {args.profile_iters}")
+    _require(args.eval_mode != "sections" or args.selection_sections,
+             "--eval-mode sections requires --selection-sections PATH")
+    _require(args.eval_mode == "sections" or not args.selection_sections,
+             "--selection-sections requires --eval-mode sections")
 
 
 # ------------------------------------------------------------------ model
@@ -520,6 +559,7 @@ def _eval_meta(args):
     return {
         "mode": args.eval_mode,
         "seed": args.eval_seed if args.eval_mode == "fixed" else None,
+        "sections": getattr(args, "selection_sections_sha256", None),
         "iters": args.eval_iters,
         "batch_size": args.batch_size,
         "block_size": args.block_size,
@@ -532,6 +572,7 @@ def _eval_compat(args):
         "mode": args.eval_mode,
         "seed": args.eval_seed if args.eval_mode == "fixed" else None,
         "metric": args.select_metric,
+        "sections": getattr(args, "selection_sections_sha256", None),
     }
 
 
@@ -543,7 +584,9 @@ def _stored_eval_compat(state):
     seed = evaluation.get("seed", saved.get("eval_seed"))
     metric = (state.get("selection") or {}).get("metric",
                                                 saved.get("select_metric", "composite"))
-    return {"mode": mode, "seed": seed if mode == "fixed" else None, "metric": metric}
+    sections = evaluation.get("sections")
+    return {"mode": mode, "seed": seed if mode == "fixed" else None,
+            "metric": metric, "sections": sections}
 
 
 def capture_rng_state():
@@ -560,7 +603,7 @@ def restore_rng_state(state):
 
 
 def save_train_state(path, *, model, optimizer, step, best_val, best_state,
-                     cfg, tok_info, args, best_metrics=None):
+                     cfg, tok_info, args, best_metrics=None, best_step=None):
     atomic_save({
         "format": STATE_FORMAT,
         "kind": "train_state",
@@ -568,10 +611,12 @@ def save_train_state(path, *, model, optimizer, step, best_val, best_state,
         "optimizer": optimizer.state_dict(),
         "step": step,
         "best_val": best_val,
+        "best_step": best_step,
         "best_model": best_state,
         "best_metrics": best_metrics,
         "evaluation": _eval_meta(args),
-        "selection": {"metric": args.select_metric, "value": best_val},
+        "selection": {"metric": args.select_metric, "value": best_val,
+                      "step": best_step},
         "config": asdict(cfg),
         "tokenizer": tok_info,
         "args": vars(args),
@@ -610,7 +655,8 @@ def load_train_state(path, cfg, args, tok_info):
     got_eval, want_eval = _stored_eval_compat(state), _eval_compat(args)
     if got_eval != want_eval:
         diffs = [f"{key}: {got_eval[key]!r} in checkpoint, {want_eval[key]!r} now"
-                 for key in ("mode", "seed", "metric") if got_eval[key] != want_eval[key]]
+                 for key in ("mode", "seed", "metric", "sections")
+                 if got_eval[key] != want_eval[key]]
         raise ValueError(f"resume evaluation mismatch ({'; '.join(diffs)}). Evaluation "
                          f"mode, eval seed and selection metric must not change mid-run.")
     return state
@@ -819,6 +865,14 @@ def write_json(path, payload):
     return target
 
 
+def _append_jsonl(path, payload):
+    """Append one JSON line, creating the parent directory if needed."""
+    target = os.path.abspath(path)
+    os.makedirs(os.path.dirname(target), exist_ok=True)
+    with open(target, "a", encoding="utf-8") as handle:
+        handle.write(json.dumps(payload, sort_keys=True) + "\n")
+
+
 # --------------------------------------------------------------- training
 
 def lr_at(step, max_iters, warmup_iters, base_lr):
@@ -833,19 +887,76 @@ SCORE_KEYS = {"composite": "composite_loss", "main_ce": "main_ce"}
 METRIC_KEYS = ("main_ce", "mtp_ce", "aux_loss", "composite_loss", "main_perplexity")
 
 
+def _json_metric(value):
+    return value if value is not None and math.isfinite(value) else None
+
+
+def _json_metrics(metrics):
+    return {key: _json_metric(metrics.get(key)) for key in METRIC_KEYS}
+
+
 @torch.no_grad()
-def estimate_loss(model, train_data, val_data, args, device, autocast):
+def _evaluate_sections(model, id_lists, args, device, autocast):
+    """Main/MTP/aux metrics on fixed token-id sections, no random windows."""
+    main_nats = mtp_nats = 0.0
+    main_tokens = mtp_tokens = aux_count = 0
+    aux_sum = 0.0
+    for ids in id_lists:
+        ids = list(ids)
+        for start in range(0, max(0, len(ids) - 1), args.block_size):
+            take = min(args.block_size, len(ids) - 1 - start)
+            if take < 1:
+                break
+            x = torch.tensor([ids[start:start + take]], dtype=torch.long, device=device)
+            y = torch.tensor([ids[start + 1:start + take + 1]], dtype=torch.long, device=device)
+            with autocast:
+                _, _, metrics = model(x, y, return_metrics=True)
+            main_nats += float(metrics["main_ce"]) * take
+            main_tokens += take
+            if metrics["mtp_ce"] is not None:
+                mtp_nats += float(metrics["mtp_ce"]) * (take - 1)
+                mtp_tokens += take - 1
+            aux_sum += float(metrics["aux_loss"])
+            aux_count += 1
+    if not main_tokens or not aux_count:
+        raise ValueError("selection sections are too short to evaluate")
+    main_ce = main_nats / main_tokens
+    mtp_ce = mtp_nats / mtp_tokens if mtp_tokens else None
+    aux = aux_sum / aux_count
+    composite = main_ce
+    if mtp_ce is not None:
+        composite += model.cfg.mtp_weight * mtp_ce
+    composite += model.cfg.moe_aux_weight * aux
+    return {
+        "main_ce": main_ce,
+        "mtp_ce": mtp_ce,
+        "aux_loss": aux,
+        "composite_loss": composite,
+        "main_perplexity": math.exp(main_ce),
+    }
+
+
+@torch.no_grad()
+def estimate_loss(model, train_data, val_data, args, device, autocast, sections=None):
     """Mean loss components per split.
 
     `legacy` draws fresh random windows and consumes the global RNG, which
     is the historical behaviour. `fixed` re-seeds a private generator, so
     every evaluation uses the same windows and the training RNG is not
-    touched.
+    touched. `sections` evaluates fixed token-id sections (see
+    --selection-sections) instead of random windows.
     """
+    model.eval()
+    if sections is not None:
+        result = {
+            "train": _evaluate_sections(model, sections["train"], args, device, autocast),
+            "val": _evaluate_sections(model, sections["val"], args, device, autocast),
+        }
+        model.train()
+        return result
     generator = None
     if args.eval_mode == "fixed":
         generator = torch.Generator().manual_seed(args.eval_seed)
-    model.eval()
     result = {}
     for split, split_data in (("train", train_data), ("val", val_data)):
         sums = {key: 0.0 for key in ("main_ce", "mtp_ce", "aux_loss", "composite_loss")}
@@ -876,14 +987,16 @@ def estimate_loss(model, train_data, val_data, args, device, autocast):
 
 def run_training(model, optimizer, train_data, val_data, args, device, autocast,
                  tok_info, start_step=0, best_val=float("inf"), best_state=None,
-                 best_metrics=None, stats=None, profiler=None):
+                 best_metrics=None, stats=None, profiler=None, sections=None,
+                 best_step=None):
     """Train from start_step to args.max_iters (or args.stop_after).
 
     Writes a resumable state every `save_every` iterations and at an early
     stop. `best_val` is the best value of the configured selection metric.
     Returns (best_val, best_state, per-iteration losses); `stats`, if given,
-    receives the full validation metrics of the selected checkpoint.
-    `profiler` is optional; the default is a disabled PhaseProfiler.
+    receives the full validation metrics and the step of the selected
+    checkpoint. `profiler` is optional; the default is a disabled
+    PhaseProfiler. `sections` holds fixed token-id sections for evaluation.
     """
     profiler = profiler if profiler is not None else PhaseProfiler(enabled=False)
     save_every = args.eval_interval if args.save_every is None else max(0, args.save_every)
@@ -921,7 +1034,8 @@ def run_training(model, optimizer, train_data, val_data, args, device, autocast,
                   f"{(step - start_step) / max(elapsed, 1e-9):.1f} it/s{mem}")
 
         if step % args.eval_interval == 0 or step == final_step:
-            evaluated = estimate_loss(model, train_data, val_data, args, device, autocast)
+            evaluated = estimate_loss(model, train_data, val_data, args, device, autocast,
+                                      sections=sections)
             train_m, val_m = evaluated["train"], evaluated["val"]
             print(f"  eval | train loss {train_m['composite_loss']:.4f} | "
                   f"val loss {val_m['composite_loss']:.4f}")
@@ -930,22 +1044,41 @@ def run_training(model, optimizer, train_data, val_data, args, device, autocast,
                   f"val main {val_m['main_ce']:.4f} (ppl {val_m['main_perplexity']:.1f}) "
                   f"mtp {val_m['mtp_ce']:.4f} aux {val_m['aux_loss']:.4f}")
             score = val_m[SCORE_KEYS[args.select_metric]]
-            if score < best_val:
+            improved = score < best_val
+            if improved:
                 best_val = score
+                best_step = step
                 best_metrics = dict(val_m)
                 # early stopping: keep the best-validation weights, not the last
                 best_state = {k: v.detach().cpu().clone() for k, v in model.state_dict().items()}
                 print(f"  best   -> {args.select_metric} {score:.4f} (iter {step})")
+            if args.curve_jsonl:
+                elapsed = time.time() - t0
+                _append_jsonl(args.curve_jsonl, {
+                    "step": step,
+                    "lr": lr,
+                    "elapsed_s": round(elapsed, 3),
+                    "it_per_s": round((step - start_step + 1) / max(elapsed, 1e-9), 3),
+                    "train": _json_metrics(train_m),
+                    "val": _json_metrics(val_m),
+                    "selection": {"metric": args.select_metric,
+                                  "value": _json_metric(score)},
+                    "improved": improved,
+                    "best_value": _json_metric(best_val),
+                    "best_step": best_step,
+                })
 
         due = save_every > 0 and (step + 1) % save_every == 0 and step + 1 < args.max_iters
         if due or (stops_early and step == last_step - 1):
             save_train_state(state_path, model=model, optimizer=optimizer, step=step + 1,
                              best_val=best_val, best_state=best_state, cfg=model.cfg,
-                             tok_info=tok_info, args=args, best_metrics=best_metrics)
+                             tok_info=tok_info, args=args, best_metrics=best_metrics,
+                             best_step=best_step)
             print(f"  state  -> {state_path} (iter {step + 1})")
 
     if stats is not None:
         stats["best_metrics"] = best_metrics
+        stats["best_step"] = best_step
     return best_val, best_state, losses
 
 
@@ -1008,9 +1141,14 @@ def parse_args(argv=None):
     p.add_argument("--eval_iters", type=int, default=50)
     p.add_argument("--seed", type=int, default=1337)
     p.add_argument("--checkpoint", type=str, default="checkpoints/ckpt.pt")
-    p.add_argument("--eval-mode", choices=["legacy", "fixed"], default="legacy",
+    p.add_argument("--eval-mode", choices=["legacy", "fixed", "sections"], default="legacy",
                    help="legacy: fresh random windows per evaluation (historical default); "
-                        "fixed: the same seeded windows every time, training RNG untouched")
+                        "fixed: the same seeded windows every time, training RNG untouched; "
+                        "sections: fixed train/val sections from --selection-sections")
+    p.add_argument("--selection-sections", type=str, default=None,
+                   help="JSON with fixed train/val sections for --eval-mode sections")
+    p.add_argument("--curve-jsonl", type=str, default=None,
+                   help="append one JSON line per evaluation to this file")
     p.add_argument("--eval-seed", type=int, default=12345,
                    help="window seed for --eval-mode fixed")
     p.add_argument("--select-metric", choices=["composite", "main_ce"], default="composite",
@@ -1052,6 +1190,10 @@ def main():
 
     train_data, val_data, encode, decode, vocab_size, tok_info = load_data(
         args.tokenizer, args.bpe_vocab_size)
+    sections = None
+    if args.selection_sections:
+        sections = load_selection_sections(args.selection_sections, encode, decode)
+        args.selection_sections_sha256 = _file_sha256(args.selection_sections)
 
     cfg = Config(n_layer=args.n_layer, n_head=args.n_head, n_kv_head=args.n_kv_head,
                  n_embd=args.n_embd, block_size=args.block_size,
@@ -1069,7 +1211,11 @@ def main():
           f"GQA {cfg.n_head}Q/{cfg.n_kv_head}KV, SWA {cfg.sliding_window}, "
           f"full every {cfg.full_attn_every}, RoPE, SwiGLU, MTP x{cfg.n_mtp})")
 
-    if args.eval_mode == "fixed":
+    if args.eval_mode == "sections":
+        eval_desc = (f"fixed sections {args.selection_sections} "
+                     f"({sum(len(ids) for ids in sections['train'])} train / "
+                     f"{sum(len(ids) for ids in sections['val'])} val tokens)")
+    elif args.eval_mode == "fixed":
         eval_desc = (f"fixed windows seed {args.eval_seed}, {args.eval_iters} batches of "
                      f"{args.batch_size} x {args.block_size} per split")
     else:
@@ -1084,7 +1230,8 @@ def main():
 
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
 
-    start_step, best_val, best_state, best_metrics = 0, float("inf"), None, None
+    start_step, best_val, best_state, best_metrics, best_step = (
+        0, float("inf"), None, None, None)
     if args.resume:
         resume_path = (default_state_path(args.checkpoint)
                        if args.resume == "auto" else args.resume)
@@ -1098,6 +1245,7 @@ def main():
         best_val = float(state["best_val"])
         best_state = state.get("best_model")
         best_metrics = state.get("best_metrics")
+        best_step = state.get("best_step")
         restore_rng_state(state["rng"])
         print(f"resumed {resume_path} at iteration {start_step} "
               f"(best {args.select_metric} {best_val:.4f})")
@@ -1113,8 +1261,10 @@ def main():
     best_val, best_state, losses = run_training(
         model, optimizer, train_data, val_data, args, device, autocast, tok_info,
         start_step=start_step, best_val=best_val, best_state=best_state,
-        best_metrics=best_metrics, stats=stats, profiler=profiler)
+        best_metrics=best_metrics, stats=stats, profiler=profiler,
+        sections=sections, best_step=best_step)
     best_metrics = stats.get("best_metrics")
+    best_step = stats.get("best_step")
 
     if profiler.enabled:
         print()
@@ -1141,7 +1291,8 @@ def main():
         "tokenizer": tok_info,
         "val_loss": val_loss,  # composite val loss at the selected checkpoint
         "metrics": best_metrics,
-        "selection": {"metric": args.select_metric, "value": best_val},
+        "selection": {"metric": args.select_metric, "value": best_val,
+                      "step": best_step},
         "evaluation": _eval_meta(args),
         "step": start_step + len(losses),
         "args": vars(args),

@@ -532,9 +532,22 @@ def router_stats(record, sections):
 
 # --------------------------------------------------------------------- main
 
+def parse_extra_checkpoints(values):
+    """Parse repeated NAME=PATH flags into checkpoint entries."""
+    entries = []
+    for value in values:
+        name, sep, path = value.partition("=")
+        if not sep or not name.strip() or not path.strip():
+            raise SystemExit(f"--extra-checkpoint expects NAME=PATH, got {value!r}")
+        entries.append({"name": name.strip(), "path": path.strip()})
+    return entries
+
+
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(description="CPU-only veylith evaluation")
     parser.add_argument("--out", default=os.path.join(ROOT, "evaluation", "results.json"))
+    parser.add_argument("--extra-checkpoint", action="append", default=[], metavar="NAME=PATH",
+                        help="also evaluate this checkpoint; repeatable")
     parser.add_argument("--sections", type=int, default=6)
     parser.add_argument("--section-chars", type=int, default=512)
     parser.add_argument("--gap-chars", type=int, default=128)
@@ -551,7 +564,8 @@ def build_payload(args):
     corpus = read_corpus()
     sections, marks = make_sections(corpus, args.sections, args.section_chars, args.gap_chars)
     seeds = [int(value) for value in args.seeds.split(",") if value.strip()]
-    records = [load_entry(entry) for entry in CHECKPOINTS]
+    entries = CHECKPOINTS + parse_extra_checkpoints(args.extra_checkpoint)
+    records = [load_entry(entry) for entry in entries]
     loaded = [record for record in records if record["status"] == "ok"]
 
     evaluation = {}

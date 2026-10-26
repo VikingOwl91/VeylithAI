@@ -361,6 +361,8 @@ def test_defaults_are_legacy_evaluation_and_composite_selection():
     assert args.eval_mode == "legacy"
     assert args.eval_seed == 12345
     assert args.select_metric == "composite"
+    assert args.selection_sections is None
+    assert args.curve_jsonl is None
 
 
 # ------------------------------------------------------- selection semantics
@@ -375,7 +377,7 @@ def test_selection_metric_can_change_the_best_checkpoint(tmp_path, monkeypatch):
     ]
     counter = {"i": 0}
 
-    def fake_estimate(model, train_data, val_data, args, device, autocast):
+    def fake_estimate(model, train_data, val_data, args, device, autocast, sections=None):
         metrics = dict(scripted[counter["i"]])
         counter["i"] += 1
         return {"train": dict(metrics), "val": dict(metrics)}
@@ -766,3 +768,230 @@ def test_cli_profiling_writes_table_and_json(tmp_path):
     assert set(payload["phases"]) >= {"data", "forward", "backward", "optimizer",
                                       "iteration"}
     assert payload["env"]["PYTORCH_HIP_ALLOC_CONF"] is None
+
+
+# ------------------------------------------- fixed selection sections (P1-3)
+
+REPO = os.path.dirname(V2)
+SECTIONS_JSON = os.path.join(REPO, "evaluation", "selection-sections.json")
+CORPUS = os.path.join(V2, "data", "tinyshakespeare.txt")
+
+
+def _char_codec(text):
+    """Mirror train.load_data's char tokenizer."""
+    chars = sorted(set(text))
+    stoi = {ch: i for i, ch in enumerate(chars)}
+    itos = {i: ch for ch, i in stoi.items()}
+    return (lambda s: [stoi[ch] for ch in s]), (lambda ids: "".join(itos[i] for i in ids))
+
+
+def _write_sections(tmp_path, corpus, *, width=48, gap=16, count=2,
+                    train_start=0, val_start=200):
+    payload = {"corpus_sha256": T._text_sha256(corpus), "width": width, "gap": gap,
+               "count": count}
+    for split, base in (("train", train_start), ("val", val_start)):
+        items = []
+        for index in range(count):
+            begin = base + index * (width + gap)
+            text = corpus[begin:begin + width]
+            assert len(text) == width
+            items.append({"index": index, "start": begin, "end": begin + width,
+                          "chars": width, "sha256": T._text_sha256(text)})
+        payload[split] = items
+    path = tmp_path / "sections.json"
+    path.write_text(json.dumps(payload), encoding="utf-8")
+    return path, payload
+
+
+def test_validate_args_binds_sections_mode_to_the_sections_file(tmp_path):
+    args = make_args(tmp_path / "ckpt.pt")
+    args.eval_mode, args.selection_sections = "sections", None
+    with pytest.raises(ValueError) as err:
+        T.validate_args(args)
+    assert "--selection-sections" in str(err.value)
+
+    args.eval_mode, args.selection_sections = "legacy", "sections.json"
+    with pytest.raises(ValueError) as err:
+        T.validate_args(args)
+    assert "--eval-mode sections" in str(err.value)
+
+    args.eval_mode, args.selection_sections = "sections", "sections.json"
+    T.validate_args(args)
+
+
+def test_load_selection_sections_verifies_and_encodes(tmp_path, monkeypatch):
+    corpus = ("abcdefghij" * 100)[:1000]
+    path, payload = _write_sections(tmp_path, corpus)
+    monkeypatch.setattr(T, "download_data", lambda: corpus)
+    encode, decode = _char_codec(corpus)
+
+    sections = T.load_selection_sections(path, encode, decode)
+    assert list(sections) == ["train", "val"]
+    for split in ("train", "val"):
+        assert len(sections[split]) == 2
+        for item, ids in zip(payload[split], sections[split]):
+            assert ids == encode(corpus[item["start"]:item["end"]])
+            assert decode(ids) == corpus[item["start"]:item["end"]]
+
+    # a changed corpus hash must stop the run
+    tampered = json.loads(path.read_text())
+    tampered["corpus_sha256"] = "0" * 64
+    path.write_text(json.dumps(tampered))
+    with pytest.raises(SystemExit) as err:
+        T.load_selection_sections(path, encode, decode)
+    assert "corpus hash mismatch" in str(err.value)
+
+
+def test_load_selection_sections_rejects_a_changed_section(tmp_path, monkeypatch):
+    corpus = ("abcdefghij" * 100)[:1000]
+    path, payload = _write_sections(tmp_path, corpus)
+    monkeypatch.setattr(T, "download_data", lambda: corpus)
+    encode, decode = _char_codec(corpus)
+
+    payload["val"][1]["sha256"] = "f" * 64
+    path.write_text(json.dumps(payload))
+    with pytest.raises(SystemExit) as err:
+        T.load_selection_sections(path, encode, decode)
+    assert "val section 1 hash mismatch" in str(err.value)
+
+
+def test_selection_sections_are_disjoint_from_train_and_test():
+    """The committed selection set must avoid training, the test sections and itself."""
+    with open(SECTIONS_JSON, encoding="utf-8") as handle:
+        payload = json.load(handle)
+    with open(CORPUS, encoding="utf-8") as handle:
+        corpus = handle.read()
+    assert T._text_sha256(corpus) == payload["corpus_sha256"]
+
+    spans = {}
+    for split in ("train", "val"):
+        spans[split] = []
+        for item in payload[split]:
+            text = corpus[item["start"]:item["end"]]
+            assert len(text) == item["chars"] == payload["width"]
+            assert T._text_sha256(text) == item["sha256"]
+            spans[split].append((item["start"], item["end"]))
+
+    def disjoint(left, right):
+        return all(x1 <= y0 or y1 <= x0 for x0, x1 in left for y0, y1 in right)
+
+    assert disjoint(spans["train"], spans["val"])
+    for split in ("train", "val"):
+        for (a0, a1), (b0, b1) in zip(spans[split], spans[split][1:]):
+            assert b0 > a1, f"{split} sections overlap"
+
+    with open(os.path.join(REPO, "evaluation", "results.json"), encoding="utf-8") as handle:
+        marks = json.load(handle)["protocol"]["boundaries"]
+    test_start = marks["shared_start"]
+    width, gap = payload["width"], payload["gap"]
+    test_spans = [(test_start + i * (width + gap), test_start + i * (width + gap) + width)
+                  for i in range(payload["count"])]
+    assert disjoint(spans["val"], test_spans)
+    assert disjoint(spans["train"], test_spans)
+    assert spans["val"][0][0] > test_spans[-1][1], "selection sits after the test sections"
+    assert spans["train"][-1][1] <= marks["char_model_start"]
+    assert spans["train"][-1][1] <= marks["bpe_model_start_char"]
+
+
+def test_evaluate_sections_is_deterministic_and_recomposes(tmp_path):
+    cfg = make_cfg()
+    torch.manual_seed(5)
+    model = T.GPT(cfg)
+    args = make_args(tmp_path / "ckpt.pt")
+    sections = {"train": [list(range(40)), list(range(8))],
+                "val": [list(range(20, 60))]}
+
+    torch.manual_seed(99)
+    before = torch.get_rng_state().clone()
+    first = T.estimate_loss(model, None, None, args, "cpu", contextlib.nullcontext(),
+                            sections=sections)
+    assert torch.equal(before, torch.get_rng_state()), "sections evaluation touched the RNG"
+    second = T.estimate_loss(model, None, None, args, "cpu", contextlib.nullcontext(),
+                             sections=sections)
+    assert first == second
+
+    for split in ("train", "val"):
+        values = first[split]
+        assert set(values) == set(T.METRIC_KEYS)
+        assert values["main_perplexity"] == pytest.approx(math.exp(values["main_ce"]))
+        recomposed = (values["main_ce"] + cfg.mtp_weight * values["mtp_ce"]
+                      + cfg.moe_aux_weight * values["aux_loss"])
+        assert values["composite_loss"] == pytest.approx(recomposed, rel=1e-9)
+
+    # a section shorter than block_size is exactly one full-section loss
+    ids = sections["train"][1]
+    model.eval()
+    x = torch.tensor([ids[:-1]])
+    y = torch.tensor([ids[1:]])
+    logits, _, _ = model(x, y, return_metrics=True)
+    expected = F.cross_entropy(logits.view(-1, VOCAB), y.view(-1)).item()
+    single = T._evaluate_sections(model, [ids], args, "cpu", contextlib.nullcontext())
+    assert single["main_ce"] == pytest.approx(expected, rel=1e-6)
+
+
+def test_resume_rejects_changed_selection_sections(tmp_path):
+    cfg, data = make_cfg(), make_data()
+    args = make_args(tmp_path / "ckpt.pt", max_iters=4, stop_after=2, save_every=1)
+    args.eval_mode = "sections"
+    args.selection_sections = "sections.json"
+    args.selection_sections_sha256 = "a" * 64
+    sections = {"train": [data[:40].tolist()], "val": [data[40:80].tolist()]}
+    model, optimizer = fresh_model(cfg, args)
+    T.run_training(model, optimizer, data, data, args, "cpu", contextlib.nullcontext(),
+                   {"type": "char"}, sections=sections)
+    path = T.default_state_path(args.checkpoint)
+
+    same = make_args(tmp_path / "ckpt.pt", max_iters=4)
+    same.eval_mode, same.selection_sections_sha256 = "sections", "a" * 64
+    T.load_train_state(path, cfg, same, {"type": "char"})
+
+    changed = make_args(tmp_path / "ckpt.pt", max_iters=4)
+    changed.eval_mode, changed.selection_sections_sha256 = "sections", "b" * 64
+    with pytest.raises(ValueError) as err:
+        T.load_train_state(path, cfg, changed, {"type": "char"})
+    assert "sections" in str(err.value)
+
+
+def test_cli_sections_mode_logs_curve_and_selects_main_ce(tmp_path):
+    corpus = "ROMEO: first citizen: before we proceed any further, hear me speak.\n" * 120
+    path, payload = _write_sections(tmp_path, corpus)
+    (tmp_path / "data").mkdir(exist_ok=True)
+    (tmp_path / "data" / "tinyshakespeare.txt").write_text(corpus, encoding="utf-8")
+
+    cmd = _tiny_cli(tmp_path, corpus, [
+        "--eval-mode", "sections", "--selection-sections", str(path),
+        "--select-metric", "main_ce", "--curve-jsonl", "runs/curve.jsonl",
+        "--max_iters", "3", "--eval_interval", "1", "--save-every", "1",
+    ])
+    run = subprocess.run(cmd, cwd=tmp_path, capture_output=True, text=True, timeout=180)
+    assert run.returncode == 0, run.stderr
+    assert "eval: fixed sections" in run.stdout
+    assert "selection: main_ce" in run.stdout
+
+    curve_path = tmp_path / "runs" / "curve.jsonl"
+    lines = [json.loads(line) for line in curve_path.read_text().splitlines()]
+    assert [line["step"] for line in lines] == [0, 1, 2]
+    expected_keys = {"step", "lr", "elapsed_s", "it_per_s", "train", "val",
+                     "selection", "improved", "best_value", "best_step"}
+    for line in lines:
+        assert set(line) == expected_keys
+        assert set(line["train"]) == set(T.METRIC_KEYS)
+        assert set(line["val"]) == set(T.METRIC_KEYS)
+        assert line["selection"]["metric"] == "main_ce"
+        assert line["it_per_s"] > 0
+    best = min(lines, key=lambda line: line["val"]["main_ce"])
+    assert lines[-1]["best_step"] == best["step"]
+    assert lines[-1]["best_value"] == pytest.approx(best["val"]["main_ce"])
+
+    ckpt = torch.load(tmp_path / "ckpt.pt", map_location="cpu", weights_only=False)
+    assert ckpt["evaluation"]["mode"] == "sections"
+    assert ckpt["evaluation"]["sections"] == T._file_sha256(path)
+    assert ckpt["selection"]["metric"] == "main_ce"
+    assert ckpt["selection"]["step"] == lines[-1]["best_step"]
+    assert ckpt["metrics"]["main_ce"] == pytest.approx(ckpt["selection"]["value"], rel=1e-9)
+
+    state = torch.load(T.default_state_path(str(tmp_path / "ckpt.pt")),
+                       map_location="cpu", weights_only=False)
+    assert state["best_step"] is not None
+    assert state["selection"]["step"] == state["best_step"]
+    assert state["evaluation"]["sections"] == T._file_sha256(path)

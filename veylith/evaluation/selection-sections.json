@@ -1,0 +1,96 @@
+{
+  "corpus": "veylith/v2/data/tinyshakespeare.txt",
+  "corpus_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+  "count": 6,
+  "gap": 128,
+  "note": "fixed selection sections; disjoint from the six P1-2 test sections (start 1,008,119) and from each other; train sections stay before both val splits",
+  "train": [
+    {
+      "chars": 512,
+      "end": 50512,
+      "index": 0,
+      "sha256": "3e10a9f2d246fe5ccd6674e917b8f5b6a6b14833f124f29b095b5a826ee42c80",
+      "start": 50000
+    },
+    {
+      "chars": 512,
+      "end": 51152,
+      "index": 1,
+      "sha256": "3888fd681dcaa29ed4882872d48be7d6f1bcd3577d605dc1864c9643e9851b4b",
+      "start": 50640
+    },
+    {
+      "chars": 512,
+      "end": 51792,
+      "index": 2,
+      "sha256": "08560564fb7264ddcea69e18f8fd222ba27147f650318b90155deb0048f18d3e",
+      "start": 51280
+    },
+    {
+      "chars": 512,
+      "end": 52432,
+      "index": 3,
+      "sha256": "a75fb00a85e3ff485d9c937c89886e62bb12674dbea5718ad4d94770d91e97db",
+      "start": 51920
+    },
+    {
+      "chars": 512,
+      "end": 53072,
+      "index": 4,
+      "sha256": "194742ac54f0f038973f67f17e2e604cb8f02e9efb13492915daa043ff98f26d",
+      "start": 52560
+    },
+    {
+      "chars": 512,
+      "end": 53712,
+      "index": 5,
+      "sha256": "060ccdf7859684c7a19d71cf582a9aac9484d094d544e43a9ad453e578c53a9d",
+      "start": 53200
+    }
+  ],
+  "val": [
+    {
+      "chars": 512,
+      "end": 1050512,
+      "index": 0,
+      "sha256": "71ad25a085885c39fb9f7d393aec49b73fb96c661043317d4b2d055131109d1b",
+      "start": 1050000
+    },
+    {
+      "chars": 512,
+      "end": 1051152,
+      "index": 1,
+      "sha256": "5acf85f4d533c03f18a3d51309915f027567094166186dffb6b86b2ccdfb8bff",
+      "start": 1050640
+    },
+    {
+      "chars": 512,
+      "end": 1051792,
+      "index": 2,
+      "sha256": "d36a75f78ac4270295870e2c9543a4881ea46389d4282f92be152b360a10efa0",
+      "start": 1051280
+    },
+    {
+      "chars": 512,
+      "end": 1052432,
+      "index": 3,
+      "sha256": "51db046861b4068d232db03561ac9e682c44fcf7c40078e1107a67a748654d4d",
+      "start": 1051920
+    },
+    {
+      "chars": 512,
+      "end": 1053072,
+      "index": 4,
+      "sha256": "519e64d9138443b63fb93e1d72a7187551e6c2a6453432e3b5557faa9491db76",
+      "start": 1052560
+    },
+    {
+      "chars": 512,
+      "end": 1053712,
+      "index": 5,
+      "sha256": "05b0afd9f37d821d110efdb149eef538cb0d496e722ecd80bbe1b04d75f0ec7a",
+      "start": 1053200
+    }
+  ],
+  "width": 512
+}

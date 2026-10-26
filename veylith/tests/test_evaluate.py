@@ -183,3 +183,36 @@ def test_cli_writes_a_valid_payload(tmp_path):
     for entry in payload["evaluation"].values():
         assert entry["derived"]["bits_per_char"] > 0
     assert "Traceback" not in run.stderr
+
+
+def test_parse_extra_checkpoints():
+    assert E.parse_extra_checkpoints([]) == []
+    assert E.parse_extra_checkpoints(["new-v2=/runs/p1-3/ckpt_best.pt"]) == [
+        {"name": "new-v2", "path": "/runs/p1-3/ckpt_best.pt"}]
+    assert E.parse_extra_checkpoints([" a = b=c "]) == [{"name": "a", "path": "b=c"}]
+    for bad in ("missing-equals", "=path", "name="):
+        with pytest.raises(SystemExit):
+            E.parse_extra_checkpoints([bad])
+    assert E.parse_args(["--extra-checkpoint", "x=y.pt"]).extra_checkpoint == ["x=y.pt"]
+
+
+def test_extra_checkpoint_reaches_the_inventory(tmp_path):
+    out = tmp_path / "results.json"
+    cmd = [sys.executable, os.path.join(ROOT, "evaluate.py"),
+           "--out", str(out), "--sections", "1", "--section-chars", "128",
+           "--gap-chars", "32", "--no-generation", "--no-router",
+           "--extra-checkpoint", f"copy-v2={V2_BPE}"]
+    run = subprocess.run(cmd, cwd=os.path.dirname(ROOT), capture_output=True,
+                         text=True, timeout=300)
+    assert run.returncode == 0, run.stderr
+    payload = json.loads(out.read_text(encoding="utf-8"))
+    names = {entry["name"] for entry in payload["checkpoints"]}
+    assert "copy-v2" in names
+    assert "copy-v2" in payload["evaluation"]
+    entry = payload["evaluation"]["copy-v2"]
+    assert entry["measured"]["tokens"] > 0
+    assert entry["derived"]["bits_per_char"] > 0
+    # it is a copy of the shipped v2 checkpoint, so the scores must match exactly
+    same = payload["evaluation"]["v2-bpe"]["derived"]
+    assert entry["derived"]["main_ce"] == pytest.approx(same["main_ce"], rel=1e-12)
+    assert entry["derived"]["bits_per_char"] == pytest.approx(same["bits_per_char"], rel=1e-12)
