@@ -1,0 +1,4832 @@
+{
+  "checkpoints": [
+    {
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": null,
+        "mlp_ratio": null,
+        "n_embd": 256,
+        "n_experts": null,
+        "n_experts_per_tok": null,
+        "n_head": 8,
+        "n_kv_head": null,
+        "n_layer": 6,
+        "n_mtp": null,
+        "vocab_size": 65
+      },
+      "buffers": 393216,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": null,
+          "max_iters": 5000,
+          "seed": 1337,
+          "tokenizer": null
+        },
+        "format": null,
+        "kind": null,
+        "metrics": null,
+        "selection": null,
+        "step": null,
+        "val_loss": 1.4748872518539429
+      },
+      "family": "v1",
+      "name": "v1-char",
+      "params": 4837953,
+      "path": "veylith/v1/checkpoints/ckpt_char.pt",
+      "sha256": "77730c24e408fedc7d4fa302e549ccdd0e020d66006c536deecbbb5300e025f6",
+      "size_bytes": 20950745,
+      "status": "ok",
+      "temporary": false,
+      "tokenizer": "char"
+    },
+    {
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": null,
+        "mlp_ratio": null,
+        "n_embd": 256,
+        "n_experts": null,
+        "n_experts_per_tok": null,
+        "n_head": 8,
+        "n_kv_head": null,
+        "n_layer": 6,
+        "n_mtp": null,
+        "vocab_size": 1000
+      },
+      "buffers": 393216,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": 1000,
+          "max_iters": 5000,
+          "seed": 1337,
+          "tokenizer": "bpe"
+        },
+        "format": null,
+        "kind": null,
+        "metrics": null,
+        "selection": null,
+        "step": null,
+        "val_loss": 3.290318250656128
+      },
+      "family": "v1",
+      "name": "v1-bpe",
+      "params": 5317608,
+      "path": "veylith/v1/checkpoints/ckpt.pt",
+      "sha256": "8986876e7b69007df783668345018b62a0e0cac19a16a360e06882c4b08c4243",
+      "size_bytes": 22868185,
+      "status": "ok",
+      "temporary": false,
+      "tokenizer": "bpe"
+    },
+    {
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": null,
+        "mlp_ratio": null,
+        "n_embd": 256,
+        "n_experts": null,
+        "n_experts_per_tok": null,
+        "n_head": 8,
+        "n_kv_head": null,
+        "n_layer": 6,
+        "n_mtp": null,
+        "vocab_size": 1000
+      },
+      "buffers": 393216,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": 1000,
+          "max_iters": 5000,
+          "seed": 1337,
+          "tokenizer": "bpe"
+        },
+        "format": null,
+        "kind": null,
+        "metrics": null,
+        "selection": null,
+        "step": null,
+        "val_loss": 4.1755757331848145
+      },
+      "family": "v1",
+      "name": "v1-bpe-5000it",
+      "params": 5317608,
+      "path": "veylith/v1/checkpoints/ckpt_bpe_5000it.pt",
+      "sha256": "b104d781620da47eb2fa7ec05cf629ab5c2dc665f13afd2bc52601e87f1a635e",
+      "size_bytes": 22868185,
+      "status": "ok",
+      "temporary": false,
+      "tokenizer": "bpe"
+    },
+    {
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": 1,
+        "mlp_ratio": 2.6666666666666665,
+        "n_embd": 256,
+        "n_experts": 8,
+        "n_experts_per_tok": 2,
+        "n_head": 8,
+        "n_kv_head": 2,
+        "n_layer": 6,
+        "n_mtp": 1,
+        "vocab_size": 1000
+      },
+      "buffers": 49152,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": 1000,
+          "max_iters": 3000,
+          "seed": 1337,
+          "tokenizer": "bpe"
+        },
+        "format": null,
+        "kind": null,
+        "metrics": null,
+        "selection": null,
+        "step": null,
+        "val_loss": 6.035802841186523
+      },
+      "family": "v2",
+      "name": "v2-bpe",
+      "params": 25602304,
+      "path": "veylith/v2/checkpoints/ckpt.pt",
+      "sha256": "4b4232dd1d8ec91b8f8cf74967ea5340da82b4cf28f5bfe842229ee1c4f9d785",
+      "size_bytes": 102471775,
+      "status": "ok",
+      "temporary": false,
+      "tokenizer": "bpe"
+    },
+    {
+      "architecture": {
+        "block_size": 256,
+        "first_k_dense": 1,
+        "mlp_ratio": 2.6666666666666665,
+        "n_embd": 256,
+        "n_experts": 8,
+        "n_experts_per_tok": 2,
+        "n_head": 8,
+        "n_kv_head": 2,
+        "n_layer": 6,
+        "n_mtp": 1,
+        "vocab_size": 1000
+      },
+      "buffers": 49152,
+      "checkpoint": {
+        "args": {
+          "batch_size": 64,
+          "bpe_vocab_size": 1000,
+          "max_iters": 120,
+          "seed": 1337,
+          "tokenizer": "bpe"
+        },
+        "format": 2,
+        "kind": "model",
+        "metrics": {
+          "aux_loss": 5.010425567626953,
+          "composite_loss": 7.39903450012207,
+          "main_ce": 4.689386367797852,
+          "main_perplexity": 108.78640448082058,
+          "mtp_ce": 5.319087982177734
+        },
+        "selection": {
+          "metric": "composite",
+          "value": 7.39903450012207
+        },
+        "step": 120,
+        "val_loss": 7.39903450012207
+      },
+      "family": "v2",
+      "name": "v2-p1-1-temp",
+      "params": 25602304,
+      "path": "/tmp/opencode/p1-1-phaseb/ckpt.pt",
+      "sha256": "508065ca622147faa5aa5e453c855560f9d61a17ded49981a92c5c8d7d76212b",
+      "size_bytes": 102484179,
+      "status": "ok",
+      "temporary": true,
+      "tokenizer": "bpe"
+    }
+  ],
+  "device": "cpu",
+  "evaluation": {
+    "v1-bpe": {
+      "derived": {
+        "bits_per_char": 1.921911,
+        "main_ce": 2.967144,
+        "main_perplexity": 19.436329,
+        "nats_per_char": 1.332167
+      },
+      "measured": {
+        "chars": 3067,
+        "nats": 4085.757202,
+        "sections": [
+          {
+            "chars": 511,
+            "index": 0,
+            "nats": 638.047546,
+            "tokens": 235
+          },
+          {
+            "chars": 511,
+            "index": 1,
+            "nats": 753.183411,
+            "tokens": 225
+          },
+          {
+            "chars": 510,
+            "index": 2,
+            "nats": 640.69574,
+            "tokens": 206
+          },
+          {
+            "chars": 511,
+            "index": 3,
+            "nats": 650.021545,
+            "tokens": 226
+          },
+          {
+            "chars": 512,
+            "index": 4,
+            "nats": 671.64856,
+            "tokens": 234
+          },
+          {
+            "chars": 512,
+            "index": 5,
+            "nats": 732.1604,
+            "tokens": 251
+          }
+        ],
+        "tokens": 1377
+      }
+    },
+    "v1-bpe-5000it": {
+      "derived": {
+        "bits_per_char": 2.406866,
+        "main_ce": 3.715842,
+        "main_perplexity": 41.093189,
+        "nats_per_char": 1.668313
+      },
+      "measured": {
+        "chars": 3067,
+        "nats": 5116.714966,
+        "sections": [
+          {
+            "chars": 511,
+            "index": 0,
+            "nats": 769.674194,
+            "tokens": 235
+          },
+          {
+            "chars": 511,
+            "index": 1,
+            "nats": 1011.647949,
+            "tokens": 225
+          },
+          {
+            "chars": 510,
+            "index": 2,
+            "nats": 767.526794,
+            "tokens": 206
+          },
+          {
+            "chars": 511,
+            "index": 3,
+            "nats": 780.494873,
+            "tokens": 226
+          },
+          {
+            "chars": 512,
+            "index": 4,
+            "nats": 896.444092,
+            "tokens": 234
+          },
+          {
+            "chars": 512,
+            "index": 5,
+            "nats": 890.927063,
+            "tokens": 251
+          }
+        ],
+        "tokens": 1377
+      }
+    },
+    "v1-char": {
+      "derived": {
+        "bits_per_char": 1.913281,
+        "main_ce": 1.326186,
+        "main_perplexity": 3.766649,
+        "nats_per_char": 1.326186
+      },
+      "measured": {
+        "chars": 3066,
+        "nats": 4066.085114,
+        "sections": [
+          {
+            "chars": 511,
+            "index": 0,
+            "nats": 608.95993,
+            "tokens": 511
+          },
+          {
+            "chars": 511,
+            "index": 1,
+            "nats": 765.883881,
+            "tokens": 511
+          },
+          {
+            "chars": 511,
+            "index": 2,
+            "nats": 639.800903,
+            "tokens": 511
+          },
+          {
+            "chars": 511,
+            "index": 3,
+            "nats": 681.97879,
+            "tokens": 511
+          },
+          {
+            "chars": 511,
+            "index": 4,
+            "nats": 662.579102,
+            "tokens": 511
+          },
+          {
+            "chars": 511,
+            "index": 5,
+            "nats": 706.882507,
+            "tokens": 511
+          }
+        ],
+        "tokens": 3066
+      }
+    },
+    "v2-bpe": {
+      "derived": {
+        "bits_per_char": 2.059775,
+        "main_ce": 3.179985,
+        "main_perplexity": 24.046398,
+        "nats_per_char": 1.427727
+      },
+      "measured": {
+        "chars": 3067,
+        "nats": 4378.839661,
+        "sections": [
+          {
+            "chars": 511,
+            "index": 0,
+            "nats": 668.020752,
+            "tokens": 235
+          },
+          {
+            "chars": 511,
+            "index": 1,
+            "nats": 794.027771,
+            "tokens": 225
+          },
+          {
+            "chars": 510,
+            "index": 2,
+            "nats": 677.977356,
+            "tokens": 206
+          },
+          {
+            "chars": 511,
+            "index": 3,
+            "nats": 701.619263,
+            "tokens": 226
+          },
+          {
+            "chars": 512,
+            "index": 4,
+            "nats": 763.278015,
+            "tokens": 234
+          },
+          {
+            "chars": 512,
+            "index": 5,
+            "nats": 773.916504,
+            "tokens": 251
+          }
+        ],
+        "tokens": 1377
+      }
+    },
+    "v2-p1-1-temp": {
+      "derived": {
+        "bits_per_char": 3.024965,
+        "main_ce": 4.670094,
+        "main_perplexity": 106.707724,
+        "nats_per_char": 2.096746
+      },
+      "measured": {
+        "chars": 3067,
+        "nats": 6430.718811,
+        "sections": [
+          {
+            "chars": 511,
+            "index": 0,
+            "nats": 1046.377808,
+            "tokens": 235
+          },
+          {
+            "chars": 511,
+            "index": 1,
+            "nats": 1094.352295,
+            "tokens": 225
+          },
+          {
+            "chars": 510,
+            "index": 2,
+            "nats": 1007.556335,
+            "tokens": 206
+          },
+          {
+            "chars": 511,
+            "index": 3,
+            "nats": 1053.33728,
+            "tokens": 226
+          },
+          {
+            "chars": 512,
+            "index": 4,
+            "nats": 1079.339111,
+            "tokens": 234
+          },
+          {
+            "chars": 512,
+            "index": 5,
+            "nats": 1149.755981,
+            "tokens": 251
+          }
+        ],
+        "tokens": 1377
+      }
+    }
+  },
+  "generated_by": "veylith/evaluate.py",
+  "generation": {
+    "config": {
+      "greedy": true,
+      "max_new_tokens": 100,
+      "prompts": [
+        "ROMEO:",
+        "JULIET:",
+        "To be, or not to be",
+        "The king",
+        "the the the",
+        "?!3 $&',-.:;"
+      ],
+      "seeds": [
+        1337,
+        42,
+        7
+      ],
+      "temperature": 0.8,
+      "top_k": 40
+    },
+    "runs": [
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.357143,
+          "rep4": 0.298969,
+          "unique_token_ratio": 0.26
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "\nI will not stand to the sea to the sea to thee.\n\nBENVOLIO:\nThe gods are the people to the people.\n\n"
+        },
+        "mode": "greedy",
+        "model": "v1-char",
+        "prompt": "ROMEO:",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.091837,
+          "rep4": 0.041237,
+          "unique_token_ratio": 0.3
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "\nWhy, here's no citizens? What a mind\nThat thou talk'st to us, that is no month, my cousin?\n\nSTANLEY"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "ROMEO:",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.05102,
+          "rep4": 0.030928,
+          "unique_token_ratio": 0.24
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "\nAs loud shadows not before the stones noble\nAnd the enemy head of his court\nWith a man's plant as i"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "ROMEO:",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.34
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "\nGood morrow!\n\nJULIET:\nIt is a sure of that; and the dames still report.\n\nROMEO:\nI would have been b"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "ROMEO:",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.295918,
+          "rep4": 0.226804,
+          "unique_token_ratio": 0.27
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "\nAnd then the season that the world of thee,\nThat they shall be the sea to the sea too.\n\nJULIET:\nO t"
+        },
+        "mode": "greedy",
+        "model": "v1-char",
+        "prompt": "JULIET:",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.05102,
+          "rep4": 0.020619,
+          "unique_token_ratio": 0.31
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "\nWhy, here's no changer.\nGo, get you along to this party bid me.\n\nPARIS:\nWhat should you share, my l"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "JULIET:",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.071429,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.35
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "\nO, look you to your daughter!\n\nPARIS:\nHow now, brother?\n\nPERDITA:\nMarry, he is a known of the fathe"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "JULIET:",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.05102,
+          "rep4": 0.020619,
+          "unique_token_ratio": 0.35
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "\nGood my lord: look, I wish your grace to him.\n\nFRIAR LAURENCE:\nToo dear me; and I will charge them "
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "JULIET:",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.122449,
+          "rep4": 0.092784,
+          "unique_token_ratio": 0.32
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " so better to be a bawd,\nAnd therefore I will be a stranger to bed.\n\nKING RICHARD III:\nWhat says you"
+        },
+        "mode": "greedy",
+        "model": "v1-char",
+        "prompt": "To be, or not to be",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.34
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " promotion.\n\nCORIOLANUS:\nGood even too, poor prince, but bid my steed,\nThou not smile set my hands, "
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "To be, or not to be",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.112245,
+          "rep4": 0.051546,
+          "unique_token_ratio": 0.23
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " inclined as that the wreck\nrenowned annoy's courteous earth; we are they\nreport to make them leave "
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "To be, or not to be",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.071429,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.38
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " to't.\n\nLEONTES:\nYou have ever slept.\n\nCAMILLO:\nFor that\nI stood before thee, hath in a charge to\nmy"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "To be, or not to be",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.306122,
+          "rep4": 0.237113,
+          "unique_token_ratio": 0.24
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " of the king's son, the king's son,\nWhich should be so far the seat of the world,\nAnd therefore the "
+        },
+        "mode": "greedy",
+        "model": "v1-char",
+        "prompt": "The king",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.071429,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.25
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " promotion denying of royal seems\nBut for a poor body into a banish'd,\nThey nothing come from the fo"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "The king",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.081633,
+          "rep4": 0.020619,
+          "unique_token_ratio": 0.34
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " is look on the chair of his death.\n\nKING LEWIS XI:\nAy, and he is much a dreamty deep;\nAnd there sha"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "The king",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.081633,
+          "rep4": 0.030928,
+          "unique_token_ratio": 0.28
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " to make her will on her services;\nBut I, here fairest my heart or a husband's face,\nThou canst show"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "The king",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.255102,
+          "rep4": 0.206186,
+          "unique_token_ratio": 0.31
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "re is no more than the world.\n\nKING RICHARD II:\nWhy, then, then, then, the would have done thee so.\n"
+        },
+        "mode": "greedy",
+        "model": "v1-char",
+        "prompt": "the the the",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.122449,
+          "rep4": 0.020619,
+          "unique_token_ratio": 0.25
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "re.\nTake heed has he lanely-bed wail, he was not been\ninto a bastard; and you have seen your hands\nE"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "the the the",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.071429,
+          "rep4": 0.051546,
+          "unique_token_ratio": 0.32
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "rein of fair for your grace,\nIn stones noble counterfeit and go lament.\n\nBUSHY:\nWhat answer grace?\n\n"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "the the the",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.234694,
+          "rep4": 0.185567,
+          "unique_token_ratio": 0.34
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "m o' the better of them!\n\nQUEEN ELIZABETH:\nReady the damned to the princess the earth.\n\nQUEEN ELIZAB"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "the the the",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.204082,
+          "rep4": 0.134021,
+          "unique_token_ratio": 0.28
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " there's a goodly sire\nThat would be so so so sound as the world.\n\nCAMILLO:\nI would they say 'tis a "
+        },
+        "mode": "greedy",
+        "model": "v1-char",
+        "prompt": "?!3 $&',-.:;",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.040816,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.26
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": "\nWhy, here's a weep, lady, 'tis shame;\nThough this earth bid me strength of no himself,\nWill not say"
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.091837,
+          "rep4": 0.041237,
+          "unique_token_ratio": 0.35
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " is look you?\n\nCORIOLANUS:\nYour state and be confident?\n\nMENENIUS:\nYou are too sorrow;\nAnd there so "
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.122449,
+          "rep4": 0.051546,
+          "unique_token_ratio": 0.24
+        },
+        "measured": {
+          "n_chars": 100,
+          "n_new_tokens": 100,
+          "text": " thou may come on, know't,\nSo was the mouth; and the came of the boy,\nUnless you shall be condemn'd "
+        },
+        "mode": "sample",
+        "model": "v1-char",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.183673,
+          "rep4": 0.123711,
+          "unique_token_ratio": 0.46
+        },
+        "measured": {
+          "n_chars": 222,
+          "n_new_tokens": 100,
+          "text": "\nThen, by the crown of England,\nThe kingdom of England, the king,\nAnd lands to the king of England,\nThis king, King Edward's king, and his king.\n\nKING HENRY VI:\nWhat, Edward's king, and Warwick, and his king!\n\nWARWICK:\nAnd"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe",
+        "prompt": "ROMEO:",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.142857,
+          "rep4": 0.082474,
+          "unique_token_ratio": 0.52
+        },
+        "measured": {
+          "n_chars": 204,
+          "n_new_tokens": 100,
+          "text": "\nMy lord, what, I know then?\n\nRICHMOND:\nBy my lord,\nHave you not so?\n\nBUCKINGHAM:\nI know your grace's last, my lord.\n\nKING RICHARD III:\nThen, my lord, and we'll girl.\n\nBUCKINGHAM:\nWere comfort'd, my lord."
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "ROMEO:",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.071429,
+          "rep4": 0.041237,
+          "unique_token_ratio": 0.6
+        },
+        "measured": {
+          "n_chars": 213,
+          "n_new_tokens": 100,
+          "text": "\nNay, if you will die to me; if I must not,\nAnd will I go to the court.\n\nJULIET:\nTo-night, I have said towards London,\nReve me to the flattery.\n\nNurse:\nExcept the way?\n\nNurse:\nEither, by the other way\nMayather.\n\nR"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "ROMEO:",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.05102,
+          "rep4": 0.020619,
+          "unique_token_ratio": 0.64
+        },
+        "measured": {
+          "n_chars": 220,
+          "n_new_tokens": 100,
+          "text": "\nHow will you come with him? I do you tell her?\n\nHORTENSIO:\nI will ask you, sir, a tale-house\nhandam, and that, as you did.\n\nMAMPSON:\nFaith, sir, a store me, Master Claudio?\n\nABHORSON:\nYou have been a very well: woman to"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "ROMEO:",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.112245,
+          "rep4": 0.072165,
+          "unique_token_ratio": 0.47
+        },
+        "measured": {
+          "n_chars": 213,
+          "n_new_tokens": 100,
+          "text": "\nThen, I will not believe thee.\n\nROMEO:\nAy, that's the wife's name,\nAnd I will not bed.\n\nJULIET:\nIt is the wisdom of my love's love,\nTo beauty of love, and love, I know not.\n\nROMEO:\nIt is not so, but I love thee,\n"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe",
+        "prompt": "JULIET:",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.061224,
+          "rep4": 0.030928,
+          "unique_token_ratio": 0.64
+        },
+        "measured": {
+          "n_chars": 197,
+          "n_new_tokens": 100,
+          "text": "\nOfford! what can you purpose,\nI do remembrance.\n\nCLIFFORD:\nI am to purpose.\n\nCAMILLO:\nPray a bawd that you are made to sit\nAnd you to the duke's gross: this is the city.\n\nCAPULET:\nWell, sir, I can"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "JULIET:",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.081633,
+          "rep4": 0.061856,
+          "unique_token_ratio": 0.62
+        },
+        "measured": {
+          "n_chars": 204,
+          "n_new_tokens": 100,
+          "text": "\nNay, if there is first, as he is not;\nI, to quickly, or taken so.\n\nJULIET:\nThen, I am reason.\n\nJULIET:\nRomeo, nurse, I am too much:\nWhat is the day boar, and go with me?\n\nNurse:\nHold, what a cove me, he'"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "JULIET:",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.73
+        },
+        "measured": {
+          "n_chars": 227,
+          "n_new_tokens": 100,
+          "text": "\nHow will you come with him? I do thee, sir;\nYet had I dare my heart is my mind\nAnd does not turn mine honour.\n\nJOHN OF BOLINGBROKE:\nAnd thou shalt be sleep woman:\nNay, so shall my rest is fit forth.\n\nNORTHUMBERLAND:\nNo, sorrow"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "JULIET:",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.112245,
+          "rep4": 0.061856,
+          "unique_token_ratio": 0.56
+        },
+        "measured": {
+          "n_chars": 223,
+          "n_new_tokens": 100,
+          "text": "\nTo be received, and nothing.\n\nCAMILLO:\nI am a gentleman,\nAnd you have been accused:\nThere is no more than you have been,\nThan you have been accused.\n\nLEONTES:\nThis is the cause\nTo be the business, and the queen of Bohemia,"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe",
+        "prompt": "To be, or not to be",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.65
+        },
+        "measured": {
+          "n_chars": 236,
+          "n_new_tokens": 100,
+          "text": "read\nThan thought itself to be estate,\nThe most inquired, to have all those that\nIn the court which I infant.\n\nMARIANA:\nI will tell you how that you are,\nThat you have a father's daughter'd me,\nAnd I loved you shall repair.\n\nISABELLA:\nT"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "To be, or not to be",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.153061,
+          "rep4": 0.103093,
+          "unique_token_ratio": 0.62
+        },
+        "measured": {
+          "n_chars": 219,
+          "n_new_tokens": 100,
+          "text": "traitor'd\nThan to me thanks; but indeed he will.\n\nCORIOLANUS:\nCome, good queen, and we'll purpose.\n\nCORIOLANUS:\nIs calm?\nIf it be your tongue not the rest.\n\nCOMINIUS:\nIf I have made it here?\n\nCORIOLANUS:\nMay you, sir, I"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "To be, or not to be",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.071429,
+          "rep4": 0.051546,
+          "unique_token_ratio": 0.7
+        },
+        "measured": {
+          "n_chars": 230,
+          "n_new_tokens": 100,
+          "text": "requolio.\nWhat creature you have to me?\n\nJULIET:\nMy morrow, I do do not know\nAnd so I will make it.\n\nJULIET:\nGod give me my try\nOn the lady's false and my daughter:\nI am by that dear love's love\nThan that my father person.\n\nNurse:"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "To be, or not to be",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.295918,
+          "rep4": 0.216495,
+          "unique_token_ratio": 0.4
+        },
+        "measured": {
+          "n_chars": 236,
+          "n_new_tokens": 100,
+          "text": "'s name,\nAnd, as I am a king, and I am dead.\n\nKING RICHARD II:\nWhat is the king?\n\nKING RICHARD III:\nAnd I, my lord, and I am yours.\n\nKING RICHARD III:\nThen, with a king, and I'll be gone.\n\nKING RICHARD III:\nSo, as I love the king, and I"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe",
+        "prompt": "The king",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.061224,
+          "rep4": 0.020619,
+          "unique_token_ratio": 0.69
+        },
+        "measured": {
+          "n_chars": 239,
+          "n_new_tokens": 100,
+          "text": ":\nWhich, by, bravely to hear me,\nThe king in sacred, when they say\nWhere is my father grief and justice,\nWherein the last reap of a king,\nThe noble Bluckingham, Guild, Duke of Henry,\nWith first is the queen forfess of king,\nAnd for his son"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "The king",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.05102,
+          "rep4": 0.020619,
+          "unique_token_ratio": 0.63
+        },
+        "measured": {
+          "n_chars": 199,
+          "n_new_tokens": 100,
+          "text": "'s sorrow's name.\n\nLORD WILLOUGHN:\nEranting so blamely in goodness,\nIn good cause of the reason.\n\nLORIZEL:\nMy son, it is your\nThat you must rest us,\nTo free from your father.\n\nPERDITA:\nNo, it is;\nOld"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "The king",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.64
+        },
+        "measured": {
+          "n_chars": 204,
+          "n_new_tokens": 100,
+          "text": "'s son,\nThat he citizens to us.\n\nEDWARD:\nWhat, didst thou care?\n\nWARWICK:\nThey are the Fourth of England's traitor,\nEator, though not be brand the gent.\n\nKING HENRY VI:\nThe Duke of Lancaster, is the sight"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "The king",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.295918,
+          "rep4": 0.216495,
+          "unique_token_ratio": 0.4
+        },
+        "measured": {
+          "n_chars": 237,
+          "n_new_tokens": 100,
+          "text": "crown,\nAnd all the crown'd the crown, the king,\nAnd, in the king, his king, his king,\nAnd his kingdom issue of England's king.\n\nKING RICHARD III:\nAnd, by the king is heir of England's king.\n\nKING RICHARD III:\nThen, as I was, my king, and"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe",
+        "prompt": "the the the",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.65
+        },
+        "measured": {
+          "n_chars": 202,
+          "n_new_tokens": 100,
+          "text": "regigure and his follow\nThe senatory.\n\nCORIOLANUS:\nHow!\n\nBRUTUS:\nHe's a Roman, and let us gods,\nWhere is no more?\n\nCitizen:\nAnd so we'll leave the people, and rest you for them\nWere never in the vit.\n\nM"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "the the the",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.040816,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.72
+        },
+        "measured": {
+          "n_chars": 204,
+          "n_new_tokens": 100,
+          "text": "traitor's fiers.\n\nCORIOLANUS:\nUnless traitor;\nThe one that will injure thee, even in the Tarquin,\nLest thou, to die calm, and while my drunk.\n\nSecond Murderer:\nWhat is him? then I deny the deed?\n\nCitizen:"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "the the the",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.173469,
+          "rep4": 0.123711,
+          "unique_token_ratio": 0.52
+        },
+        "measured": {
+          "n_chars": 204,
+          "n_new_tokens": 100,
+          "text": "request of the rest of youth,\nAnd you will not, to this to do you.\n\nSICINIUS:\nNo, to the town.\n\nBRUTUS:\nThey have.\n\nMENENIUS:\nWhat is this is he?\n\nBRUTUS:\nBe granted for you.\n\nSICINIUS:\nYou are costed.\n\nB"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "the the the",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.377551,
+          "rep4": 0.298969,
+          "unique_token_ratio": 0.38
+        },
+        "measured": {
+          "n_chars": 222,
+          "n_new_tokens": 100,
+          "text": "\nAnd, ask thee, as thou art a fire\nThou art a few of farmar-trey,\nAnd in thy body, and thy body,\nThou art not thy body, and thyself,\nThy wilt thou beauty, and thyself,\nThy wilt thou beauty, and thyself,\nThy father, thyself"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe",
+        "prompt": "?!3 $&',-.:;",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.112245,
+          "rep4": 0.082474,
+          "unique_token_ratio": 0.56
+        },
+        "measured": {
+          "n_chars": 204,
+          "n_new_tokens": 100,
+          "text": "\nFor thou art thou, boy, and ill,\nIn people till, to thy black.\n\nCORIOLANUS:\nHence!\n\nAUFIDIUS:\nI know\nThou art a praise, thou art a business.\n\nAUFIDIUS:\nNo, the city first lips for a race!\nThou art the no"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.0,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.69
+        },
+        "measured": {
+          "n_chars": 207,
+          "n_new_tokens": 100,
+          "text": "he's for't--\n\nCORIOLANUS:\nAy, and to the tribunes: 'tis a gentleman\nand a prize in his eyes\nAnd power.\n\nVOLUMNIA:\nIf he had no more unhalle of the Volsces does\nYour beauty, but that is thirds in a Capitol,\nW"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.071429,
+          "rep4": 0.061856,
+          "unique_token_ratio": 0.64
+        },
+        "measured": {
+          "n_chars": 228,
+          "n_new_tokens": 100,
+          "text": "\nHow! what rest of young Him, what?\n\nHASTINGS:\nMy lord, I care, and not have motion.\n\nGLOUCESTER:\nI have been so bold to tell you, good my lord.\n\nGLOUCESTER:\nI will be brave my lord's holdoms,\nI'll tell the Duke of Buckingham,\nW"
+        },
+        "mode": "sample",
+        "model": "v1-bpe",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.081633,
+          "rep4": 0.041237,
+          "unique_token_ratio": 0.57
+        },
+        "measured": {
+          "n_chars": 229,
+          "n_new_tokens": 100,
+          "text": "\nThen, sir, I know, I know, I know,\nI love the man that I love the maid:\nIf I may not, yet I know thou wilt say,\nI thought thou wilt prithee, assure, as thou art.\n\nLADY CAPULET:\nWell, get thee to thy wife; I'll not stir away.\n\nJU"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe-5000it",
+        "prompt": "ROMEO:",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.122449,
+          "rep4": 0.082474,
+          "unique_token_ratio": 0.65
+        },
+        "measured": {
+          "n_chars": 222,
+          "n_new_tokens": 100,
+          "text": "\nMy lord, I must not see the duke.\n\nKING RICHARD III:\nHow say'st thou, Aumerle? what says he?\n\nBUCKINGHAM:\nAnd what hope of joy?\n\nKING RICHARD III:\nHe doth so talk: and forward pain love,\nEven for Richard, comfort me.\n\nBUC"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "ROMEO:",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.73
+        },
+        "measured": {
+          "n_chars": 195,
+          "n_new_tokens": 100,
+          "text": "\nNay, if there be no remedy.\n\nCAMILLO:\nAy, my lord.\n\nLEONTES:\nWhy, this is my filthrequest wife,\nIs carried to a eternal spirit,\nIs this appear, or in a goarding language\nBy the bottle of natural"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "ROMEO:",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.05102,
+          "rep4": 0.030928,
+          "unique_token_ratio": 0.7
+        },
+        "measured": {
+          "n_chars": 222,
+          "n_new_tokens": 100,
+          "text": "\nHow will you not?\n\nLord:\nAn honour marry but his maids?\n\nSLY:\nNever, sir: I think, or never.\n\nLord:\nHe is a mad rare thought but sleep; and a goodly lady\nTo prince, or two-day a dishonour nor\nMost dangerously confess: one"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "ROMEO:",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.234694,
+          "rep4": 0.154639,
+          "unique_token_ratio": 0.5
+        },
+        "measured": {
+          "n_chars": 196,
+          "n_new_tokens": 100,
+          "text": "\nWhat is this?\n\nNurse:\nAnon!\n\nLADY CAPULET:\nWhat's he?\n\nNurse:\nHe shall be hited to his lady's faith.\n\nJULIET:\nI will tell you, then.\n\nNurse:\nI will tell you thank you, sir, to love her.\n\nLADY CAP"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe-5000it",
+        "prompt": "JULIET:",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.0,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.71
+        },
+        "measured": {
+          "n_chars": 251,
+          "n_new_tokens": 100,
+          "text": "\nO God dead, though loathful, with his eyes,\nThat palew'd my son and thine own dear dear God!\nBloody for his sick glory of this blood!\nThou slew thy father, for a right!\nUnless'd gallant Clifford, revive my soul;\nAnd in thy true love's heart before my"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "JULIET:",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.71
+        },
+        "measured": {
+          "n_chars": 225,
+          "n_new_tokens": 100,
+          "text": "\nNurse, I have done fain dream on,\nOr heaviness! O most wanton to a breath!\nYour woful tongue frantic tears!\nDeath, poor woful ppilgrimage? O is here dam;\nThey that is nothing but one of these woes,\nTo singld itself but basen"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "JULIET:",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.040816,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.74
+        },
+        "measured": {
+          "n_chars": 239,
+          "n_new_tokens": 100,
+          "text": "\nHow now! what a wilt thou keep?\nThy husband, that is my childishhood up;\nFor thine own name's back and all this sight;\nBut Romeo slow on thousand from my fortune's blood,\nThou art out-shall of valiant in thy eye,\nThy dear love and husband"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "JULIET:",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.173469,
+          "rep4": 0.113402,
+          "unique_token_ratio": 0.55
+        },
+        "measured": {
+          "n_chars": 211,
+          "n_new_tokens": 100,
+          "text": "\nmorrow.\n\nCAMILLO:\nI think you know, my lord.\n\nLEONTES:\nI thought oft what I am inclination,\nIt is my lady; and my good lord, which is\nTo do includes its no hopes meet, but\nIt is a cause.\n\nCAMILLO:\nIt is my lord"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe-5000it",
+        "prompt": "To be, or not to be",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.122449,
+          "rep4": 0.082474,
+          "unique_token_ratio": 0.58
+        },
+        "measured": {
+          "n_chars": 200,
+          "n_new_tokens": 100,
+          "text": "held\nI' the judge beloved, and to received\nHere's brother.\n\nISABELLA:\nHe would not so.\n\nLUCIO:\nIt shall be so; from this prophetsy,\nAnd doubt not the duke on.\n\nISABELLA:\nI would live from the truth of"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "To be, or not to be",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.061224,
+          "rep4": 0.041237,
+          "unique_token_ratio": 0.67
+        },
+        "measured": {
+          "n_chars": 239,
+          "n_new_tokens": 100,
+          "text": "heard\nBut in the dishonour he is gone, in his league.\n\nDUKE VINCENTIO:\nHe hath consider; and he would indeed\nIn person, fair my lord charity,\nAnd he you shall shake him in the record of his.\n\nISABELLA:\nAlas! how no more!\n\nDUKE VINCENTIO:\nB"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "To be, or not to be",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.061224,
+          "rep4": 0.041237,
+          "unique_token_ratio": 0.73
+        },
+        "measured": {
+          "n_chars": 241,
+          "n_new_tokens": 100,
+          "text": "\nHe's received; and you shall redeem him,\nBut 'tis the king.\n\nDUKE VINCENTIO:\nAre you so?\n\nProvost:\nIf you be a dishonest of your occupation,\nyour free at patience, think you shall\nnot be known to-morrow?\n\nDUKE VINCENTIO:\nThe noble duke hath"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "To be, or not to be",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.122449,
+          "rep4": 0.113402,
+          "unique_token_ratio": 0.65
+        },
+        "measured": {
+          "n_chars": 233,
+          "n_new_tokens": 100,
+          "text": "'s death.\n\nLEONTES:\nThou art a brother; and so, to the truth\nWhich often strange?\n\nFirst Lord:\nSo then, my lord.\n\nLEONTES:\nThou art a bawd: thou my father,\nWhose honourable and free with his\nTo greethery stone and me here, but were I"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe-5000it",
+        "prompt": "The king",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.132653,
+          "rep4": 0.072165,
+          "unique_token_ratio": 0.61
+        },
+        "measured": {
+          "n_chars": 204,
+          "n_new_tokens": 100,
+          "text": ":\nWe'll follow you all in sleep out his power.\n\nFirst Senator:\nBeing witch, we'll have you to your tumble your company.\n\nThird Senator:\nStay, sir.\n\nCORIOLANUS:\nWhat, what?\n\nThird Servingman:\nWhere are you"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "The king",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.65
+        },
+        "measured": {
+          "n_chars": 251,
+          "n_new_tokens": 100,
+          "text": "'s character'd himself,\nAnd those that does him good, never would he had him\nAnd that is not his honour e'er man.\n\nDUKE VINCENTIO:\nIt is his bold as you have:\nSo it may,\nThe duke is with him forpose of his own.\n\nANGELO:\nBe it become him, he must not,\n"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "The king",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.69
+        },
+        "measured": {
+          "n_chars": 188,
+          "n_new_tokens": 100,
+          "text": "'s son, were you a wife's son;\nAnd Henry the Christaes\nStabb'd by their zealous oaths all.\n\nBRAKENBURY:\nIs it even so? why?\n\nCLARENCE:\nHe does me dreams he not, nor I should not have.\n\nBAL"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "The king",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.73
+        },
+        "measured": {
+          "n_chars": 205,
+          "n_new_tokens": 100,
+          "text": "house of York,\nWhose set's gave bestrief, solemnel and unnatural sit,\nThat rudely venom'd in the wind\nOf that points which but the father,\nIt is the woe, abstantly,\nThe isle, not according to absolute it,\n"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe-5000it",
+        "prompt": "the the the",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.69
+        },
+        "measured": {
+          "n_chars": 241,
+          "n_new_tokens": 100,
+          "text": "rest;\nAnd, three hours, as the manner of your service,\nCruel ruin of sacrific, and bring them;\nThat well Northumberland, as the law,\nNow sways all the father's daughter, to slay him;\nAnd after man that slaughter'd, by the king,\nWhere are the"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "the the the",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.040816,
+          "rep4": 0.030928,
+          "unique_token_ratio": 0.71
+        },
+        "measured": {
+          "n_chars": 209,
+          "n_new_tokens": 100,
+          "text": "house of York,\nAnd three house; but, not to help them to taste\nNor how to first, pain and very supply.\n\nLORD ROSS:\nIt seems to come to know his mind as further.\n\nLORD WILLOUGHBY:\nBrother, what so? I wish, I am"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "the the the",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.64
+        },
+        "measured": {
+          "n_chars": 224,
+          "n_new_tokens": 100,
+          "text": "rein:\nPeace what you will be, sure to be yours,\nThat's nothing monceive o' the note.\n\nPAULINA:\nI'll be sworn\nNot so little in your behalf; in the world,\nLet it be done, and ne'er be done, you'ld fine,\nNot happy through it be"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "the the the",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.64
+        },
+        "measured": {
+          "n_chars": 200,
+          "n_new_tokens": 100,
+          "text": "\nCome, come, citizens, we are quickly.\n\nCORIOLANUS:\nNo, rank me, for shame!\nWe are before, briefs: because my heart\nThey'll to 't:' here in, in, in a pockropy,\nWith big me in safety, and, I warrant,\nW"
+        },
+        "mode": "greedy",
+        "model": "v1-bpe-5000it",
+        "prompt": "?!3 $&',-.:;",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.071429,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.59
+        },
+        "measured": {
+          "n_chars": 198,
+          "n_new_tokens": 100,
+          "text": "\nFor corse, our sunsets, our succorce.\n\nFirst Soldier:\nSok the gates are upon us, records.\n\nAUFIDIUS:\nThe gods be good unto us!\n\nAll Marcius!\n\nFirst Officer:\nFaith, their friends, Marcius,\nThat they"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.091837,
+          "rep4": 0.061856,
+          "unique_token_ratio": 0.65
+        },
+        "measured": {
+          "n_chars": 218,
+          "n_new_tokens": 100,
+          "text": "\nFor I'll be found.\n\nCORIOLANUS:\nWhy, then.\n\nVOLUMNIA:\nGood morrow, and be good my friend.\n\nCORIOLANUS:\nWhat! I may be confess,\nThat I should have spoke my kinsman: I have a swear'd\nThe worthy visit is so oath to it,\nT"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.061224,
+          "rep4": 0.020619,
+          "unique_token_ratio": 0.61
+        },
+        "measured": {
+          "n_chars": 216,
+          "n_new_tokens": 100,
+          "text": "\nHere comes away with him.\n\nMessenger:\nDown with him,ive you a lion: he must have ta'en away,\nTill we have ta'en times through answer'd sufficience\nTill he be proof against his power:\nHe's some comfort.\n\nSICINIUS:\nAn"
+        },
+        "mode": "sample",
+        "model": "v1-bpe-5000it",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.183673,
+          "rep4": 0.154639,
+          "unique_token_ratio": 0.49
+        },
+        "measured": {
+          "n_chars": 187,
+          "n_new_tokens": 100,
+          "text": "\nThen,,, I, I'll be my wife's s.\n\nLADY ANNE:\nI am a king, I'll believe me, and not\nThen Ill not beat thee to my.\n\nLADY ANNE:\nI am a while\nThat I have been accused, though I wish\nTo be acc"
+        },
+        "mode": "greedy",
+        "model": "v2-bpe",
+        "prompt": "ROMEO:",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.69
+        },
+        "measured": {
+          "n_chars": 239,
+          "n_new_tokens": 100,
+          "text": "he shall\nfor his mercy his estate, where he did\nfriend him, to have all those that made winged him\nthe.\n\nFirst Singman:\nI know well, sir, well.\n\nESALUS:Tn, the matter\nOf the geral of this, the cruel report\nWere in the seter of your honour."
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "ROMEO:",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.0,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.7
+        },
+        "measured": {
+          "n_chars": 239,
+          "n_new_tokens": 100,
+          "text": "he not set us so,\nAnd so held his friend, and, to help the queen;\nThy aport in the same and loss hiss.\n\nRICH:Let him come to the genal times,\nWhich he must bes, darest thou find themselves\nof thy anciental day'srity thats' friends\nith, but"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "ROMEO:",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.0,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.68
+        },
+        "measured": {
+          "n_chars": 221,
+          "n_new_tokens": 100,
+          "text": "\nHow will my mother a whi I do thee,\nAnd I'll play the sembler of bleing arm\nA tmble-ke, or first, captain, and wapt,And tears\nOr for this land of false and braverd,\nnd lad' forth thee here indeed in thatile parlic,\nT sou"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "ROMEO:",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.387755,
+          "rep4": 0.340206,
+          "unique_token_ratio": 0.41
+        },
+        "measured": {
+          "n_chars": 178,
+          "n_new_tokens": 100,
+          "text": "\nThen, my lord, I'll be my heart's glass.\n\nLADY ANNE:\nThen, my lord, I'll be my tongue to.\n\nLADY ANNE:\nI am a king, and Ill not.\n\nLADYNE:\nI am a dangerous lady, and my.\n\nLADY ANN"
+        },
+        "mode": "greedy",
+        "model": "v2-bpe",
+        "prompt": "JULIET:",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.64
+        },
+        "measured": {
+          "n_chars": 202,
+          "n_new_tokens": 100,
+          "text": "\nOff thee thou, boy\nTo hear me, for haste\nnd my tueing'sop.\n\nJULIET\nH:\nHerees the feasting on mine reol?\n\nULIET:\nNo, by my soul, thy dear dwell to girl:\nA, of this first is but a fore, dream'd\nThat thou"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "JULIET:",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.69
+        },
+        "measured": {
+          "n_chars": 218,
+          "n_new_tokens": 100,
+          "text": "\nNay,'is is destrunen.\n\nING RICHARD:\nBlind the prince:Go you to London, you have done\nAs my ferteener as an unquild!\n\nR:IERS:\nhat, would you not darest, and will buy you\nith me, I do not wedd to my fathers.\n\nOMEO:\nW, I"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "JULIET:",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.071429,
+          "rep4": 0.051546,
+          "unique_token_ratio": 0.59
+        },
+        "measured": {
+          "n_chars": 217,
+          "n_new_tokens": 100,
+          "text": "\nHow will my mother?\n\nLADY ANN:\nHerees me you my lord,\nhom cares have taken: Ill, my lord,\nAnd that my recvers of the rest to.\n\nLADY ANE:\no more than I, my,\nnd Ill me foret my w's fool! it should you know\nTo have s to"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "JULIET:",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.255102,
+          "rep4": 0.185567,
+          "unique_token_ratio": 0.47
+        },
+        "measured": {
+          "n_chars": 171,
+          "n_new_tokens": 100,
+          "text": "\nThere is a sisterhood.\n\nPERDITA:\nI am a sister, sir,\nIf you be so, I'll be a bawdy till\nTo see her beuteous.\n\nPLIXENES:\nI'll be yours.\n\nPLIXENES:\nI'll be a bawd.\n\nPOLIXEN"
+        },
+        "mode": "greedy",
+        "model": "v2-bpe",
+        "prompt": "To be, or not to be",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.071429,
+          "rep4": 0.041237,
+          "unique_token_ratio": 0.65
+        },
+        "measured": {
+          "n_chars": 220,
+          "n_new_tokens": 100,
+          "text": "reort\nGive me, and die.\n\nD VINCENTIO:\nI had I, my lord.\n\nProvost:\nhe hath been thy power.\n\nESCLUS:\nLook you well, sir, shall be apd?\nESCLUS:\nHe doth die inru: let him have patientling you\nwill for report in the largess\nT"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "To be, or not to be",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.75
+        },
+        "measured": {
+          "n_chars": 223,
+          "n_new_tokens": 100,
+          "text": "held\nBut that is destruction held his friends\nAs he will be confed: our findingled his\nTheir eier-ilder, but were his own good,\nThe calous singular, you may repent not\nNot likely to buy it\nith met the of.\n\nPOXS:\nHere's pald"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "To be, or not to be",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.68
+        },
+        "measured": {
+          "n_chars": 207,
+          "n_new_tokens": 100,
+          "text": "\nHaveened him a woman, would not behold\nHere to do't\nIn your bying armes.\nCome, come,\nIf all cship not of her.\n\nAEdi\nOn for this hour.\n\nPAULIN:\nDo not believe you\nn'tase you, my lord, you shall be so wont to"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "To be, or not to be",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.153061,
+          "rep4": 0.092784,
+          "unique_token_ratio": 0.55
+        },
+        "measured": {
+          "n_chars": 217,
+          "n_new_tokens": 100,
+          "text": ",\nThat he had accounted to his purpose\nTheir tribes of the btom of the crown\nWith all the body of the sea and\nThey have been power to be, and in\nThey'll be the body.\n\nCOMINIUS:\nI'll be gone\nThey'll be the best.\n\nCORIO"
+        },
+        "mode": "greedy",
+        "model": "v2-bpe",
+        "prompt": "The king",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.68
+        },
+        "measured": {
+          "n_chars": 237,
+          "n_new_tokens": 100,
+          "text": "reort to his land,And then his estate,\nThen I saw him, to thy brother, the\nrest\nhat thoust, which thy rule are strongly sin'\nWith accbellion, his bitter arms and tears,\nT we'll get the tyrant of repossess\nTo the king in hissits for his b"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "The king",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.69
+        },
+        "measured": {
+          "n_chars": 209,
+          "n_new_tokens": 100,
+          "text": "as our sice'd is destroy'd.\n\nQUEEN ELIZABETH:\nGood lords, in good lord; and he shall beso\nAnd see the duke attempts cry once the wound\nThat his paind of rests and fix'd mdleer,\nAnd my dukedom, duked my, and my"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "The king",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.63
+        },
+        "measured": {
+          "n_chars": 192,
+          "n_new_tokens": 100,
+          "text": "\nHave his chance to cheeks, where hes,\nBut songs on the mind, care and ge their est.\n\nARCOH:I will; and, my.\n\nAL:\n\nOXFORD:\nIt is and best so:, a guest are forth\nn's fooli to his pity.\n\nFirst S"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "The king",
+        "seed": 7
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.459184,
+          "rep4": 0.412371,
+          "unique_token_ratio": 0.32
+        },
+        "measured": {
+          "n_chars": 199,
+          "n_new_tokens": 100,
+          "text": "court\nTo the people, the people,\nThey'll promise you,\nAnd you have put to yours.\n\nCORIOLANUS:\nI'll have you\nThey'll be yours.\n\nCORIOLANUS:\nI'll be yours\nThey'll be yours.\n\nCORIOLANUS:\nI'll be yours\nT"
+        },
+        "mode": "greedy",
+        "model": "v2-bpe",
+        "prompt": "the the the",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.0,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.68
+        },
+        "measured": {
+          "n_chars": 224,
+          "n_new_tokens": 100,
+          "text": "sister\nA pursued his order, and his pceld till,\nAnd those that made wert cried in justice,\nWheof the last receive access ofrace\nhand sits from the mistress and his head\nWhich in the poal of his first for.\n\nVIRGIA:\nW are they"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "the the the",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.63
+        },
+        "measured": {
+          "n_chars": 243,
+          "n_new_tokens": 100,
+          "text": "traitor's,\nAnd so held, the earth, and help the sun\nT finding the infect of his orderies,\nAnd seeing his ownve and to theower\nWhich set the veins of theye of the sea,\nnd to thy peple and plck himself wly\nBy the other their sovereign\nith of our"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "the the the",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.65
+        },
+        "measured": {
+          "n_chars": 222,
+          "n_new_tokens": 100,
+          "text": "\nHave merit a witness, the subbcsuing\nThis earth,\nhow carry him, their estimation,esides all cgel;\nexcept themeages in the earth, and wild away\nThe benefit of his fits, but of the\nlaw that have found all that must know.\n\nL"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "the the the",
+        "seed": 7
+      },
+      {
+        "anomalies": [
+          "degenerate repetition (rep3 > 0.5)"
+        ],
+        "derived": {
+          "rep3": 0.561224,
+          "rep4": 0.474227,
+          "unique_token_ratio": 0.18
+        },
+        "measured": {
+          "n_chars": 261,
+          "n_new_tokens": 100,
+          "text": "\nAnd, by the king, the king, and the\nshows,\nAnd the kings, and the kings, and the kings\nAnd the kings, and the kings, and the king\nAnd the king ands, and the kings, and the\neople's peace,\nAnd the kings, and the kings, and the king\nAnd the king and, and the king"
+        },
+        "mode": "greedy",
+        "model": "v2-bpe",
+        "prompt": "?!3 $&',-.:;",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.05102,
+          "rep4": 0.020619,
+          "unique_token_ratio": 0.64
+        },
+        "measured": {
+          "n_chars": 218,
+          "n_new_tokens": 100,
+          "text": "you shall\nfce you, bid me themselves,, you'll promise you.\n\nCLANUS\nW, I wine 'Be my back inedi.\n\nIC:\nI know well: let a, my lord.\n\nCORIO:Tn, the matter and to your peple,\nAnd the relruct is the matter. If the sin\nWretc"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.0,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.62
+        },
+        "measured": {
+          "n_chars": 210,
+          "n_new_tokens": 100,
+          "text": "he's the matter\nt dreadful, and' in, to help the re; 'twas heard his\ncontin and his person\nShall be the place of hissd: the sky was full of\nyourey-bel, as buy, and federy of the wind,\nthat in their dukes;, he c"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.05102,
+          "rep4": 0.010309,
+          "unique_token_ratio": 0.65
+        },
+        "measured": {
+          "n_chars": 201,
+          "n_new_tokens": 100,
+          "text": "\nHow will you come away?\n\nLEONTES:\nHere and has theth.\n\nEASTING:\nof to-orrow, or?\n\nPOMPEY:Tyr, sir, thou\nhe shall beond any house.\n\nPOMEY:Pompe.\nGood good Minol's fool! it should you know what say\nhe?\n"
+        },
+        "mode": "sample",
+        "model": "v2-bpe",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 7
+      },
+      {
+        "anomalies": [
+          "degenerate repetition (rep3 > 0.5)"
+        ],
+        "derived": {
+          "rep3": 0.744898,
+          "rep4": 0.701031,
+          "unique_token_ratio": 0.14
+        },
+        "measured": {
+          "n_chars": 173,
+          "n_new_tokens": 100,
+          "text": "\nAnd, I, I, I, I, I, and,\nThere, I's, I's, and,\nThere, I's, and, and, and,\nThere, I's, and, and, and,\nThere, I's, and, and,\nThere, I's, and, and,\nThere, and the co, and, and"
+        },
+        "mode": "greedy",
+        "model": "v2-p1-1-temp",
+        "prompt": "ROMEO:",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.5
+        },
+        "measured": {
+          "n_chars": 156,
+          "n_new_tokens": 100,
+          "text": "\nAff'd, barfding sle,\nhey\nnd, my.\n\n\nHAWTI:\nAnd to, in.He, to be foind lent\nWKINGON:\nKING?\n\nGNE:\nBent, ds' to girliy, the clice for.\n\ne, me in the cits for\nT"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "ROMEO:",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.57
+        },
+        "measured": {
+          "n_chars": 184,
+          "n_new_tokens": 100,
+          "text": "hey be,\nAnd ding dre he, my lord, in, to hel.\n\nC:GARNp' in and, mt\nToer my fer, me to.\n\nDIUS:\nR:\nMIf, it you of the of thee of the sally\nThe's\nTWNUKE\nThed,, by the be the so cay wit,\nS"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "ROMEO:",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.61
+        },
+        "measured": {
+          "n_chars": 192,
+          "n_new_tokens": 100,
+          "text": "\nHow mven a wit I, you, and;\nBu, I dre'd to,\nh, cvsete to mter.\n\nWith sy, I that; and not not\n\nIAL:\n\nOn for this is womct iner me\nnd:\nCARo, mys of my cre\nThe that my lord, I that the ca to sou"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "ROMEO:",
+        "seed": 7
+      },
+      {
+        "anomalies": [
+          "degenerate repetition (rep3 > 0.5)"
+        ],
+        "derived": {
+          "rep3": 0.765306,
+          "rep4": 0.731959,
+          "unique_token_ratio": 0.13
+        },
+        "measured": {
+          "n_chars": 186,
+          "n_new_tokens": 100,
+          "text": "\nA, I, I, I, I, I, and,\nThere, I's, and, and, and,\nThere, I's, and, and, and,\nThere, I's, and, and,\nThere, and the co, and, and,\nThere, and the co, and, and,\nThere, and the co, and, and,"
+        },
+        "mode": "greedy",
+        "model": "v2-p1-1-temp",
+        "prompt": "JULIET:",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.48
+        },
+        "measured": {
+          "n_chars": 166,
+          "n_new_tokens": 100,
+          "text": "\nAf\nASFA:\nGo, you, I mat\nnd, my.\n\n\nHAWTI:\n\nAnd, in.He, to be fo have a lent\nWKINGON:\nKINGI, in sitnse the matuts's\nAnd have pat, of reito is.\n\ne, me in the cits for\nT"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "JULIET:",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.6
+        },
+        "measured": {
+          "n_chars": 184,
+          "n_new_tokens": 100,
+          "text": "he:\nB'd, dest dre not, my lord, in,\nBlit, he; sir, I ap' in you,\nty and his carler, me to.\n\nDIUS:\nR:\nut the wom it you of the lbe of the sally\nThe's and for me.\n\nAnd I drity?\n\nMIHES:\nS"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "JULIET:",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.55
+        },
+        "measured": {
+          "n_chars": 200,
+          "n_new_tokens": 100,
+          "text": "\nH:\nPut a witit, you, to me,\nHere to the you my lord,\nhle cvete to mter.\n\nWith set:\nAnd not not not\n\nIAL:\n\nOn for this is womct iner me\nnd my, apo fits of my lord'\nThe of my lord, I that the ca to sou"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "JULIET:",
+        "seed": 7
+      },
+      {
+        "anomalies": [
+          "degenerate repetition (rep3 > 0.5)"
+        ],
+        "derived": {
+          "rep3": 0.816327,
+          "rep4": 0.783505,
+          "unique_token_ratio": 0.12
+        },
+        "measured": {
+          "n_chars": 145,
+          "n_new_tokens": 100,
+          "text": "\nThere, I's, I's, and the co,\nThere's, I's, I's,\nThere's, I's, I's,\nThere's, I's, I's,\nThere's, I's, and the co,\nThere's, I's, and the co,\nThere'"
+        },
+        "mode": "greedy",
+        "model": "v2-p1-1-temp",
+        "prompt": "To be, or not to be",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.5
+        },
+        "measured": {
+          "n_chars": 184,
+          "n_new_tokens": 100,
+          "text": "reed\nGent p, barffing:\nCou mate in, my.\n\n\nHAWTI:\nAnd to, in.He, to be fo?\n\nAnd, bal, my lord that you are, in sit\nhat the matuts' to gy in:\nA, of reit you for.\n\ne, me in the cits for\nT"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "To be, or not to be",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.52
+        },
+        "measured": {
+          "n_chars": 178,
+          "n_new_tokens": 100,
+          "text": "ty\nB'd the dt to the he darmied,\nBlf the rer:\nAnd he' in and, mt\nToer my fer:\nIp'll, to mys cal\nut the wpt you of the of thee of the sally\nThe's and he bety\nThed drity?\n\nMIHES:\nS"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "To be, or not to be",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.0,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.58
+        },
+        "measured": {
+          "n_chars": 190,
+          "n_new_tokens": 100,
+          "text": "\nHow mer you a wit I, you, and;\nBu, I and he'd is,\nhle chd\nADA:Ph, with tvy, with that;\nhen\n\nIAL:\n\nOn for this is womct iner me\nnd:\nCARo, mys of my cre\nThe that my lord, I that the ca to sou"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "To be, or not to be",
+        "seed": 7
+      },
+      {
+        "anomalies": [
+          "degenerate repetition (rep3 > 0.5)"
+        ],
+        "derived": {
+          "rep3": 0.806122,
+          "rep4": 0.762887,
+          "unique_token_ratio": 0.12
+        },
+        "measured": {
+          "n_chars": 185,
+          "n_new_tokens": 100,
+          "text": ",\nThere, I's, I's, and the co,\nThere's, I's, and the co,\nThere's, and the co, and the co,\nThere's, and the co, and the co,\nThere, and the co, and the co,\nThere, and the co, and the co,\n"
+        },
+        "mode": "greedy",
+        "model": "v2-p1-1-temp",
+        "prompt": "The king",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.5
+        },
+        "measured": {
+          "n_chars": 162,
+          "n_new_tokens": 100,
+          "text": ":\nff'd, barf, me, you,\nhey\nnd, my.\n\n\nHAWTI:\nAnd to, in.He, to be foind sent\nWhy a, my lord that you?\n\nGNE:\nBe not ds' to girlied, the cl.\n\nWALe, me in the cit\nT\nT"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "The king",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.0,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.53
+        },
+        "measured": {
+          "n_chars": 196,
+          "n_new_tokens": 100,
+          "text": "ofy\nB'd the ding drees, and; I in,\nBlit the reps cce ap' in and,\nty and hiss my fer, me to his to the a to my!\nWR:\nISt you of the of thee of the sally\nThe's and for me.\n\nAnd I:BYE:\nHu a wit, for I"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "The king",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.0,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.61
+        },
+        "measured": {
+          "n_chars": 185,
+          "n_new_tokens": 100,
+          "text": "\nH:\nPut a witit, you, and; ds,\nBut sinmbaent:\nAnd soes not tl to.\n\nWith sy ca, and red,\n\nIAL:\n\nOn for this is womct iner me\nnd my, a go, mys of myl'\nThe of my lord, I that the ca to sou"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "The king",
+        "seed": 7
+      },
+      {
+        "anomalies": [
+          "degenerate repetition (rep3 > 0.5)"
+        ],
+        "derived": {
+          "rep3": 0.755102,
+          "rep4": 0.659794,
+          "unique_token_ratio": 0.12
+        },
+        "measured": {
+          "n_chars": 191,
+          "n_new_tokens": 100,
+          "text": ",\nThere, I, I, I, and, and,\nThere's, and the co, and the co,\nThere's, and the co, and,\nThere, I's, and, and the co,\nThere, and the co, and, and,\nThere, and the co, and, and,\nThere, and the co"
+        },
+        "mode": "greedy",
+        "model": "v2-p1-1-temp",
+        "prompt": "the the the",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.030612,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.47
+        },
+        "measured": {
+          "n_chars": 178,
+          "n_new_tokens": 100,
+          "text": ":\nff'd, barfding:\nCou mate in, my.\n\n\nHALTI:\nAnd to, in.He, to be fo?\n\nAnd, br, my lord that you are, in sit\nhat the matuts' to gy in:\nA, of reit you for.\n\ne, me in the cits for\nT"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "the the the",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.52
+        },
+        "measured": {
+          "n_chars": 177,
+          "n_new_tokens": 100,
+          "text": "of lpes'd,\nAnd soes, and; I in, to hel.\n\nC:GARNp' in and, mt\nToer my fer:\nIp'll, to mys cal\nMo wpt you of the of thee of the sally\nThe's and for me.\n\nAnd I:BYEs the so, it wm,\nS"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "the the the",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.61
+        },
+        "measured": {
+          "n_chars": 194,
+          "n_new_tokens": 100,
+          "text": "\nH:\nPut a witit, you, and; ds,\nBut sinmb,\nhle choud not tl to.\n\nWith sy, I that; and not el\nIAnd thou,\nOn for this lis' ftoer me\nnd my, a goraits of my cre\nThe that my lord, I that the ca to sou"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "the the the",
+        "seed": 7
+      },
+      {
+        "anomalies": [
+          "degenerate repetition (rep3 > 0.5)"
+        ],
+        "derived": {
+          "rep3": 0.744898,
+          "rep4": 0.680412,
+          "unique_token_ratio": 0.13
+        },
+        "measured": {
+          "n_chars": 165,
+          "n_new_tokens": 100,
+          "text": "\nI, I, I, I, I's,\nThere, I's, I's, and,\nThere's, I's, I's,\nThere's, and the co, and the co,\nThere's, and the co, and the co,\nThere's, and the co, and the co,\nThere's"
+        },
+        "mode": "greedy",
+        "model": "v2-p1-1-temp",
+        "prompt": "?!3 $&',-.:;",
+        "seed": null
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.48
+        },
+        "measured": {
+          "n_chars": 167,
+          "n_new_tokens": 100,
+          "text": "\nSf\nKh, barf, me, you, I wat\nK sit.\n\n\nHA:Trewy wo to, in.He,\nWhere'd in of\nWKINGON:\nKING would, in sitnrey matuts's\nAnd have pat, of reito is.\n\ne, me in the cits for\nT"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 1337
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.020408,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.57
+        },
+        "measured": {
+          "n_chars": 189,
+          "n_new_tokens": 100,
+          "text": "hey be,\nC is dor to the king, my lord, in, to hel.\n\nC:GARNp' in and, mt\nToer my fer, me to.\n\nDIUS:\nR:\nMIf, it you of the of thee of the sally\nThe's\nPWNUKE\nThed,, by the be the so cay wit,\nS"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 42
+      },
+      {
+        "anomalies": [],
+        "derived": {
+          "rep3": 0.010204,
+          "rep4": 0.0,
+          "unique_token_ratio": 0.58
+        },
+        "measured": {
+          "n_chars": 198,
+          "n_new_tokens": 100,
+          "text": "\nH:\nPut a wit I, you, and; sos,\nButh'd to,\nh, cvd have not tl to.\n\nWith sy, I that; and not not\n\nIAL:\n\nOn for this is womct iner me\nnd my, a gor, mys of my cre\nThe that my lord, I that the ca to sou"
+        },
+        "mode": "sample",
+        "model": "v2-p1-1-temp",
+        "prompt": "?!3 $&',-.:;",
+        "seed": 7
+      }
+    ]
+  },
+  "protocol": {
+    "boundaries": {
+      "bpe_model_start_char": 1008119,
+      "bpe_model_start_token": 443556,
+      "char_model_start": 1003854,
+      "shared_start": 1008119
+    },
+    "corpus": "veylith/v2/data/tinyshakespeare.txt",
+    "corpus_ascii": true,
+    "corpus_chars": 1115394,
+    "corpus_sha256": "86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed",
+    "evaluation": {
+      "bits_per_char": "total nats over evaluated targets divided by the exact character span of those targets (prefix decodes)",
+      "chunking": "non-overlapping chunks of up to block_size tokens within a section; the first token of a chunk has no left context; the last token of a section is not predicted",
+      "metric": "main next-token cross-entropy only (no MTP, no aux)"
+    },
+    "generation": {
+      "greedy": true,
+      "max_new_tokens": 100,
+      "note": "sampling uses a private CPU generator per run; no EOS handling, so every run fills the token budget",
+      "prompts": [
+        "ROMEO:",
+        "JULIET:",
+        "To be, or not to be",
+        "The king",
+        "the the the",
+        "?!3 $&',-.:;"
+      ],
+      "seeds": [
+        1337,
+        42,
+        7
+      ],
+      "temperature": 0.8,
+      "top_k": 40
+    },
+    "router": {
+      "probability": "softmax over all experts before top-k",
+      "selection": "top-k of the same distribution",
+      "uniform_slot_share_pct": 12.5,
+      "uniform_token_coverage_pct": 25.0,
+      "weights": "softmax over the top-k logits"
+    },
+    "sections": [
+      {
+        "chars": 512,
+        "end": 1008631,
+        "index": 0,
+        "sha256": "8491abe49171aec3d069edfbe896510e5bf558f3a6ad1f63ea62c9e98cde9e38",
+        "start": 1008119
+      },
+      {
+        "chars": 512,
+        "end": 1009271,
+        "index": 1,
+        "sha256": "2887561709b921f9be6d45cf7229b1d2d0ead418f86fa14afd11c4eafbe1261b",
+        "start": 1008759
+      },
+      {
+        "chars": 512,
+        "end": 1009911,
+        "index": 2,
+        "sha256": "28e198e70f9caa0684a0cd4750254a1e98c8a76c4b0b5911fcd59584856e9801",
+        "start": 1009399
+      },
+      {
+        "chars": 512,
+        "end": 1010551,
+        "index": 3,
+        "sha256": "909a59a22a2869cc192e4d829a7abcdca02b55e8ee7d05584e1d2cf508ec5191",
+        "start": 1010039
+      },
+      {
+        "chars": 512,
+        "end": 1011191,
+        "index": 4,
+        "sha256": "a4e87f44f9360ddb5aca2a03b7181cb3bb5ba17721530d18a7a7e448ef739a6f",
+        "start": 1010679
+      },
+      {
+        "chars": 512,
+        "end": 1011831,
+        "index": 5,
+        "sha256": "71494d1a5936665345370b59ab52770a0ffd51316a1480363bfedae9aaeb9942",
+        "start": 1011319
+      }
+    ]
+  },
+  "router": {
+    "v2-bpe": {
+      "derived": {
+        "1": {
+          "entropy_mean_nats": 1.700058,
+          "entropy_norm": 0.817555,
+          "max_share_pct": 14.887436,
+          "mean_router_prob": [
+            0.113458,
+            0.130177,
+            0.118823,
+            0.122162,
+            0.143441,
+            0.134852,
+            0.128825,
+            0.108263
+          ],
+          "mean_topk_weight": [
+            0.542902,
+            0.545601,
+            0.504388,
+            0.503808,
+            0.538004,
+            0.500829,
+            0.452786,
+            0.406554
+          ],
+          "min_share_pct": 10.675381,
+          "rare_experts": [],
+          "section_max_abs_dev_pp": 4.887436,
+          "section_mean_tv": 0.059756,
+          "section_shares_pct": [
+            [
+              9.574468,
+              12.978723,
+              10.851064,
+              11.914894,
+              15.957447,
+              13.191489,
+              16.170213,
+              9.361702
+            ],
+            [
+              11.111111,
+              13.555556,
+              12.888889,
+              14.888889,
+              13.777778,
+              12.444444,
+              10.0,
+              11.333333
+            ],
+            [
+              13.106796,
+              13.834951,
+              10.436893,
+              9.951456,
+              14.563107,
+              13.834951,
+              14.07767,
+              10.194175
+            ],
+            [
+              14.159292,
+              13.053097,
+              11.283186,
+              8.628319,
+              15.929204,
+              11.504425,
+              12.168142,
+              13.274336
+            ],
+            [
+              9.82906,
+              10.470085,
+              9.188034,
+              14.529915,
+              15.811966,
+              13.034188,
+              18.162393,
+              8.974359
+            ],
+            [
+              7.569721,
+              11.553785,
+              9.960159,
+              15.737052,
+              12.549801,
+              13.545817,
+              18.12749,
+              10.956175
+            ]
+          ],
+          "share_pct_of_slots": [
+            10.784314,
+            12.527233,
+            10.748003,
+            12.708787,
+            14.742193,
+            12.926652,
+            14.887436,
+            10.675381
+          ],
+          "token_coverage_pct": [
+            21.568627,
+            25.054466,
+            21.496006,
+            25.417574,
+            29.484386,
+            25.853304,
+            29.774873,
+            21.350763
+          ],
+          "uniform_slot_share_pct": 12.5,
+          "unused_experts": []
+        },
+        "2": {
+          "entropy_mean_nats": 1.659654,
+          "entropy_norm": 0.798125,
+          "max_share_pct": 16.557734,
+          "mean_router_prob": [
+            0.124036,
+            0.116811,
+            0.150422,
+            0.150289,
+            0.116558,
+            0.116982,
+            0.12297,
+            0.101932
+          ],
+          "mean_topk_weight": [
+            0.482607,
+            0.463463,
+            0.493907,
+            0.530898,
+            0.494441,
+            0.562571,
+            0.507903,
+            0.459777
+          ],
+          "min_share_pct": 9.586057,
+          "rare_experts": [],
+          "section_max_abs_dev_pp": 6.779956,
+          "section_mean_tv": 0.070448,
+          "section_shares_pct": [
+            [
+              11.914894,
+              9.574468,
+              21.276596,
+              18.085106,
+              11.914894,
+              9.574468,
+              11.06383,
+              6.595745
+            ],
+            [
+              11.555556,
+              17.555556,
+              9.777778,
+              8.0,
+              14.222222,
+              11.555556,
+              13.333333,
+              14.0
+            ],
+            [
+              14.563107,
+              9.708738,
+              16.747573,
+              15.533981,
+              11.407767,
+              11.165049,
+              12.135922,
+              8.737864
+            ],
+            [
+              15.707965,
+              9.955752,
+              16.150442,
+              10.619469,
+              11.061947,
+              13.274336,
+              11.061947,
+              12.168142
+            ],
+            [
+              13.888889,
+              12.393162,
+              17.948718,
+              13.247863,
+              11.752137,
+              10.683761,
+              12.393162,
+              7.692308
+            ],
+            [
+              12.151394,
+              12.151394,
+              17.131474,
+              17.52988,
+              9.36255,
+              10.159363,
+              12.948207,
+              8.565737
+            ]
+          ],
+          "share_pct_of_slots": [
+            13.25345,
+            11.909949,
+            16.557734,
+            13.907044,
+            11.583152,
+            11.038489,
+            12.164125,
+            9.586057
+          ],
+          "token_coverage_pct": [
+            26.506899,
+            23.819898,
+            33.115468,
+            27.814089,
+            23.166304,
+            22.076979,
+            24.32825,
+            19.172113
+          ],
+          "uniform_slot_share_pct": 12.5,
+          "unused_experts": []
+        },
+        "3": {
+          "entropy_mean_nats": 1.747953,
+          "entropy_norm": 0.840588,
+          "max_share_pct": 15.395788,
+          "mean_router_prob": [
+            0.151998,
+            0.119307,
+            0.120395,
+            0.129414,
+            0.135847,
+            0.130372,
+            0.098162,
+            0.114506
+          ],
+          "mean_topk_weight": [
+            0.519182,
+            0.483683,
+            0.530377,
+            0.528646,
+            0.474739,
+            0.500893,
+            0.454177,
+            0.508486
+          ],
+          "min_share_pct": 10.312273,
+          "rare_experts": [],
+          "section_max_abs_dev_pp": 5.395788,
+          "section_mean_tv": 0.058434,
+          "section_shares_pct": [
+            [
+              17.021277,
+              13.191489,
+              10.851064,
+              10.638298,
+              14.680851,
+              14.468085,
+              9.361702,
+              9.787234
+            ],
+            [
+              10.0,
+              15.555556,
+              11.333333,
+              10.0,
+              12.666667,
+              16.0,
+              13.111111,
+              11.333333
+            ],
+            [
+              15.048544,
+              8.495146,
+              9.223301,
+              16.990291,
+              15.048544,
+              13.834951,
+              9.223301,
+              12.135922
+            ],
+            [
+              13.274336,
+              12.831858,
+              9.070796,
+              13.716814,
+              15.044248,
+              13.274336,
+              10.840708,
+              11.946903
+            ],
+            [
+              17.094017,
+              12.393162,
+              8.119658,
+              11.324786,
+              15.384615,
+              13.247863,
+              10.25641,
+              12.179487
+            ],
+            [
+              19.322709,
+              12.948207,
+              12.948207,
+              9.760956,
+              12.948207,
+              10.956175,
+              11.354582,
+              9.760956
+            ]
+          ],
+          "share_pct_of_slots": [
+            15.395788,
+            12.636166,
+            10.312273,
+            11.94626,
+            14.270153,
+            13.580247,
+            10.711692,
+            11.147422
+          ],
+          "token_coverage_pct": [
+            30.791576,
+            25.272331,
+            20.624546,
+            23.89252,
+            28.540305,
+            27.160494,
+            21.423384,
+            22.294844
+          ],
+          "uniform_slot_share_pct": 12.5,
+          "unused_experts": []
+        },
+        "4": {
+          "entropy_mean_nats": 1.645715,
+          "entropy_norm": 0.791422,
+          "max_share_pct": 15.649964,
+          "mean_router_prob": [
+            0.10832,
+            0.118835,
+            0.144731,
+            0.13922,
+            0.147749,
+            0.142496,
+            0.095614,
+            0.103036
+          ],
+          "mean_topk_weight": [
+            0.501348,
+            0.434335,
+            0.517942,
+            0.547112,
+            0.578933,
+            0.471123,
+            0.433372,
+            0.485988
+          ],
+          "min_share_pct": 9.222948,
+          "rare_experts": [],
+          "section_max_abs_dev_pp": 6.589688,
+          "section_mean_tv": 0.078959,
+          "section_shares_pct": [
+            [
+              6.808511,
+              12.765957,
+              14.680851,
+              15.106383,
+              15.319149,
+              17.659574,
+              8.085106,
+              9.574468
+            ],
+            [
+              9.333333,
+              12.222222,
+              17.777778,
+              4.666667,
+              16.222222,
+              12.444444,
+              12.0,
+              15.333333
+            ],
+            [
+              11.407767,
+              12.135922,
+              15.533981,
+              7.524272,
+              18.446602,
+              12.864078,
+              8.980583,
+              13.106796
+            ],
+            [
+              9.734513,
+              16.59292,
+              17.035398,
+              7.522124,
+              16.371681,
+              13.495575,
+              9.070796,
+              10.176991
+            ],
+            [
+              9.615385,
+              10.042735,
+              13.461538,
+              14.316239,
+              13.888889,
+              18.376068,
+              8.547009,
+              11.752137
+            ],
+            [
+              8.76494,
+              10.358566,
+              14.342629,
+              17.131474,
+              13.944223,
+              18.326693,
+              10.756972,
+              6.374502
+            ]
+          ],
+          "share_pct_of_slots": [
+            9.222948,
+            12.309368,
+            15.432099,
+            11.256354,
+            15.613653,
+            15.649964,
+            9.586057,
+            10.929557
+          ],
+          "token_coverage_pct": [
+            18.445897,
+            24.618736,
+            30.864198,
+            22.512709,
+            31.227306,
+            31.299927,
+            19.172113,
+            21.859114
+          ],
+          "uniform_slot_share_pct": 12.5,
+          "unused_experts": []
+        },
+        "5": {
+          "entropy_mean_nats": 1.586506,
+          "entropy_norm": 0.762948,
+          "max_share_pct": 15.177923,
+          "mean_router_prob": [
+            0.133641,
+            0.121085,
+            0.09959,
+            0.113497,
+            0.099118,
+            0.114239,
+            0.131755,
+            0.187075
+          ],
+          "mean_topk_weight": [
+            0.42389,
+            0.487877,
+            0.458669,
+            0.453976,
+            0.487259,
+            0.515709,
+            0.519135,
+            0.638005
+          ],
+          "min_share_pct": 9.513435,
+          "rare_experts": [],
+          "section_max_abs_dev_pp": 7.748729,
+          "section_mean_tv": 0.080676,
+          "section_shares_pct": [
+            [
+              18.510638,
+              12.340426,
+              9.361702,
+              10.0,
+              5.957447,
+              11.702128,
+              16.170213,
+              15.957447
+            ],
+            [
+              6.666667,
+              11.777778,
+              7.777778,
+              16.444444,
+              14.444444,
+              13.333333,
+              15.777778,
+              13.777778
+            ],
+            [
+              12.378641,
+              18.203883,
+              9.951456,
+              13.106796,
+              11.407767,
+              8.980583,
+              15.533981,
+              10.436893
+            ],
+            [
+              11.061947,
+              13.938053,
+              7.964602,
+              14.159292,
+              9.292035,
+              13.274336,
+              17.256637,
+              13.053097
+            ],
+            [
+              19.444444,
+              11.965812,
+              11.752137,
+              11.111111,
+              9.401709,
+              9.188034,
+              13.034188,
+              14.102564
+            ],
+            [
+              17.52988,
+              9.163347,
+              12.350598,
+              14.342629,
+              7.171315,
+              10.159363,
+              13.545817,
+              15.737052
+            ]
+          ],
+          "share_pct_of_slots": [
+            14.415396,
+            12.745098,
+            9.912854,
+            13.180828,
+            9.513435,
+            11.111111,
+            15.177923,
+            13.943355
+          ],
+          "token_coverage_pct": [
+            28.830792,
+            25.490196,
+            19.825708,
+            26.361656,
+            19.02687,
+            22.222222,
+            30.355846,
+            27.88671
+          ],
+          "uniform_slot_share_pct": 12.5,
+          "unused_experts": []
+        }
+      },
+      "measured": {
+        "1": {
+          "counts": [
+            297,
+            345,
+            296,
+            350,
+            406,
+            356,
+            410,
+            294
+          ],
+          "entropy_sum_nats": 2340.97995,
+          "prob_sum": [
+            156.231161,
+            179.253189,
+            163.619188,
+            168.217205,
+            197.518103,
+            185.690931,
+            177.392603,
+            149.07761
+          ],
+          "section_counts": [
+            [
+              45,
+              61,
+              51,
+              56,
+              75,
+              62,
+              76,
+              44
+            ],
+            [
+              50,
+              61,
+              58,
+              67,
+              62,
+              56,
+              45,
+              51
+            ],
+            [
+              54,
+              57,
+              43,
+              41,
+              60,
+              57,
+              58,
+              42
+            ],
+            [
+              64,
+              59,
+              51,
+              39,
+              72,
+              52,
+              55,
+              60
+            ],
+            [
+              46,
+              49,
+              43,
+              68,
+              74,
+              61,
+              85,
+              42
+            ],
+            [
+              38,
+              58,
+              50,
+              79,
+              63,
+              68,
+              91,
+              55
+            ]
+          ],
+          "section_tokens": [
+            235,
+            225,
+            206,
+            226,
+            234,
+            251
+          ],
+          "slots": 2754,
+          "tokens": 1377,
+          "weight_sum": [
+            161.241967,
+            188.232439,
+            149.298767,
+            176.332915,
+            218.429534,
+            178.295293,
+            185.642252,
+            119.526833
+          ]
+        },
+        "2": {
+          "counts": [
+            365,
+            328,
+            456,
+            383,
+            319,
+            304,
+            335,
+            264
+          ],
+          "entropy_sum_nats": 2285.343262,
+          "prob_sum": [
+            170.798031,
+            160.849033,
+            207.130962,
+            206.947344,
+            160.500774,
+            161.083763,
+            169.330086,
+            140.360006
+          ],
+          "section_counts": [
+            [
+              56,
+              45,
+              100,
+              85,
+              56,
+              45,
+              52,
+              31
+            ],
+            [
+              52,
+              79,
+              44,
+              36,
+              64,
+              52,
+              60,
+              63
+            ],
+            [
+              60,
+              40,
+              69,
+              64,
+              47,
+              46,
+              50,
+              36
+            ],
+            [
+              71,
+              45,
+              73,
+              48,
+              50,
+              60,
+              50,
+              55
+            ],
+            [
+              65,
+              58,
+              84,
+              62,
+              55,
+              50,
+              58,
+              36
+            ],
+            [
+              61,
+              61,
+              86,
+              88,
+              47,
+              51,
+              65,
+              43
+            ]
+          ],
+          "section_tokens": [
+            235,
+            225,
+            206,
+            226,
+            234,
+            251
+          ],
+          "slots": 2754,
+          "tokens": 1377,
+          "weight_sum": [
+            176.151488,
+            152.015765,
+            225.221739,
+            203.334085,
+            157.726526,
+            171.02158,
+            170.147607,
+            121.381209
+          ]
+        },
+        "3": {
+          "counts": [
+            424,
+            348,
+            284,
+            329,
+            393,
+            374,
+            295,
+            307
+          ],
+          "entropy_sum_nats": 2406.931183,
+          "prob_sum": [
+            209.301294,
+            164.285139,
+            165.783379,
+            178.203135,
+            187.061623,
+            179.522696,
+            135.168495,
+            157.674234
+          ],
+          "section_counts": [
+            [
+              80,
+              62,
+              51,
+              50,
+              69,
+              68,
+              44,
+              46
+            ],
+            [
+              45,
+              70,
+              51,
+              45,
+              57,
+              72,
+              59,
+              51
+            ],
+            [
+              62,
+              35,
+              38,
+              70,
+              62,
+              57,
+              38,
+              50
+            ],
+            [
+              60,
+              58,
+              41,
+              62,
+              68,
+              60,
+              49,
+              54
+            ],
+            [
+              80,
+              58,
+              38,
+              53,
+              72,
+              62,
+              48,
+              57
+            ],
+            [
+              97,
+              65,
+              65,
+              49,
+              65,
+              55,
+              57,
+              49
+            ]
+          ],
+          "section_tokens": [
+            235,
+            225,
+            206,
+            226,
+            234,
+            251
+          ],
+          "slots": 2754,
+          "tokens": 1377,
+          "weight_sum": [
+            220.133279,
+            168.321654,
+            150.627036,
+            173.924432,
+            186.572477,
+            187.333824,
+            133.982241,
+            156.10506
+          ]
+        },
+        "4": {
+          "counts": [
+            254,
+            339,
+            425,
+            310,
+            430,
+            431,
+            264,
+            301
+          ],
+          "entropy_sum_nats": 2266.149536,
+          "prob_sum": [
+            149.155954,
+            163.635895,
+            199.294931,
+            191.705667,
+            203.450119,
+            196.217215,
+            131.659904,
+            141.880316
+          ],
+          "section_counts": [
+            [
+              32,
+              60,
+              69,
+              71,
+              72,
+              83,
+              38,
+              45
+            ],
+            [
+              42,
+              55,
+              80,
+              21,
+              73,
+              56,
+              54,
+              69
+            ],
+            [
+              47,
+              50,
+              64,
+              31,
+              76,
+              53,
+              37,
+              54
+            ],
+            [
+              44,
+              75,
+              77,
+              34,
+              74,
+              61,
+              41,
+              46
+            ],
+            [
+              45,
+              47,
+              63,
+              67,
+              65,
+              86,
+              40,
+              55
+            ],
+            [
+              44,
+              52,
+              72,
+              86,
+              70,
+              92,
+              54,
+              32
+            ]
+          ],
+          "section_tokens": [
+            235,
+            225,
+            206,
+            226,
+            234,
+            251
+          ],
+          "slots": 2754,
+          "tokens": 1377,
+          "weight_sum": [
+            127.342408,
+            147.239485,
+            220.125437,
+            169.604566,
+            248.94116,
+            203.054218,
+            114.410244,
+            146.282481
+          ]
+        },
+        "5": {
+          "counts": [
+            397,
+            351,
+            273,
+            363,
+            262,
+            306,
+            418,
+            384
+          ],
+          "entropy_sum_nats": 2184.618164,
+          "prob_sum": [
+            184.024157,
+            166.734709,
+            137.134922,
+            156.284864,
+            136.484825,
+            157.307695,
+            181.426653,
+            257.602173
+          ],
+          "section_counts": [
+            [
+              87,
+              58,
+              44,
+              47,
+              28,
+              55,
+              76,
+              75
+            ],
+            [
+              30,
+              53,
+              35,
+              74,
+              65,
+              60,
+              71,
+              62
+            ],
+            [
+              51,
+              75,
+              41,
+              54,
+              47,
+              37,
+              64,
+              43
+            ],
+            [
+              50,
+              63,
+              36,
+              64,
+              42,
+              60,
+              78,
+              59
+            ],
+            [
+              91,
+              56,
+              55,
+              52,
+              44,
+              43,
+              61,
+              66
+            ],
+            [
+              88,
+              46,
+              62,
+              72,
+              36,
+              51,
+              68,
+              79
+            ]
+          ],
+          "section_tokens": [
+            235,
+            225,
+            206,
+            226,
+            234,
+            251
+          ],
+          "slots": 2754,
+          "tokens": 1377,
+          "weight_sum": [
+            168.284275,
+            171.244767,
+            125.21669,
+            164.793108,
+            127.661805,
+            157.806979,
+            216.998286,
+            244.994089
+          ]
+        }
+      }
+    },
+    "v2-p1-1-temp": {
+      "derived": {
+        "1": {
+          "entropy_mean_nats": 1.981675,
+          "entropy_norm": 0.952984,
+          "max_share_pct": 16.267248,
+          "mean_router_prob": [
+            0.110139,
+            0.126059,
+            0.12426,
+            0.12716,
+            0.13129,
+            0.126267,
+            0.13058,
+            0.124245
+          ],
+          "mean_topk_weight": [
+            0.498807,
+            0.517611,
+            0.517433,
+            0.480652,
+            0.523969,
+            0.517539,
+            0.472899,
+            0.461706
+          ],
+          "min_share_pct": 10.239651,
+          "rare_experts": [],
+          "section_max_abs_dev_pp": 5.066086,
+          "section_mean_tv": 0.070855,
+          "section_shares_pct": [
+            [
+              11.06383,
+              14.893617,
+              13.617021,
+              15.744681,
+              12.12766,
+              12.12766,
+              12.340426,
+              8.085106
+            ],
+            [
+              9.333333,
+              21.333333,
+              16.222222,
+              10.0,
+              9.333333,
+              14.666667,
+              8.222222,
+              10.888889
+            ],
+            [
+              13.106796,
+              15.776699,
+              13.349515,
+              10.92233,
+              14.07767,
+              9.466019,
+              11.165049,
+              12.135922
+            ],
+            [
+              9.292035,
+              16.150442,
+              11.725664,
+              14.159292,
+              15.044248,
+              7.743363,
+              12.168142,
+              13.716814
+            ],
+            [
+              11.752137,
+              15.17094,
+              11.752137,
+              14.957265,
+              15.811966,
+              9.188034,
+              11.965812,
+              9.401709
+            ],
+            [
+              7.370518,
+              14.541833,
+              11.155378,
+              17.928287,
+              10.956175,
+              13.14741,
+              14.541833,
+              10.358566
+            ]
+          ],
+          "share_pct_of_slots": [
+            10.239651,
+            16.267248,
+            12.926652,
+            14.088598,
+            12.854031,
+            11.111111,
+            11.801017,
+            10.711692
+          ],
+          "token_coverage_pct": [
+            20.479303,
+            32.534495,
+            25.853304,
+            28.177197,
+            25.708061,
+            22.222222,
+            23.602033,
+            21.423384
+          ],
+          "uniform_slot_share_pct": 12.5,
+          "unused_experts": []
+        },
+        "2": {
+          "entropy_mean_nats": 2.023755,
+          "entropy_norm": 0.97322,
+          "max_share_pct": 14.124909,
+          "mean_router_prob": [
+            0.13126,
+            0.119146,
+            0.118641,
+            0.133571,
+            0.129707,
+            0.1222,
+            0.115257,
+            0.130218
+          ],
+          "mean_topk_weight": [
+            0.524399,
+            0.492358,
+            0.477187,
+            0.509431,
+            0.511483,
+            0.497996,
+            0.480652,
+            0.503704
+          ],
+          "min_share_pct": 10.675381,
+          "rare_experts": [],
+          "section_max_abs_dev_pp": 5.458243,
+          "section_mean_tv": 0.07232,
+          "section_shares_pct": [
+            [
+              12.340426,
+              12.553191,
+              16.595745,
+              12.340426,
+              11.489362,
+              12.978723,
+              12.553191,
+              9.148936
+            ],
+            [
+              11.555556,
+              12.888889,
+              8.666667,
+              12.222222,
+              12.666667,
+              12.666667,
+              13.555556,
+              15.777778
+            ],
+            [
+              18.446602,
+              12.378641,
+              10.92233,
+              10.679612,
+              12.864078,
+              10.194175,
+              11.165049,
+              13.349515
+            ],
+            [
+              13.053097,
+              13.053097,
+              13.053097,
+              14.159292,
+              16.59292,
+              10.176991,
+              7.743363,
+              12.168142
+            ],
+            [
+              11.111111,
+              10.683761,
+              17.948718,
+              9.82906,
+              17.094017,
+              7.478632,
+              10.897436,
+              14.957265
+            ],
+            [
+              14.541833,
+              8.964143,
+              16.733068,
+              10.557769,
+              12.350598,
+              10.557769,
+              10.358566,
+              15.936255
+            ]
+          ],
+          "share_pct_of_slots": [
+            13.435004,
+            11.692084,
+            14.124909,
+            11.619463,
+            13.834423,
+            10.675381,
+            11.038489,
+            13.580247
+          ],
+          "token_coverage_pct": [
+            26.870007,
+            23.384168,
+            28.249818,
+            23.238925,
+            27.668845,
+            21.350763,
+            22.076979,
+            27.160494
+          ],
+          "uniform_slot_share_pct": 12.5,
+          "unused_experts": []
+        },
+        "3": {
+          "entropy_mean_nats": 2.021578,
+          "entropy_norm": 0.972174,
+          "max_share_pct": 14.270153,
+          "mean_router_prob": [
+            0.122515,
+            0.128368,
+            0.134895,
+            0.130442,
+            0.121266,
+            0.118584,
+            0.12086,
+            0.123069
+          ],
+          "mean_topk_weight": [
+            0.5152,
+            0.471674,
+            0.509366,
+            0.504893,
+            0.470747,
+            0.465872,
+            0.531138,
+            0.528412
+          ],
+          "min_share_pct": 9.949165,
+          "rare_experts": [],
+          "section_max_abs_dev_pp": 5.384168,
+          "section_mean_tv": 0.066843,
+          "section_shares_pct": [
+            [
+              14.680851,
+              12.12766,
+              14.680851,
+              17.446809,
+              10.212766,
+              11.276596,
+              9.787234,
+              9.787234
+            ],
+            [
+              12.666667,
+              13.555556,
+              13.333333,
+              13.333333,
+              10.888889,
+              15.333333,
+              11.777778,
+              9.111111
+            ],
+            [
+              12.135922,
+              11.650485,
+              15.533981,
+              13.349515,
+              13.349515,
+              13.106796,
+              8.495146,
+              12.378641
+            ],
+            [
+              13.053097,
+              14.159292,
+              9.734513,
+              15.707965,
+              14.159292,
+              7.300885,
+              15.265487,
+              10.619469
+            ],
+            [
+              11.538462,
+              14.957265,
+              13.675214,
+              13.675214,
+              14.957265,
+              6.837607,
+              11.538462,
+              12.820513
+            ],
+            [
+              11.752988,
+              12.350598,
+              18.326693,
+              11.952191,
+              12.549801,
+              6.573705,
+              11.354582,
+              15.139442
+            ]
+          ],
+          "share_pct_of_slots": [
+            12.636166,
+            13.144517,
+            14.270153,
+            14.233842,
+            12.672476,
+            9.949165,
+            11.401598,
+            11.692084
+          ],
+          "token_coverage_pct": [
+            25.272331,
+            26.289034,
+            28.540305,
+            28.467683,
+            25.344953,
+            19.89833,
+            22.803195,
+            23.384168
+          ],
+          "uniform_slot_share_pct": 12.5,
+          "unused_experts": []
+        },
+        "4": {
+          "entropy_mean_nats": 2.015359,
+          "entropy_norm": 0.969183,
+          "max_share_pct": 15.214234,
+          "mean_router_prob": [
+            0.123727,
+            0.128994,
+            0.126109,
+            0.129453,
+            0.128493,
+            0.123155,
+            0.123214,
+            0.116855
+          ],
+          "mean_topk_weight": [
+            0.491722,
+            0.472379,
+            0.498727,
+            0.529922,
+            0.502902,
+            0.513169,
+            0.496347,
+            0.487166
+          ],
+          "min_share_pct": 9.150327,
+          "rare_experts": [],
+          "section_max_abs_dev_pp": 7.717817,
+          "section_mean_tv": 0.084317,
+          "section_shares_pct": [
+            [
+              10.851064,
+              15.531915,
+              10.638298,
+              16.808511,
+              14.042553,
+              12.340426,
+              10.638298,
+              9.148936
+            ],
+            [
+              15.555556,
+              14.888889,
+              13.777778,
+              11.777778,
+              15.111111,
+              7.111111,
+              10.222222,
+              11.555556
+            ],
+            [
+              10.194175,
+              9.951456,
+              16.262136,
+              11.165049,
+              18.68932,
+              10.92233,
+              12.378641,
+              10.436893
+            ],
+            [
+              14.159292,
+              20.353982,
+              12.389381,
+              12.389381,
+              15.265487,
+              9.513274,
+              8.185841,
+              7.743363
+            ],
+            [
+              14.102564,
+              5.555556,
+              15.384615,
+              17.094017,
+              13.247863,
+              12.606838,
+              13.888889,
+              8.119658
+            ],
+            [
+              8.366534,
+              9.760956,
+              13.346614,
+              17.928287,
+              15.338645,
+              12.749004,
+              14.342629,
+              8.167331
+            ]
+          ],
+          "share_pct_of_slots": [
+            12.164125,
+            12.636166,
+            13.580247,
+            14.669572,
+            15.214234,
+            10.929557,
+            11.655773,
+            9.150327
+          ],
+          "token_coverage_pct": [
+            24.32825,
+            25.272331,
+            27.160494,
+            29.339143,
+            30.428468,
+            21.859114,
+            23.311547,
+            18.300654
+          ],
+          "uniform_slot_share_pct": 12.5,
+          "unused_experts": []
+        },
+        "5": {
+          "entropy_mean_nats": 2.051822,
+          "entropy_norm": 0.986718,
+          "max_share_pct": 15.323166,
+          "mean_router_prob": [
+            0.132125,
+            0.114707,
+            0.126471,
+            0.124189,
+            0.121797,
+            0.125082,
+            0.127245,
+            0.128384
+          ],
+          "mean_topk_weight": [
+            0.507996,
+            0.505253,
+            0.474906,
+            0.493128,
+            0.490629,
+            0.495057,
+            0.505169,
+            0.523825
+          ],
+          "min_share_pct": 10.094408,
+          "rare_experts": [],
+          "section_max_abs_dev_pp": 6.127814,
+          "section_mean_tv": 0.084406,
+          "section_shares_pct": [
+            [
+              17.446809,
+              9.148936,
+              15.106383,
+              10.638298,
+              9.148936,
+              11.489362,
+              17.234043,
+              9.787234
+            ],
+            [
+              11.111111,
+              11.333333,
+              9.111111,
+              11.333333,
+              16.222222,
+              12.888889,
+              17.111111,
+              10.888889
+            ],
+            [
+              11.407767,
+              14.07767,
+              9.951456,
+              13.349515,
+              10.92233,
+              16.019417,
+              14.07767,
+              10.194175
+            ],
+            [
+              11.061947,
+              13.495575,
+              11.283186,
+              11.504425,
+              9.734513,
+              13.053097,
+              17.256637,
+              12.610619
+            ],
+            [
+              18.376068,
+              12.393162,
+              13.034188,
+              9.82906,
+              11.111111,
+              8.119658,
+              13.675214,
+              13.461538
+            ],
+            [
+              21.314741,
+              10.358566,
+              14.940239,
+              13.74502,
+              4.183267,
+              10.557769,
+              11.155378,
+              13.74502
+            ]
+          ],
+          "share_pct_of_slots": [
+            15.323166,
+            11.728395,
+            12.345679,
+            11.728395,
+            10.094408,
+            11.909949,
+            15.03268,
+            11.837328
+          ],
+          "token_coverage_pct": [
+            30.646333,
+            23.45679,
+            24.691358,
+            23.45679,
+            20.188816,
+            23.819898,
+            30.065359,
+            23.674655
+          ],
+          "uniform_slot_share_pct": 12.5,
+          "unused_experts": []
+        }
+      },
+      "measured": {
+        "1": {
+          "counts": [
+            282,
+            448,
+            356,
+            388,
+            354,
+            306,
+            325,
+            295
+          ],
+          "entropy_sum_nats": 2728.766235,
+          "prob_sum": [
+            151.661745,
+            173.582596,
+            171.106068,
+            175.099802,
+            180.786371,
+            173.870047,
+            179.808439,
+            171.084923
+          ],
+          "section_counts": [
+            [
+              52,
+              70,
+              64,
+              74,
+              57,
+              57,
+              58,
+              38
+            ],
+            [
+              42,
+              96,
+              73,
+              45,
+              42,
+              66,
+              37,
+              49
+            ],
+            [
+              54,
+              65,
+              55,
+              45,
+              58,
+              39,
+              46,
+              50
+            ],
+            [
+              42,
+              73,
+              53,
+              64,
+              68,
+              35,
+              55,
+              62
+            ],
+            [
+              55,
+              71,
+              55,
+              70,
+              74,
+              43,
+              56,
+              44
+            ],
+            [
+              37,
+              73,
+              56,
+              90,
+              55,
+              66,
+              73,
+              52
+            ]
+          ],
+          "section_tokens": [
+            235,
+            225,
+            206,
+            226,
+            234,
+            251
+          ],
+          "slots": 2754,
+          "tokens": 1377,
+          "weight_sum": [
+            140.663609,
+            231.889874,
+            184.206306,
+            186.492899,
+            185.485103,
+            158.366928,
+            153.692067,
+            136.20321
+          ]
+        },
+        "2": {
+          "counts": [
+            370,
+            322,
+            389,
+            320,
+            381,
+            294,
+            304,
+            374
+          ],
+          "entropy_sum_nats": 2786.710785,
+          "prob_sum": [
+            180.745121,
+            164.063532,
+            163.368757,
+            183.927711,
+            178.606625,
+            168.269306,
+            158.708302,
+            179.310631
+          ],
+          "section_counts": [
+            [
+              58,
+              59,
+              78,
+              58,
+              54,
+              61,
+              59,
+              43
+            ],
+            [
+              52,
+              58,
+              39,
+              55,
+              57,
+              57,
+              61,
+              71
+            ],
+            [
+              76,
+              51,
+              45,
+              44,
+              53,
+              42,
+              46,
+              55
+            ],
+            [
+              59,
+              59,
+              59,
+              64,
+              75,
+              46,
+              35,
+              55
+            ],
+            [
+              52,
+              50,
+              84,
+              46,
+              80,
+              35,
+              51,
+              70
+            ],
+            [
+              73,
+              45,
+              84,
+              53,
+              62,
+              53,
+              52,
+              80
+            ]
+          ],
+          "section_tokens": [
+            235,
+            225,
+            206,
+            226,
+            234,
+            251
+          ],
+          "slots": 2754,
+          "tokens": 1377,
+          "weight_sum": [
+            194.027732,
+            158.53935,
+            185.625633,
+            163.017819,
+            194.875201,
+            146.4108,
+            146.118105,
+            188.385362
+          ]
+        },
+        "3": {
+          "counts": [
+            348,
+            362,
+            393,
+            392,
+            349,
+            274,
+            314,
+            322
+          ],
+          "entropy_sum_nats": 2783.713135,
+          "prob_sum": [
+            168.703743,
+            176.763153,
+            185.750406,
+            179.618261,
+            166.983173,
+            163.290213,
+            166.424438,
+            169.4666
+          ],
+          "section_counts": [
+            [
+              69,
+              57,
+              69,
+              82,
+              48,
+              53,
+              46,
+              46
+            ],
+            [
+              57,
+              61,
+              60,
+              60,
+              49,
+              69,
+              53,
+              41
+            ],
+            [
+              50,
+              48,
+              64,
+              55,
+              55,
+              54,
+              35,
+              51
+            ],
+            [
+              59,
+              64,
+              44,
+              71,
+              64,
+              33,
+              69,
+              48
+            ],
+            [
+              54,
+              70,
+              64,
+              64,
+              70,
+              32,
+              54,
+              60
+            ],
+            [
+              59,
+              62,
+              92,
+              60,
+              63,
+              33,
+              57,
+              76
+            ]
+          ],
+          "section_tokens": [
+            235,
+            225,
+            206,
+            226,
+            234,
+            251
+          ],
+          "slots": 2754,
+          "tokens": 1377,
+          "weight_sum": [
+            179.289465,
+            170.746054,
+            200.180888,
+            197.91796,
+            164.290734,
+            127.648837,
+            166.777392,
+            170.148673
+          ]
+        },
+        "4": {
+          "counts": [
+            335,
+            348,
+            374,
+            404,
+            419,
+            301,
+            321,
+            252
+          ],
+          "entropy_sum_nats": 2775.148895,
+          "prob_sum": [
+            170.371944,
+            177.624191,
+            173.652498,
+            178.256985,
+            176.93502,
+            169.585114,
+            169.665112,
+            160.90913
+          ],
+          "section_counts": [
+            [
+              51,
+              73,
+              50,
+              79,
+              66,
+              58,
+              50,
+              43
+            ],
+            [
+              70,
+              67,
+              62,
+              53,
+              68,
+              32,
+              46,
+              52
+            ],
+            [
+              42,
+              41,
+              67,
+              46,
+              77,
+              45,
+              51,
+              43
+            ],
+            [
+              64,
+              92,
+              56,
+              56,
+              69,
+              43,
+              37,
+              35
+            ],
+            [
+              66,
+              26,
+              72,
+              80,
+              62,
+              59,
+              65,
+              38
+            ],
+            [
+              42,
+              49,
+              67,
+              90,
+              77,
+              64,
+              72,
+              41
+            ]
+          ],
+          "section_tokens": [
+            235,
+            225,
+            206,
+            226,
+            234,
+            251
+          ],
+          "slots": 2754,
+          "tokens": 1377,
+          "weight_sum": [
+            164.726886,
+            164.387732,
+            186.52405,
+            214.088378,
+            210.715798,
+            154.463844,
+            159.327465,
+            122.76585
+          ]
+        },
+        "5": {
+          "counts": [
+            422,
+            323,
+            340,
+            323,
+            278,
+            328,
+            414,
+            326
+          ],
+          "entropy_sum_nats": 2825.358215,
+          "prob_sum": [
+            181.936209,
+            157.952068,
+            174.150541,
+            171.007574,
+            167.714649,
+            172.238218,
+            175.215797,
+            176.784939
+          ],
+          "section_counts": [
+            [
+              82,
+              43,
+              71,
+              50,
+              43,
+              54,
+              81,
+              46
+            ],
+            [
+              50,
+              51,
+              41,
+              51,
+              73,
+              58,
+              77,
+              49
+            ],
+            [
+              47,
+              58,
+              41,
+              55,
+              45,
+              66,
+              58,
+              42
+            ],
+            [
+              50,
+              61,
+              51,
+              52,
+              44,
+              59,
+              78,
+              57
+            ],
+            [
+              86,
+              58,
+              61,
+              46,
+              52,
+              38,
+              64,
+              63
+            ],
+            [
+              107,
+              52,
+              75,
+              69,
+              21,
+              53,
+              56,
+              69
+            ]
+          ],
+          "section_tokens": [
+            235,
+            225,
+            206,
+            226,
+            234,
+            251
+          ],
+          "slots": 2754,
+          "tokens": 1377,
+          "weight_sum": [
+            214.374407,
+            163.196641,
+            161.467941,
+            159.280501,
+            136.394779,
+            162.378781,
+            209.13998,
+            170.766972
+          ]
+        }
+      }
+    }
+  },
+  "torch": "2.14.1"
+}

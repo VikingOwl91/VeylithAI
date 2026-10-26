@@ -58,7 +58,7 @@ Two files, each with one job:
 Tests run on CPU only:
 
 ```bash
-python -m pytest veylith/v2/tests -q
+python -m pytest veylith/v2/tests veylith/tests -q
 ```
 
 ## Loss components and evaluation

@@ -44,6 +44,13 @@ Do not compare rows directly: v1 reports the plain next-token CE, v2
 reports a composite that includes the MTP term, and tokenizer, corpus and
 evaluation procedure also differ.
 
+A controlled evaluation on six shared validation sections (identical text,
+main next-token CE only) gives 1.913 bits/char for v1 char, 1.922 for v1
+BPE, 2.060 for v2 BPE and 3.025 for the 120-step diagnostic checkpoint. On
+the same BPE tokens v2 is 0.213 nats/token worse than v1 (paired over
+sections, SE 0.038). Protocol, router analysis and generation examples:
+`evaluation/REPORT.md`; raw numbers in `evaluation/results.json`.
+
 From the original training run (log not stored in this repo), v2's
 validation loss bottomed around iter 500 (6.0358) and the final evaluation
 at iter 3000 was 8.06 while the training loss was 1.39: 25.6M params on
@@ -64,3 +71,10 @@ cd v2 && python train.py --tokenizer bpe --bpe_vocab_size 1000
 
 Each version is self-contained: run from inside its folder, paths are
 relative, the dataset downloads itself on first run.
+
+Evaluate every checkpoint on the shared CPU protocol (no GPU, writes
+`evaluation/results.json`):
+
+```bash
+python3 veylith/evaluate.py
+```
