@@ -228,3 +228,11 @@ def test_near_duplicate_pairs_are_clean_after_dedup(tmp_path):
     result = prepare.find_near_duplicate_pairs(root)
     assert result["pairs"] == []
     assert result["checked"] == sum(manifest["counts"]["documents"].values())
+
+
+def test_prepare_stops_at_the_char_limit(tmp_path):
+    source = support.FakeSource(support.make_docs(30))
+    root, manifest = support.prepare_root(tmp_path, source, docs=30,
+                                          name="chars", limit_chars=6000)
+    assert manifest["counts"]["accepted"] < 30
+    assert sum(manifest["counts"]["chars"].values()) >= 6000

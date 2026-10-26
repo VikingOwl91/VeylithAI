@@ -1,0 +1,95 @@
+{
+  "digest": "7a6e7991dd83244ced4c9c13627028e1824f00b0f58735cc665323ff111bdcf0",
+  "sources": {
+    "cosmopedia-v2": {
+      "chars_per_token_heldout": 4.3743,
+      "fertility_tokens_per_word": 1.5668,
+      "heldout": {
+        "chars": 2627779,
+        "docs": 710,
+        "tokens": 600730,
+        "words": 383418
+      },
+      "quota": {
+        "candidates_train": 18822,
+        "documents_available": 18822,
+        "est_chars_per_token": 4.4489,
+        "estimated_train_tokens": 15000824.2,
+        "shortfall_chars": 0,
+        "train_chars_budget": 72989765,
+        "train_chars_selected": 66737167,
+        "train_documents_selected": 17849,
+        "train_tokens_target": 15000000
+      },
+      "train_tokens": 15258960
+    },
+    "fineweb-edu": {
+      "chars_per_token_heldout": 3.9458,
+      "fertility_tokens_per_word": 1.5533,
+      "heldout": {
+        "chars": 10375963,
+        "docs": 2692,
+        "tokens": 2629632,
+        "words": 1692980
+      },
+      "quota": {
+        "candidates_train": 65454,
+        "documents_available": 65454,
+        "est_chars_per_token": 3.9723,
+        "estimated_train_tokens": 60000237.6,
+        "shortfall_chars": 0,
+        "train_chars_budget": 260682187,
+        "train_chars_selected": 238338944,
+        "train_documents_selected": 62341,
+        "train_tokens_target": 60000000
+      },
+      "train_tokens": 60356799
+    },
+    "wikipedia": {
+      "chars_per_token_heldout": 3.6082,
+      "fertility_tokens_per_word": 1.7487,
+      "heldout": {
+        "chars": 3545391,
+        "docs": 319,
+        "tokens": 982586,
+        "words": 561905
+      },
+      "quota": {
+        "candidates_train": 7183,
+        "documents_available": 7183,
+        "est_chars_per_token": 3.63,
+        "estimated_train_tokens": 20002682.6,
+        "shortfall_chars": 0,
+        "train_chars_budget": 79406250,
+        "train_chars_selected": 72609738,
+        "train_documents_selected": 6873,
+        "train_tokens_target": 20000000
+      },
+      "train_tokens": 20335474
+    }
+  },
+  "tokenizer": {
+    "model": "tokenizer/bpe8192.model",
+    "sha256": "411227a8e5289d6f4b450059b744ed278532a4624d3895f1a4979600c49ae034",
+    "train_text": "tokenizer/bpe8192.train.txt",
+    "train_text_sha256": "1f2ffe5bd7f199411a8495ea2439018b3cc11d484d27f3e3cfecbb922590377e",
+    "vocab": "tokenizer/bpe8192.vocab",
+    "vocab_sha256": "d5c6e6cb204450aa85668b918b90da380e73d5c308c0003ce69ec553e62a95b7"
+  },
+  "total_train_tokens": 95951233,
+  "totals": {
+    "chars": {
+      "test": 8221628,
+      "train": 377685849,
+      "validation": 8327505
+    },
+    "documents": {
+      "test": 1847,
+      "train": 87063,
+      "validation": 1874
+    },
+    "test_tokens": 2094292,
+    "train_tokens": 95951233,
+    "validation_tokens": 2122377
+  }
+}

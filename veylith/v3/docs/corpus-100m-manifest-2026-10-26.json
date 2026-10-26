@@ -1,0 +1,3038 @@
+{
+  "counts": {
+    "accepted": 95188,
+    "available": 95180,
+    "by_source": {
+      "cosmopedia-v2": {
+        "chars": {
+          "test": 1276422,
+          "train": 66737167,
+          "validation": 1351357
+        },
+        "documents": {
+          "test": 343,
+          "train": 17849,
+          "validation": 367
+        },
+        "tokens": {
+          "test": 290301,
+          "train": 15258960,
+          "validation": 311139
+        }
+      },
+      "fineweb-edu": {
+        "chars": {
+          "test": 5246479,
+          "train": 238338944,
+          "validation": 5129484
+        },
+        "documents": {
+          "test": 1352,
+          "train": 62341,
+          "validation": 1340
+        },
+        "tokens": {
+          "test": 1333184,
+          "train": 60356799,
+          "validation": 1299140
+        }
+      },
+      "wikipedia": {
+        "chars": {
+          "test": 1698727,
+          "train": 72609738,
+          "validation": 1846664
+        },
+        "documents": {
+          "test": 152,
+          "train": 6873,
+          "validation": 167
+        },
+        "tokens": {
+          "test": 470807,
+          "train": 20335474,
+          "validation": 512098
+        }
+      }
+    },
+    "chars": {
+      "test": 8221628,
+      "train": 377685849,
+      "validation": 8327505
+    },
+    "documents": {
+      "test": 1847,
+      "train": 87063,
+      "validation": 1874
+    },
+    "exact_duplicates": 0,
+    "near_duplicates": 0,
+    "rejected": {
+      "letter_ratio": 3,
+      "replacement_chars": 1,
+      "too_long": 1990,
+      "too_short": 96
+    },
+    "rows_seen": 97280,
+    "selected": 90784,
+    "within_source_exact_duplicates": 5,
+    "within_source_near_duplicates": 3
+  },
+  "dedup": {
+    "canonical": "min doc_key of the cluster",
+    "exact": "sha256(normalized_text)",
+    "horizon": "all documents staged in this run",
+    "max_bucket": 4096,
+    "near": "simhash64 over word 5-grams, 4 bands x 16 bits, hamming <= 3",
+    "order": "global exact then global near, then split assignment, then per-source quota fill on train"
+  },
+  "digest": "7a6e7991dd83244ced4c9c13627028e1824f00b0f58735cc665323ff111bdcf0",
+  "documents": {
+    "test": [
+      {
+        "bytes": 2783710,
+        "chars": 2566135,
+        "docs": 500,
+        "path": "documents/test/test-00000.jsonl",
+        "sha256": "ac9b64913657da09208afc82f430ee5d9e52550badd4711d687dcfdc194d3749"
+      },
+      {
+        "bytes": 2445975,
+        "chars": 2234320,
+        "docs": 500,
+        "path": "documents/test/test-00001.jsonl",
+        "sha256": "709791bdb0616101a77c48692d2cca5f419905b6c9bb724caba8ec8a8aa0ba70"
+      },
+      {
+        "bytes": 2130043,
+        "chars": 1916699,
+        "docs": 500,
+        "path": "documents/test/test-00002.jsonl",
+        "sha256": "d507383fafe4b86c9d4570b66dfdeacbe6995b3151f9055fa228edb982136b06"
+      },
+      {
+        "bytes": 1651730,
+        "chars": 1504474,
+        "docs": 347,
+        "path": "documents/test/test-00003.jsonl",
+        "sha256": "c329e2725b2a5e73bb4e26affc491a1fe7c690f8b92b1fd1b6e7304be6c5f1b6"
+      }
+    ],
+    "train": [
+      {
+        "bytes": 1964680,
+        "chars": 1773042,
+        "docs": 500,
+        "path": "documents/train/train-00000.jsonl",
+        "sha256": "f63eec4c60d147761d59dd8095a3a761f80474af07277d51fa4ac8514c10fa1f"
+      },
+      {
+        "bytes": 2272722,
+        "chars": 2043023,
+        "docs": 500,
+        "path": "documents/train/train-00001.jsonl",
+        "sha256": "3b1893b940b23e0c98e280d9598ea8b4ce5d0606a130a483397435ca71e4c4d5"
+      },
+      {
+        "bytes": 2811073,
+        "chars": 2609975,
+        "docs": 500,
+        "path": "documents/train/train-00002.jsonl",
+        "sha256": "104864567e5a7e5235ab7a868d9a99dbd8586fb6c40c0a2ecb50130709a15931"
+      },
+      {
+        "bytes": 2143641,
+        "chars": 1931508,
+        "docs": 500,
+        "path": "documents/train/train-00003.jsonl",
+        "sha256": "46228c9b0d11e16bc3bceaab13b159f7c6e01083c08e393f84016fad45319caa"
+      },
+      {
+        "bytes": 2038363,
+        "chars": 1811316,
+        "docs": 500,
+        "path": "documents/train/train-00004.jsonl",
+        "sha256": "1477c1afa2f61a2b26a4191c77e3be8abd8ac6424dfc3695c7d71a6bcaf6f60d"
+      },
+      {
+        "bytes": 2892285,
+        "chars": 2702562,
+        "docs": 500,
+        "path": "documents/train/train-00005.jsonl",
+        "sha256": "c30d00a698f1610f762cb769d22fa8be126b16e219ef0e2143cb20504a9da39a"
+      },
+      {
+        "bytes": 2118218,
+        "chars": 1889189,
+        "docs": 500,
+        "path": "documents/train/train-00006.jsonl",
+        "sha256": "f10164d41892ee26395762dd7466d7aee0b8989db528877078bbb630f151001a"
+      },
+      {
+        "bytes": 2715881,
+        "chars": 2495636,
+        "docs": 500,
+        "path": "documents/train/train-00007.jsonl",
+        "sha256": "b855862a978c04a45e22261ee0a220a5f568a1ccb9ea10ba82cc4a7471f7e852"
+      },
+      {
+        "bytes": 2000752,
+        "chars": 1811568,
+        "docs": 500,
+        "path": "documents/train/train-00008.jsonl",
+        "sha256": "86c7d60e800c577f8095c68c5abc4fc5539ed89df9bc2cb0217fbe334d64738c"
+      },
+      {
+        "bytes": 2039285,
+        "chars": 1811217,
+        "docs": 500,
+        "path": "documents/train/train-00009.jsonl",
+        "sha256": "51fb00f6497eab6dd2b915ed87800a7ee07fad8644a5d329edb0d51f4afe4298"
+      },
+      {
+        "bytes": 2574218,
+        "chars": 2375610,
+        "docs": 500,
+        "path": "documents/train/train-00010.jsonl",
+        "sha256": "9b70ed6ecde625f905f3341a2d8009fbb452ae38a01e63656c1edc86d01722cf"
+      },
+      {
+        "bytes": 2177042,
+        "chars": 1963299,
+        "docs": 500,
+        "path": "documents/train/train-00011.jsonl",
+        "sha256": "4541b7bdb15a81564594696f0f4bd5d4821c29d4c2f4bae501fe7a680b46c817"
+      },
+      {
+        "bytes": 2016026,
+        "chars": 1788671,
+        "docs": 500,
+        "path": "documents/train/train-00012.jsonl",
+        "sha256": "ebd28626da44634090891a32f940ab95969cc59db7f0653de7fdd797cb0fb187"
+      },
+      {
+        "bytes": 2505573,
+        "chars": 2325871,
+        "docs": 500,
+        "path": "documents/train/train-00013.jsonl",
+        "sha256": "e62c6a4e34d9b1eb8e53ff942bfdbb8de232f6c0838c6318eb38cc35f4f3e312"
+      },
+      {
+        "bytes": 1956909,
+        "chars": 1730703,
+        "docs": 500,
+        "path": "documents/train/train-00014.jsonl",
+        "sha256": "465e23615fe931cb2679ba8e8c3f5b9648de893864b81c6a93346914bbe61b1c"
+      },
+      {
+        "bytes": 3271735,
+        "chars": 3047164,
+        "docs": 500,
+        "path": "documents/train/train-00015.jsonl",
+        "sha256": "b8c030f834cf46bccc796a0f67c7625f0a7a9844ff85a2f001c26087acd91a2f"
+      },
+      {
+        "bytes": 2093470,
+        "chars": 1901853,
+        "docs": 500,
+        "path": "documents/train/train-00016.jsonl",
+        "sha256": "a1c839c8111d446679574d886df803b84759ee2edfbefda9d914068157cbcf43"
+      },
+      {
+        "bytes": 2091385,
+        "chars": 1864797,
+        "docs": 500,
+        "path": "documents/train/train-00017.jsonl",
+        "sha256": "69dc3a4494c1a33acdd4750b49724a6d437f3782c3dcf1b918e28e04ed8770b7"
+      },
+      {
+        "bytes": 2955802,
+        "chars": 2751046,
+        "docs": 500,
+        "path": "documents/train/train-00018.jsonl",
+        "sha256": "3a54927150936d92abdf34fcba358d5bab0285b4482791f03d06a4b296a24423"
+      },
+      {
+        "bytes": 2068260,
+        "chars": 1863079,
+        "docs": 500,
+        "path": "documents/train/train-00019.jsonl",
+        "sha256": "62ffede7bbdbe650dbf39dd916db85a8c506a2a90f219f5008801ce506bb8598"
+      },
+      {
+        "bytes": 2243332,
+        "chars": 2014430,
+        "docs": 500,
+        "path": "documents/train/train-00020.jsonl",
+        "sha256": "d0794462855689d00499dcc72659dcca5cf6b4e15176302ba854481f45c04453"
+      },
+      {
+        "bytes": 3001572,
+        "chars": 2815167,
+        "docs": 500,
+        "path": "documents/train/train-00021.jsonl",
+        "sha256": "6fa39ad5a4f7b2c1b8aedfbc32ea70b703babece467e20e478b6bf1f3d7091ff"
+      },
+      {
+        "bytes": 2040337,
+        "chars": 1816064,
+        "docs": 500,
+        "path": "documents/train/train-00022.jsonl",
+        "sha256": "2a94367e34bf3735e38717d5c74c546240cc128d5c3b96dd1a32ab6ff8884aa9"
+      },
+      {
+        "bytes": 2704828,
+        "chars": 2471338,
+        "docs": 500,
+        "path": "documents/train/train-00023.jsonl",
+        "sha256": "c2445460781bed61aa3f6ded157cd8ca8b858ee7c3474df8dba923127ab19251"
+      },
+      {
+        "bytes": 2325025,
+        "chars": 2144189,
+        "docs": 500,
+        "path": "documents/train/train-00024.jsonl",
+        "sha256": "22df1c8962a366e54dd43857a125f30b88ca8cd68f72bfa067f09609fbd77800"
+      },
+      {
+        "bytes": 2249502,
+        "chars": 2021009,
+        "docs": 500,
+        "path": "documents/train/train-00025.jsonl",
+        "sha256": "02ef761b8e380d971a91e23d36d737e5fadb5e991328feddd7c27a99ff83e7cf"
+      },
+      {
+        "bytes": 2954328,
+        "chars": 2742132,
+        "docs": 500,
+        "path": "documents/train/train-00026.jsonl",
+        "sha256": "0e1dcdd3236209aa809ec7716988aec6266c92181601e0738ce1b1779c842ecf"
+      },
+      {
+        "bytes": 1994342,
+        "chars": 1792517,
+        "docs": 500,
+        "path": "documents/train/train-00027.jsonl",
+        "sha256": "75a1c1e70b6ca3c9f1ca0ac950811f50775a7bc86f39fa1e8816e81b6753b497"
+      },
+      {
+        "bytes": 2092735,
+        "chars": 1862878,
+        "docs": 500,
+        "path": "documents/train/train-00028.jsonl",
+        "sha256": "21a695949941385390d4af3441ac8be39c38f9def43c1d5a4ec1672b79efe2ad"
+      },
+      {
+        "bytes": 2804079,
+        "chars": 2610815,
+        "docs": 500,
+        "path": "documents/train/train-00029.jsonl",
+        "sha256": "30faa5ec831b0be89b2b0c6560eaff59de3e8b169d110a58d9a64d1373b90645"
+      },
+      {
+        "bytes": 2109852,
+        "chars": 1889358,
+        "docs": 500,
+        "path": "documents/train/train-00030.jsonl",
+        "sha256": "a926b795c5ab917568076876973fad7a1b549c8c95051a9e50fb612f918acd8c"
+      },
+      {
+        "bytes": 2122201,
+        "chars": 1892893,
+        "docs": 500,
+        "path": "documents/train/train-00031.jsonl",
+        "sha256": "9dec275f2f391b5cedab702a2b3bfd23f805f06096460e36b2e1e1802303022b"
+      },
+      {
+        "bytes": 2842068,
+        "chars": 2658250,
+        "docs": 500,
+        "path": "documents/train/train-00032.jsonl",
+        "sha256": "a715960007ea27452311a1d761aa5a7a8beb7aedcb91e3abc967334258c3e494"
+      },
+      {
+        "bytes": 2030637,
+        "chars": 1803324,
+        "docs": 500,
+        "path": "documents/train/train-00033.jsonl",
+        "sha256": "cd9a83fb46062bfd5143ed7564babf3148d52d02b3ab88132f875920209579d2"
+      },
+      {
+        "bytes": 2877458,
+        "chars": 2648854,
+        "docs": 500,
+        "path": "documents/train/train-00034.jsonl",
+        "sha256": "a3edb2f02241c97e0574e7f1585dfb21e2ecea6b755d892a83b22d83446aa0b1"
+      },
+      {
+        "bytes": 2088313,
+        "chars": 1907578,
+        "docs": 500,
+        "path": "documents/train/train-00035.jsonl",
+        "sha256": "e6cf4ffcddfc5889fca50d10e23b351490bd2873642bb34a9bd07d2c183f1d63"
+      },
+      {
+        "bytes": 2081312,
+        "chars": 1853594,
+        "docs": 500,
+        "path": "documents/train/train-00036.jsonl",
+        "sha256": "7c93c832520b1ba37b941490e0f5b078ab7edcafd3a4d3fa4a74001cb6ebace0"
+      },
+      {
+        "bytes": 2967753,
+        "chars": 2751688,
+        "docs": 500,
+        "path": "documents/train/train-00037.jsonl",
+        "sha256": "a3a5d503170d263d40cc4a8d1b1fe6fb130ac4075a908454ae6f29ec2f34823a"
+      },
+      {
+        "bytes": 1955387,
+        "chars": 1764346,
+        "docs": 500,
+        "path": "documents/train/train-00038.jsonl",
+        "sha256": "e4aa8db01e6576a63f7a5f2195934e5c4d4e88d8fd33a3b657654c27db438826"
+      },
+      {
+        "bytes": 2179924,
+        "chars": 1952225,
+        "docs": 500,
+        "path": "documents/train/train-00039.jsonl",
+        "sha256": "2b4969c323593af249fcd1fc13b35a743105051a10d2aede7bca039b0b820323"
+      },
+      {
+        "bytes": 3301415,
+        "chars": 3090753,
+        "docs": 500,
+        "path": "documents/train/train-00040.jsonl",
+        "sha256": "a736805a11e4bea37029445fc4a2992a6bab1b2dff68d22e0e186c6763c81824"
+      },
+      {
+        "bytes": 2117386,
+        "chars": 1906198,
+        "docs": 500,
+        "path": "documents/train/train-00041.jsonl",
+        "sha256": "62553ec2d28ae31d43514a1f3ae5934074474bc86a3c77a6cf329c3f64370372"
+      },
+      {
+        "bytes": 2120405,
+        "chars": 1892087,
+        "docs": 500,
+        "path": "documents/train/train-00042.jsonl",
+        "sha256": "66752231e66e46f1a73d21a611b74943f861a2013bfe0f2abac5cf9cbb4fc665"
+      },
+      {
+        "bytes": 2955879,
+        "chars": 2773864,
+        "docs": 500,
+        "path": "documents/train/train-00043.jsonl",
+        "sha256": "196a811f76fcbd6ffd8f7c32994f9e333a3e7bc18ed0cc79cc96988bb6bcb257"
+      },
+      {
+        "bytes": 2158837,
+        "chars": 1932446,
+        "docs": 500,
+        "path": "documents/train/train-00044.jsonl",
+        "sha256": "8b0bac761e019e8acde85014a2c5157915289ea418355d1d9625d9b75f7028f2"
+      },
+      {
+        "bytes": 2685275,
+        "chars": 2455868,
+        "docs": 500,
+        "path": "documents/train/train-00045.jsonl",
+        "sha256": "a200c825c5d652c9feab4340ca0859bc285927c1f31454473de2e2bf2685453b"
+      },
+      {
+        "bytes": 2230813,
+        "chars": 2051332,
+        "docs": 500,
+        "path": "documents/train/train-00046.jsonl",
+        "sha256": "7f5328b0ba8241b6f700b5c22a01a1e4d2c72c6d83dc53df8939e796eef9a772"
+      },
+      {
+        "bytes": 2196832,
+        "chars": 1966323,
+        "docs": 500,
+        "path": "documents/train/train-00047.jsonl",
+        "sha256": "b5df6ee8eaf69bdec9364f3677c620b6e88b4e313bc27aff4c58f8a42da60aa9"
+      },
+      {
+        "bytes": 2997318,
+        "chars": 2783205,
+        "docs": 500,
+        "path": "documents/train/train-00048.jsonl",
+        "sha256": "37e05d3978be9ba3e1f1d113650890f0ebad4eff1918f01cac92b971b8e64e62"
+      },
+      {
+        "bytes": 2097051,
+        "chars": 1895774,
+        "docs": 500,
+        "path": "documents/train/train-00049.jsonl",
+        "sha256": "f58e700f16481987238e93d2787b1cd7d6aab6225cc7d9a29040c943a4fe3815"
+      },
+      {
+        "bytes": 2212413,
+        "chars": 1983377,
+        "docs": 500,
+        "path": "documents/train/train-00050.jsonl",
+        "sha256": "00a223a77abe1f93f856cbb37b1b165b3767c449f7b9226e5a89256205f7f951"
+      },
+      {
+        "bytes": 2796253,
+        "chars": 2601014,
+        "docs": 500,
+        "path": "documents/train/train-00051.jsonl",
+        "sha256": "06577abb41742ccbcd13e695a467e14477d04c7d7031cd6216dc5156cbb60a39"
+      },
+      {
+        "bytes": 2124334,
+        "chars": 1908674,
+        "docs": 500,
+        "path": "documents/train/train-00052.jsonl",
+        "sha256": "46c82869f671d895c8767100e4a23cc274675b7257ddc690dad3b982bc2c3fc6"
+      },
+      {
+        "bytes": 2031598,
+        "chars": 1805250,
+        "docs": 500,
+        "path": "documents/train/train-00053.jsonl",
+        "sha256": "d98713eb27c80177e9b4b9b26416baa689cd8e934eca32a41e083a767e6abf78"
+      },
+      {
+        "bytes": 3032709,
+        "chars": 2844844,
+        "docs": 500,
+        "path": "documents/train/train-00054.jsonl",
+        "sha256": "542e18c000499b40e63483d980c907081c0f54722308a41296146d1c38e125a5"
+      },
+      {
+        "bytes": 2079755,
+        "chars": 1853166,
+        "docs": 500,
+        "path": "documents/train/train-00055.jsonl",
+        "sha256": "da6153cdf684bb3b821f1a9ccc41aaddef08a02a3b1936358ebbffa712f1ff3a"
+      },
+      {
+        "bytes": 2839087,
+        "chars": 2616290,
+        "docs": 500,
+        "path": "documents/train/train-00056.jsonl",
+        "sha256": "1ebf30f09af017639b97d601d94078c3af8f5951ed9fee8ce28f8d9fee7da073"
+      },
+      {
+        "bytes": 2087762,
+        "chars": 1897721,
+        "docs": 500,
+        "path": "documents/train/train-00057.jsonl",
+        "sha256": "4fe6ce28e3745d1df96e0a5eb86874c2a7a3e08d994b9e400750e3144d0699ed"
+      },
+      {
+        "bytes": 2091298,
+        "chars": 1863658,
+        "docs": 500,
+        "path": "documents/train/train-00058.jsonl",
+        "sha256": "36484a503b95d660e774306987821c66b624441e630e64a0c12b5a7cbb4d39a9"
+      },
+      {
+        "bytes": 3073193,
+        "chars": 2876525,
+        "docs": 500,
+        "path": "documents/train/train-00059.jsonl",
+        "sha256": "3614d369cf79ae8dbdc496c7d47c605c3caea3440633d88a993ba0e0d5ed089f"
+      },
+      {
+        "bytes": 2151119,
+        "chars": 1934209,
+        "docs": 500,
+        "path": "documents/train/train-00060.jsonl",
+        "sha256": "a8120a97bb49b8575e751f07e038007623f3e5c261ff7ea592171aa171f423d3"
+      },
+      {
+        "bytes": 2132973,
+        "chars": 1904826,
+        "docs": 500,
+        "path": "documents/train/train-00061.jsonl",
+        "sha256": "a782fe3db699340b71037efb0b4e0fe2ffdaeb9fd05e739c717b07627a694aca"
+      },
+      {
+        "bytes": 3083139,
+        "chars": 2898597,
+        "docs": 500,
+        "path": "documents/train/train-00062.jsonl",
+        "sha256": "3335ee196d84024cd1536cdea027f0793f4764bc4fc6039b81f9ad59a6f70372"
+      },
+      {
+        "bytes": 2184903,
+        "chars": 1957163,
+        "docs": 500,
+        "path": "documents/train/train-00063.jsonl",
+        "sha256": "548268e6bccc373e79a9bf38fc48ebf11399bf48bd6a434aef51223d2fecf946"
+      },
+      {
+        "bytes": 2574962,
+        "chars": 2350646,
+        "docs": 500,
+        "path": "documents/train/train-00064.jsonl",
+        "sha256": "d53477b115728be8c0c8d0a142542a8a7c487723d75422ba9f6aa814ac31d0f5"
+      },
+      {
+        "bytes": 2165783,
+        "chars": 1981778,
+        "docs": 500,
+        "path": "documents/train/train-00065.jsonl",
+        "sha256": "8abe9337ab5469eedf3ea9c63e4c27a6b6f2658f6c53c39947dbe7ab402abe6b"
+      },
+      {
+        "bytes": 2104642,
+        "chars": 1877121,
+        "docs": 500,
+        "path": "documents/train/train-00066.jsonl",
+        "sha256": "06f97bccab939220e54ba13c975843dde89953231049d795f92a33c0639694ef"
+      },
+      {
+        "bytes": 2570802,
+        "chars": 2367416,
+        "docs": 500,
+        "path": "documents/train/train-00067.jsonl",
+        "sha256": "43ea67fbecb478fc83e81fba35c65ddd4e42b166a79bcd08ccf60cb557dcaf3b"
+      },
+      {
+        "bytes": 1999391,
+        "chars": 1796505,
+        "docs": 500,
+        "path": "documents/train/train-00068.jsonl",
+        "sha256": "ec546fab40d2791e810398bf4f541e8cd29b75c609debde5282462dc043c7fbd"
+      },
+      {
+        "bytes": 2183711,
+        "chars": 1954551,
+        "docs": 500,
+        "path": "documents/train/train-00069.jsonl",
+        "sha256": "be97860085d8a71de5815a17fb8b34cc7050ed7252de704a8f66add814826433"
+      },
+      {
+        "bytes": 3024381,
+        "chars": 2835856,
+        "docs": 500,
+        "path": "documents/train/train-00070.jsonl",
+        "sha256": "99f16ae2749b6b8006aa24b853fe4419c4d9db81558f65454c89dacaeaada9df"
+      },
+      {
+        "bytes": 2068609,
+        "chars": 1840336,
+        "docs": 500,
+        "path": "documents/train/train-00071.jsonl",
+        "sha256": "2e77945a732a239349f7ffe02ec91161911d787ba19441b1152ef293c20bc578"
+      },
+      {
+        "bytes": 2230434,
+        "chars": 2002600,
+        "docs": 500,
+        "path": "documents/train/train-00072.jsonl",
+        "sha256": "8177586b723dbaed2c969d984ad1f3a37d537fc03f7c5ddc4e64ab6401086acb"
+      },
+      {
+        "bytes": 3004034,
+        "chars": 2824583,
+        "docs": 500,
+        "path": "documents/train/train-00073.jsonl",
+        "sha256": "c163d142cfd0feb3c858764ce023726e2133340fbb3bc82d67bb7f1c81b11a45"
+      },
+      {
+        "bytes": 2178062,
+        "chars": 1949721,
+        "docs": 500,
+        "path": "documents/train/train-00074.jsonl",
+        "sha256": "4a842be924042cb2160053febbc7cad75f333122ec8dfc8c0376a973c85c9479"
+      },
+      {
+        "bytes": 2938599,
+        "chars": 2713964,
+        "docs": 500,
+        "path": "documents/train/train-00075.jsonl",
+        "sha256": "79ea1dbc8c505411a37d153c00b111a386b7b4a71b28d176f250e9b4dcd8aa4c"
+      },
+      {
+        "bytes": 2031501,
+        "chars": 1843998,
+        "docs": 500,
+        "path": "documents/train/train-00076.jsonl",
+        "sha256": "6d1ccec7abcb668455d1d5c15dcabb146b901272f0688bfc1c9607d940bd3c66"
+      },
+      {
+        "bytes": 2232253,
+        "chars": 2000955,
+        "docs": 500,
+        "path": "documents/train/train-00077.jsonl",
+        "sha256": "3c2abbba1da2092251a3c7cefe448abcee941975f2ec5cda3e8d3a37fd90513c"
+      },
+      {
+        "bytes": 3041805,
+        "chars": 2827857,
+        "docs": 500,
+        "path": "documents/train/train-00078.jsonl",
+        "sha256": "5d68cb080197c4fe017fb2ff44f6b253deffb30ca41e48c065521f5060600944"
+      },
+      {
+        "bytes": 2028159,
+        "chars": 1831153,
+        "docs": 500,
+        "path": "documents/train/train-00079.jsonl",
+        "sha256": "c7246df2f38e4641a6efa925e230fd81408b07e36e2c8defce39d044229ce616"
+      },
+      {
+        "bytes": 2195446,
+        "chars": 1968650,
+        "docs": 500,
+        "path": "documents/train/train-00080.jsonl",
+        "sha256": "5455bbfa9ef7a6edaaaf9056534d7fd2f82e97f85d93e7faa15dd23ddb1da624"
+      },
+      {
+        "bytes": 2826542,
+        "chars": 2629646,
+        "docs": 500,
+        "path": "documents/train/train-00081.jsonl",
+        "sha256": "388357550749d9cf170a8bfc426371f10c97212e06f7a230f5da5ec092bb7080"
+      },
+      {
+        "bytes": 2219412,
+        "chars": 2002984,
+        "docs": 500,
+        "path": "documents/train/train-00082.jsonl",
+        "sha256": "79aa77f3d9d6cf4253b316fe1a97663a1b6b718be089602ec1fd777f8eabe936"
+      },
+      {
+        "bytes": 2100448,
+        "chars": 1872914,
+        "docs": 500,
+        "path": "documents/train/train-00083.jsonl",
+        "sha256": "9b5fdd85ab02c6fb517e0d6b31baa39e8eadb17629b9a6b90b4afc1c4e616cd8"
+      },
+      {
+        "bytes": 2946479,
+        "chars": 2762670,
+        "docs": 500,
+        "path": "documents/train/train-00084.jsonl",
+        "sha256": "ea6ff2a812eec0b3234c79163965d5e5b54a59da216ade5708c1be7dc3b8d737"
+      },
+      {
+        "bytes": 2114788,
+        "chars": 1887095,
+        "docs": 500,
+        "path": "documents/train/train-00085.jsonl",
+        "sha256": "89d3d6a18785354a968f2c34897582266f950d189ed99c885e92975149d340a7"
+      },
+      {
+        "bytes": 2686247,
+        "chars": 2472894,
+        "docs": 500,
+        "path": "documents/train/train-00086.jsonl",
+        "sha256": "df34615f8cdf2a89682625cba4bed1b97c6933811afbdf5a9259443e3f562677"
+      },
+      {
+        "bytes": 2012939,
+        "chars": 1817012,
+        "docs": 500,
+        "path": "documents/train/train-00087.jsonl",
+        "sha256": "8a0cff0c29d29c36dd023ed386eb7caedcb6e42cde3ae712a1675576432b9884"
+      },
+      {
+        "bytes": 2105727,
+        "chars": 1878265,
+        "docs": 500,
+        "path": "documents/train/train-00088.jsonl",
+        "sha256": "12df81082e3b6f709147a4ae42529b6e927a1f3818a796d1fa0d5fc7907c71dc"
+      },
+      {
+        "bytes": 2883343,
+        "chars": 2693551,
+        "docs": 500,
+        "path": "documents/train/train-00089.jsonl",
+        "sha256": "6d5d2911593c7e0295c14788590da25580a3ab267b97377b91e80dac7663d16c"
+      },
+      {
+        "bytes": 2032965,
+        "chars": 1816044,
+        "docs": 500,
+        "path": "documents/train/train-00090.jsonl",
+        "sha256": "c414d8b8855a6712fd77ee9d15c63321ccd5f8af643d3ca9240791e1ac889c4e"
+      },
+      {
+        "bytes": 1978463,
+        "chars": 1751731,
+        "docs": 500,
+        "path": "documents/train/train-00091.jsonl",
+        "sha256": "25c50f2f2a3c094500b9613e975f73ba1f943c64824966c5ebc804b05adc2e9d"
+      },
+      {
+        "bytes": 2775573,
+        "chars": 2596034,
+        "docs": 500,
+        "path": "documents/train/train-00092.jsonl",
+        "sha256": "d696e237f42ca34e1190060187292f42a421996a0a07e0d0d5619685398145e8"
+      },
+      {
+        "bytes": 2117225,
+        "chars": 1891944,
+        "docs": 500,
+        "path": "documents/train/train-00093.jsonl",
+        "sha256": "e8b65f8d0f8a27a3985fd23dfba894b37cc3416a21ff4782c39c9e69507ed5bb"
+      },
+      {
+        "bytes": 2790689,
+        "chars": 2557432,
+        "docs": 500,
+        "path": "documents/train/train-00094.jsonl",
+        "sha256": "0e483d59052d105a65b253b3e0cd039db758abb83140dcbbcdbedac6fe90fdf5"
+      },
+      {
+        "bytes": 2064066,
+        "chars": 1882299,
+        "docs": 500,
+        "path": "documents/train/train-00095.jsonl",
+        "sha256": "1cfbb7ddd8b298bddd169d1241c30c4d023f6eef8424e49bf115fcaf3d0f22de"
+      },
+      {
+        "bytes": 2180060,
+        "chars": 1950178,
+        "docs": 500,
+        "path": "documents/train/train-00096.jsonl",
+        "sha256": "3af092a2da3db1e28ef21bb7b341344e9d21361a82c6a4adab34415814a29531"
+      },
+      {
+        "bytes": 2639321,
+        "chars": 2436291,
+        "docs": 500,
+        "path": "documents/train/train-00097.jsonl",
+        "sha256": "2b1a307a331c22f815b6f0451c22d065318b82240748e38efe63ed414f16b03e"
+      },
+      {
+        "bytes": 2097928,
+        "chars": 1892809,
+        "docs": 500,
+        "path": "documents/train/train-00098.jsonl",
+        "sha256": "a4d6d6c5b3f0ff740b413e9ee9b12bc5936731ba527b4bf23a3da0828293d3a2"
+      },
+      {
+        "bytes": 2049413,
+        "chars": 1822458,
+        "docs": 500,
+        "path": "documents/train/train-00099.jsonl",
+        "sha256": "0bde3db18d93651712064e273a45d8a31bf851e7d5928032263096f3a239fe24"
+      },
+      {
+        "bytes": 2752927,
+        "chars": 2572156,
+        "docs": 500,
+        "path": "documents/train/train-00100.jsonl",
+        "sha256": "fe6c78f97d84ac3e60ffc445edb2e859750b714a158d529f1dcc72b059a7c49c"
+      },
+      {
+        "bytes": 2172563,
+        "chars": 1945917,
+        "docs": 500,
+        "path": "documents/train/train-00101.jsonl",
+        "sha256": "4690ca711fbc132fe3c0a2b2678c322220a1c2de2866949d8ea74a39b3e56e6f"
+      },
+      {
+        "bytes": 1993821,
+        "chars": 1765521,
+        "docs": 500,
+        "path": "documents/train/train-00102.jsonl",
+        "sha256": "22574c54137301c9c09f0fea39b14252053a63480cd516e9f13d6832f7117b8a"
+      },
+      {
+        "bytes": 2662457,
+        "chars": 2481394,
+        "docs": 500,
+        "path": "documents/train/train-00103.jsonl",
+        "sha256": "bb7136749c0912559f1a89f618cc50298003513c5bae873897a9c1023e89b43e"
+      },
+      {
+        "bytes": 2178689,
+        "chars": 1949878,
+        "docs": 500,
+        "path": "documents/train/train-00104.jsonl",
+        "sha256": "7af6678fa9238c0621649992446ac2b2ce35883d99ffb36f9e3b217c9fe71614"
+      },
+      {
+        "bytes": 2766640,
+        "chars": 2547368,
+        "docs": 500,
+        "path": "documents/train/train-00105.jsonl",
+        "sha256": "5cd0ac764b7c58985c318eb4f168d06a1688ada6414b5fc7a5e763e96fe74648"
+      },
+      {
+        "bytes": 2058082,
+        "chars": 1870205,
+        "docs": 500,
+        "path": "documents/train/train-00106.jsonl",
+        "sha256": "3e0866661a70d69eea250038a1b2baaa7e2d87868901eb0cd80986b27c12a5ad"
+      },
+      {
+        "bytes": 2222078,
+        "chars": 1992128,
+        "docs": 500,
+        "path": "documents/train/train-00107.jsonl",
+        "sha256": "fa7e02ced3f80820ab71821380b66d32f798a1d76972f39fa8e9722740cea330"
+      },
+      {
+        "bytes": 2799791,
+        "chars": 2594691,
+        "docs": 500,
+        "path": "documents/train/train-00108.jsonl",
+        "sha256": "3264fa971624d055b16975ff3e526e0cd1762ee8ab0bd4a3412c96651c61026b"
+      },
+      {
+        "bytes": 2145069,
+        "chars": 1937921,
+        "docs": 500,
+        "path": "documents/train/train-00109.jsonl",
+        "sha256": "2842b9af42810114570bd3d6d90b8a1609716e53318b2d1378c20e000ab7d5c3"
+      },
+      {
+        "bytes": 2126747,
+        "chars": 1897848,
+        "docs": 500,
+        "path": "documents/train/train-00110.jsonl",
+        "sha256": "f8bcf1a2adefe568c52626b5adffa3409ad16c68567c72d058a8aec3099bc96f"
+      },
+      {
+        "bytes": 2773846,
+        "chars": 2588514,
+        "docs": 500,
+        "path": "documents/train/train-00111.jsonl",
+        "sha256": "2984e7e0080b0469a0409d85e4cee2f98fba253c3b1fd1238745a0bc7e8b365e"
+      },
+      {
+        "bytes": 2166172,
+        "chars": 1944617,
+        "docs": 500,
+        "path": "documents/train/train-00112.jsonl",
+        "sha256": "05b21cd20fa320757d97e14ebcc2fe17f1be61d5d644c6c881357614aace33b5"
+      },
+      {
+        "bytes": 2210318,
+        "chars": 1981074,
+        "docs": 500,
+        "path": "documents/train/train-00113.jsonl",
+        "sha256": "695dd71c56de439d86284f379ff4411c89ded4e6f275dfd033ca50b123687062"
+      },
+      {
+        "bytes": 3083747,
+        "chars": 2899804,
+        "docs": 500,
+        "path": "documents/train/train-00114.jsonl",
+        "sha256": "33337fb39f748e011fa471019491296cb3e5be75204a61b6c1ddbb13ffc559c9"
+      },
+      {
+        "bytes": 2116798,
+        "chars": 1889418,
+        "docs": 500,
+        "path": "documents/train/train-00115.jsonl",
+        "sha256": "7da3afc54abc8b70fec05c964e5b634b0ef39e1725626858021de422eb57820f"
+      },
+      {
+        "bytes": 2809598,
+        "chars": 2589305,
+        "docs": 500,
+        "path": "documents/train/train-00116.jsonl",
+        "sha256": "f4990c02fe41dba3c708eaa7728cc688aaf68e61ed475e7c7f01f8a74f1bf9d6"
+      },
+      {
+        "bytes": 2020813,
+        "chars": 1832534,
+        "docs": 500,
+        "path": "documents/train/train-00117.jsonl",
+        "sha256": "179852d835c6145a3145f1a1789324689cc344f1f3c043bac48ef18746bd9753"
+      },
+      {
+        "bytes": 2057210,
+        "chars": 1829131,
+        "docs": 500,
+        "path": "documents/train/train-00118.jsonl",
+        "sha256": "1fb62ea3339146dee7c7971ab64382666067bf95801e1d1d53888a23e0011eed"
+      },
+      {
+        "bytes": 2752855,
+        "chars": 2557870,
+        "docs": 500,
+        "path": "documents/train/train-00119.jsonl",
+        "sha256": "72cdcba7ca4acc9f1cb9f5ea442cde904601ad3f00f4526f189d2e5cda3edf4a"
+      },
+      {
+        "bytes": 2160660,
+        "chars": 1946525,
+        "docs": 500,
+        "path": "documents/train/train-00120.jsonl",
+        "sha256": "dbec54a16f35056ff6b8e341a07c64a93b1d5dda167d243cf1ad952755b4992e"
+      },
+      {
+        "bytes": 2203290,
+        "chars": 1974152,
+        "docs": 500,
+        "path": "documents/train/train-00121.jsonl",
+        "sha256": "f0865be0f19cdcf2f464912219d12a31ea29bc9c46b278590fa1599891b191a5"
+      },
+      {
+        "bytes": 2810977,
+        "chars": 2619967,
+        "docs": 500,
+        "path": "documents/train/train-00122.jsonl",
+        "sha256": "4356b87bb6eba030ccf920302a1585300424880fb30a9ef328bd86b4d47b9e57"
+      },
+      {
+        "bytes": 2137848,
+        "chars": 1920787,
+        "docs": 500,
+        "path": "documents/train/train-00123.jsonl",
+        "sha256": "de737e70e57885609f18edf93ffa4446f69a959e6627ec31a21b2804353d73c3"
+      },
+      {
+        "bytes": 2225460,
+        "chars": 1997188,
+        "docs": 500,
+        "path": "documents/train/train-00124.jsonl",
+        "sha256": "83e314af6aa7c728ffff4c7e603a8e9006c37fff7ece7062ffeab8faf2837414"
+      },
+      {
+        "bytes": 2801981,
+        "chars": 2617229,
+        "docs": 500,
+        "path": "documents/train/train-00125.jsonl",
+        "sha256": "2c8eb60ecde134181d6a20664eb739c37851e470b65477191ec186a61b05b063"
+      },
+      {
+        "bytes": 2083481,
+        "chars": 1855934,
+        "docs": 500,
+        "path": "documents/train/train-00126.jsonl",
+        "sha256": "283c147efdafe6b1c75cea3504b445a5ce150f932e8ca62bd9df76744511cbe4"
+      },
+      {
+        "bytes": 2792483,
+        "chars": 2569196,
+        "docs": 500,
+        "path": "documents/train/train-00127.jsonl",
+        "sha256": "24a9bc79a453e81e8b616072e2a657035cf8200cb9fbb14176f64f3359323663"
+      },
+      {
+        "bytes": 2108614,
+        "chars": 1920839,
+        "docs": 500,
+        "path": "documents/train/train-00128.jsonl",
+        "sha256": "e4082b9f0d90dd1747e98d33c29548605a57cdac8b1267e89765158f5836cd3b"
+      },
+      {
+        "bytes": 2212165,
+        "chars": 1983988,
+        "docs": 500,
+        "path": "documents/train/train-00129.jsonl",
+        "sha256": "8e1d8b3ddba42d67e0fc22eeec49665f3bf3fb8a6a1145b6dd1e2592fd7d2178"
+      },
+      {
+        "bytes": 2681103,
+        "chars": 2481046,
+        "docs": 500,
+        "path": "documents/train/train-00130.jsonl",
+        "sha256": "376d6f0a20df963c982438045292d8d29a585cc26d9f00c1a50b36d84e2d8540"
+      },
+      {
+        "bytes": 2036994,
+        "chars": 1830688,
+        "docs": 500,
+        "path": "documents/train/train-00131.jsonl",
+        "sha256": "af2ee34f6965a3630087cc80c85195d9db1dd8f8fc31fa8ce9e60c04956b632d"
+      },
+      {
+        "bytes": 2083469,
+        "chars": 1855273,
+        "docs": 500,
+        "path": "documents/train/train-00132.jsonl",
+        "sha256": "f31cbb3bc4dc44ae0691d2626e1be6950b997018421f9609a8a14f1be0a1cf65"
+      },
+      {
+        "bytes": 2707570,
+        "chars": 2520027,
+        "docs": 500,
+        "path": "documents/train/train-00133.jsonl",
+        "sha256": "4ef4403f9ce2a67980622eafe566c903cb2d0ba529eedc22949bfc7b1993ead5"
+      },
+      {
+        "bytes": 2070259,
+        "chars": 1842973,
+        "docs": 500,
+        "path": "documents/train/train-00134.jsonl",
+        "sha256": "d6c75bb00a78a5c800ebc2c8dd3ecb714bc178467566599ab173f328a8b941eb"
+      },
+      {
+        "bytes": 2404669,
+        "chars": 2175848,
+        "docs": 500,
+        "path": "documents/train/train-00135.jsonl",
+        "sha256": "475382b7754b61846e3cda148c0c2f28c014b08ea1daa0a433bf2396ed992205"
+      },
+      {
+        "bytes": 2394648,
+        "chars": 2207925,
+        "docs": 500,
+        "path": "documents/train/train-00136.jsonl",
+        "sha256": "911691a90841a3722644ffa8f574a92721beaa6993422f64026409bc7883444c"
+      },
+      {
+        "bytes": 2218477,
+        "chars": 1986772,
+        "docs": 500,
+        "path": "documents/train/train-00137.jsonl",
+        "sha256": "15e05242a46ca20066ba83c1f32cd7d2dadcb02e486d9edbc7009a2e6015a427"
+      },
+      {
+        "bytes": 2825362,
+        "chars": 2614735,
+        "docs": 500,
+        "path": "documents/train/train-00138.jsonl",
+        "sha256": "7a38f0834c465c2a552ac29517e1a5257c174ecba4eff1e25b4c2f06853b5bf6"
+      },
+      {
+        "bytes": 2098410,
+        "chars": 1895481,
+        "docs": 500,
+        "path": "documents/train/train-00139.jsonl",
+        "sha256": "b3646c92dd1d27c1c56ac139e6045becd16a37372273a46f3ffd84709d156c37"
+      },
+      {
+        "bytes": 2138712,
+        "chars": 1910762,
+        "docs": 500,
+        "path": "documents/train/train-00140.jsonl",
+        "sha256": "d89de421bef43968934e135694a1a0d8c8fdb248a006c6808e567504aeb816ff"
+      },
+      {
+        "bytes": 2970853,
+        "chars": 2779965,
+        "docs": 500,
+        "path": "documents/train/train-00141.jsonl",
+        "sha256": "5e26566018b1f8db223e7436a1e0b5cc644e43a9ff18acdd570b0b7c741a78c8"
+      },
+      {
+        "bytes": 2128286,
+        "chars": 1906872,
+        "docs": 500,
+        "path": "documents/train/train-00142.jsonl",
+        "sha256": "0b5384c8836f83557109b439390caab70ab5920a1c0492cf912945fc08a33208"
+      },
+      {
+        "bytes": 2254877,
+        "chars": 2026241,
+        "docs": 500,
+        "path": "documents/train/train-00143.jsonl",
+        "sha256": "506b395eb7cb925ed5930f8689f19879eb2dd985eebcf2247e086e3a1abfccb3"
+      },
+      {
+        "bytes": 2535972,
+        "chars": 2358893,
+        "docs": 500,
+        "path": "documents/train/train-00144.jsonl",
+        "sha256": "ea9907164ac15dce79523d4b61dff8f44b17f6e626394d09c8b46be0c9843a59"
+      },
+      {
+        "bytes": 2204846,
+        "chars": 1976421,
+        "docs": 500,
+        "path": "documents/train/train-00145.jsonl",
+        "sha256": "cf93e1d092e57940ee634d1aa2aa09a58db0e803acd8d57b32883e4a23ae3b2f"
+      },
+      {
+        "bytes": 2629987,
+        "chars": 2403134,
+        "docs": 500,
+        "path": "documents/train/train-00146.jsonl",
+        "sha256": "004f59df1cf33706d4b711406ad7f8aa04040d13bb539b5473099cf408ac0768"
+      },
+      {
+        "bytes": 1968555,
+        "chars": 1789909,
+        "docs": 500,
+        "path": "documents/train/train-00147.jsonl",
+        "sha256": "b6c79ac77b14c8472af4bb1c41453f41df812601433a5df06da227a7f327d775"
+      },
+      {
+        "bytes": 2235248,
+        "chars": 2004569,
+        "docs": 500,
+        "path": "documents/train/train-00148.jsonl",
+        "sha256": "47cd148c2356dfa7b9a7ecaa86f9b33f456a279c8e330c7b78e6f7503139d562"
+      },
+      {
+        "bytes": 2768811,
+        "chars": 2560711,
+        "docs": 500,
+        "path": "documents/train/train-00149.jsonl",
+        "sha256": "6d83dcca41240f20560a1fac2af27255868596adbbbb8fc70b1c0adfdf6a214f"
+      },
+      {
+        "bytes": 2130826,
+        "chars": 1930026,
+        "docs": 500,
+        "path": "documents/train/train-00150.jsonl",
+        "sha256": "5e8343f418424e20509f2b4e6b1aebd0726bbbca2b953affa863f256ec3b97e3"
+      },
+      {
+        "bytes": 2132315,
+        "chars": 1905552,
+        "docs": 500,
+        "path": "documents/train/train-00151.jsonl",
+        "sha256": "9f13c002f30c6e851bcddfe9f05b2656e20f924a6c85bd81d6a52cd97cbf48ab"
+      },
+      {
+        "bytes": 2559818,
+        "chars": 2372903,
+        "docs": 500,
+        "path": "documents/train/train-00152.jsonl",
+        "sha256": "0cd4b4ced776605494bc6ab0773f0da5156a73bc96b1b8a8c1887c5e4d04962c"
+      },
+      {
+        "bytes": 2198144,
+        "chars": 1971884,
+        "docs": 500,
+        "path": "documents/train/train-00153.jsonl",
+        "sha256": "6b714206866423490f3f4e8b337e9cb0df428a237ab884f71948461c8a4175d4"
+      },
+      {
+        "bytes": 2194041,
+        "chars": 1964480,
+        "docs": 500,
+        "path": "documents/train/train-00154.jsonl",
+        "sha256": "e3c77559a455bbeeafc6bc61085875139a0cb0a730ad4fe4546879b7a6b63df5"
+      },
+      {
+        "bytes": 2609064,
+        "chars": 2429173,
+        "docs": 500,
+        "path": "documents/train/train-00155.jsonl",
+        "sha256": "eec3f023a33eb0202b0dfae3c6438b7ca3c1ba14e5bb547d23b23e69fdb2dfde"
+      },
+      {
+        "bytes": 2111188,
+        "chars": 1882676,
+        "docs": 500,
+        "path": "documents/train/train-00156.jsonl",
+        "sha256": "59c928165f47832e1d978bc133f7e7a4f5b11f282f8b1482b679c98e8027a116"
+      },
+      {
+        "bytes": 2788582,
+        "chars": 2569192,
+        "docs": 500,
+        "path": "documents/train/train-00157.jsonl",
+        "sha256": "6d8cf25a1417d48d4ea4ed8c9de4726acd93b889cf88e45c554bcd586c8e5b34"
+      },
+      {
+        "bytes": 2165085,
+        "chars": 1968461,
+        "docs": 500,
+        "path": "documents/train/train-00158.jsonl",
+        "sha256": "71f311f8e1957dfa14214e7b556158bbf93d621dbb0e57e1168b6a693578b611"
+      },
+      {
+        "bytes": 2229371,
+        "chars": 2000670,
+        "docs": 500,
+        "path": "documents/train/train-00159.jsonl",
+        "sha256": "357af6f3ccce35a712c3a4eb3b1de612ad607375b8cd6b2dd8114233f6c04aa7"
+      },
+      {
+        "bytes": 2962435,
+        "chars": 2760250,
+        "docs": 500,
+        "path": "documents/train/train-00160.jsonl",
+        "sha256": "f9f79ec48379484c4e1bed466bfe52a1a9ae8fc8264560a0630528103956705e"
+      },
+      {
+        "bytes": 2100600,
+        "chars": 1886250,
+        "docs": 500,
+        "path": "documents/train/train-00161.jsonl",
+        "sha256": "a5cd6396ec1d9bc7d52372b88758ad912e4688dfb2b2870683d965ccbb1d1be7"
+      },
+      {
+        "bytes": 2181937,
+        "chars": 1954034,
+        "docs": 500,
+        "path": "documents/train/train-00162.jsonl",
+        "sha256": "cf8c834e43397f114e25297ac150025f78b20b72e52f92e0ea36fc88e03edcef"
+      },
+      {
+        "bytes": 2861708,
+        "chars": 2677819,
+        "docs": 500,
+        "path": "documents/train/train-00163.jsonl",
+        "sha256": "4aa2c2e0864d982e065b2e06852fd92f3c885cb0ee9727a47376419345aa69c7"
+      },
+      {
+        "bytes": 2090358,
+        "chars": 1862405,
+        "docs": 500,
+        "path": "documents/train/train-00164.jsonl",
+        "sha256": "bc0bcd40ba9bfd153137eaf033c0b77317735ecb22707603137879d04d6206cd"
+      },
+      {
+        "bytes": 2578601,
+        "chars": 2358335,
+        "docs": 500,
+        "path": "documents/train/train-00165.jsonl",
+        "sha256": "3bbb41e0f0657ba6dd8cd8fee11b80eeacb676b36ef5e203a0b6a5c1c41e2990"
+      },
+      {
+        "bytes": 2052595,
+        "chars": 1863940,
+        "docs": 500,
+        "path": "documents/train/train-00166.jsonl",
+        "sha256": "b1fe43893d86348e022b41adeafc5fd9dce3d9f011aaad9f51d9c98756c41bb1"
+      },
+      {
+        "bytes": 2203048,
+        "chars": 1973281,
+        "docs": 500,
+        "path": "documents/train/train-00167.jsonl",
+        "sha256": "325a102b11c735269402d0841751ef7c9ba47e959a7ce13c9f4874258eda8073"
+      },
+      {
+        "bytes": 2726315,
+        "chars": 2522468,
+        "docs": 500,
+        "path": "documents/train/train-00168.jsonl",
+        "sha256": "4548b232933577c1fe7efd3da76da30d5bff8dabe6c5959da878265dc0b58d16"
+      },
+      {
+        "bytes": 2035242,
+        "chars": 1830740,
+        "docs": 500,
+        "path": "documents/train/train-00169.jsonl",
+        "sha256": "837acc56c07cf02b99ab1c326d3fcc4c7564612ed2bd152d3313d6afb653870c"
+      },
+      {
+        "bytes": 2203022,
+        "chars": 1972109,
+        "docs": 500,
+        "path": "documents/train/train-00170.jsonl",
+        "sha256": "e773a564ca478c7707b643e27753812572b03c75909e616f4c3aaefbefc98f2b"
+      },
+      {
+        "bytes": 2937469,
+        "chars": 2747573,
+        "docs": 500,
+        "path": "documents/train/train-00171.jsonl",
+        "sha256": "c106d825e3998c6258d83bf3919533fd52a138fa2bfbb3c57680c841ddf5e2ec"
+      },
+      {
+        "bytes": 2093991,
+        "chars": 1866918,
+        "docs": 500,
+        "path": "documents/train/train-00172.jsonl",
+        "sha256": "768b17ef7d31b346f91bddc76204bda1c0e5162a464314eb116c94cfd237422c"
+      },
+      {
+        "bytes": 3010597,
+        "chars": 2779986,
+        "docs": 500,
+        "path": "documents/train/train-00173.jsonl",
+        "sha256": "51c085598e8e2e063cff79562de0b7083dde8e7da2594b0aab881bd628c957f5"
+      },
+      {
+        "bytes": 273637,
+        "chars": 254497,
+        "docs": 63,
+        "path": "documents/train/train-00174.jsonl",
+        "sha256": "c82fec42a2c1864c185e128ade61982b9d2a3744b472e99b4b010e4f722a40c7"
+      }
+    ],
+    "validation": [
+      {
+        "bytes": 2373395,
+        "chars": 2162507,
+        "docs": 500,
+        "path": "documents/validation/validation-00000.jsonl",
+        "sha256": "80d3b4b25921532348f3dd013bb1860079b4775976d7d1bd996862fb9db02c1a"
+      },
+      {
+        "bytes": 2583261,
+        "chars": 2368690,
+        "docs": 500,
+        "path": "documents/validation/validation-00001.jsonl",
+        "sha256": "92f1d486f7e8820f9b49de5da08750b8aaf44fdce1043eeebc1be0bfb86a2695"
+      },
+      {
+        "bytes": 2401905,
+        "chars": 2190449,
+        "docs": 500,
+        "path": "documents/validation/validation-00002.jsonl",
+        "sha256": "850c4cea4f9b199467b8d6a0831117ffd4bf342645a3d59bb4c261ed127d91ea"
+      },
+      {
+        "bytes": 1764041,
+        "chars": 1605859,
+        "docs": 374,
+        "path": "documents/validation/validation-00003.jsonl",
+        "sha256": "a879b2b276f61880e4d296b85c3d9477f986e65880d44f4def546cad0f52f452"
+      }
+    ]
+  },
+  "filter_version": "v1",
+  "filters": {
+    "by_source": {
+      "cosmopedia-v2": {
+        "filter_version": "v1",
+        "max_chars": 20000,
+        "max_replacement_ratio": 0.01,
+        "min_chars": 200,
+        "min_int_score": null,
+        "min_language_score": 0.65,
+        "min_letter_ratio": 0.5,
+        "require_language": null
+      },
+      "fineweb-edu": {
+        "filter_version": "v1",
+        "max_chars": 20000,
+        "max_replacement_ratio": 0.01,
+        "min_chars": 200,
+        "min_int_score": 3,
+        "min_language_score": 0.65,
+        "min_letter_ratio": 0.5,
+        "require_language": "en"
+      },
+      "wikipedia": {
+        "filter_version": "v1",
+        "max_chars": 100000,
+        "max_replacement_ratio": 0.01,
+        "min_chars": 200,
+        "min_int_score": null,
+        "min_language_score": 0.65,
+        "min_letter_ratio": 0.5,
+        "require_language": null
+      }
+    }
+  },
+  "format_version": 1,
+  "pipeline_version": "0.1.0",
+  "quotas": {
+    "cosmopedia-v2": {
+      "candidates_train": 18822,
+      "documents_available": 18822,
+      "est_chars_per_token": 4.4489,
+      "estimated_train_tokens": 15000824.2,
+      "shortfall_chars": 0,
+      "train_chars_budget": 72989765,
+      "train_chars_selected": 66737167,
+      "train_documents_selected": 17849,
+      "train_tokens_target": 15000000
+    },
+    "fineweb-edu": {
+      "candidates_train": 65454,
+      "documents_available": 65454,
+      "est_chars_per_token": 3.9723,
+      "estimated_train_tokens": 60000237.6,
+      "shortfall_chars": 0,
+      "train_chars_budget": 260682187,
+      "train_chars_selected": 238338944,
+      "train_documents_selected": 62341,
+      "train_tokens_target": 60000000
+    },
+    "wikipedia": {
+      "candidates_train": 7183,
+      "documents_available": 7183,
+      "est_chars_per_token": 3.63,
+      "estimated_train_tokens": 20002682.6,
+      "shortfall_chars": 0,
+      "train_chars_budget": 79406250,
+      "train_chars_selected": 72609738,
+      "train_documents_selected": 6873,
+      "train_tokens_target": 20000000
+    }
+  },
+  "seed": 0,
+  "shuffle": {
+    "buckets": 64,
+    "method": "bucket = int(sha256(seed:doc_key)[:8],16) % buckets; buckets written in order, records in encounter order",
+    "seed": 0
+  },
+  "source": {
+    "access": "public",
+    "attribution": "SmolLM-Corpus / Cosmopedia v2 (Hugging Face), ODC-By",
+    "backend": "datasets",
+    "config": "cosmopedia-v2",
+    "dataset_id": "HuggingFaceTB/smollm-corpus",
+    "license": "odc-by",
+    "license_url": "https://opendatacommons.org/licenses/by/1-0/",
+    "name": "cosmopedia-v2",
+    "provenance": "Mixtral-8x7B-Instruct generated, seed data from FineWeb",
+    "revision": "3ba9d605774198c5868892d7a8deda78031a781f",
+    "split": "train"
+  },
+  "sources": [
+    {
+      "access": "public",
+      "attribution": "SmolLM-Corpus / Cosmopedia v2 (Hugging Face), ODC-By",
+      "backend": "datasets",
+      "config": "cosmopedia-v2",
+      "dataset_id": "HuggingFaceTB/smollm-corpus",
+      "license": "odc-by",
+      "license_url": "https://opendatacommons.org/licenses/by/1-0/",
+      "name": "cosmopedia-v2",
+      "provenance": "Mixtral-8x7B-Instruct generated, seed data from FineWeb",
+      "revision": "3ba9d605774198c5868892d7a8deda78031a781f",
+      "split": "train"
+    },
+    {
+      "access": "public",
+      "attribution": "",
+      "backend": "datasets",
+      "config": "sample-10BT",
+      "dataset_id": "HuggingFaceFW/fineweb-edu",
+      "license": "odc-by",
+      "license_url": "https://opendatacommons.org/licenses/by/1-0/",
+      "name": "fineweb-edu",
+      "provenance": "",
+      "revision": "87f09149ef4734204d70ed1d046ddc9ca3f2b8f9",
+      "split": "train"
+    },
+    {
+      "access": "public",
+      "attribution": "Wikipedia contributors, CC BY-SA 3.0 / GFDL",
+      "backend": "datasets",
+      "config": "20231101.en",
+      "dataset_id": "wikimedia/wikipedia",
+      "license": [
+        "cc-by-sa-3.0",
+        "gfdl"
+      ],
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "name": "wikipedia",
+      "provenance": "Wikimedia dump 20231101.en via wikimedia/wikipedia",
+      "revision": "b04c8d1ceb2f5cd4588862100d08de323dccfbaa",
+      "split": "train"
+    }
+  ],
+  "split_policy": {
+    "assignment": "int(sha256(doc_key)[:8],16) % 1000; test < test_permille, validation < test+val, else train",
+    "test_permille": 20,
+    "val_permille": 20
+  },
+  "tokenization": {
+    "by_source": {
+      "cosmopedia-v2": {
+        "test": 290301,
+        "train": 15258960,
+        "validation": 311139
+      },
+      "fineweb-edu": {
+        "test": 1333184,
+        "train": 60356799,
+        "validation": 1299140
+      },
+      "wikipedia": {
+        "test": 470807,
+        "train": 20335474,
+        "validation": 512098
+      }
+    },
+    "special_ids": {
+      "bos": 1,
+      "eos": 2,
+      "pad": 3,
+      "unk": 0
+    },
+    "splits": {
+      "test": {
+        "docs": 1847,
+        "shards": [
+          {
+            "bytes": 1315896,
+            "docs": 500,
+            "meta": "tokens/test/test-00000.meta.json",
+            "path": "tokens/test/test-00000.tokens.npy",
+            "sha256": "070512dc00b50997ae3535e5d2ebd75b8e63823509a362b2be0e1d800fd799bf",
+            "tokens": 657884
+          },
+          {
+            "bytes": 1131780,
+            "docs": 500,
+            "meta": "tokens/test/test-00001.meta.json",
+            "path": "tokens/test/test-00001.tokens.npy",
+            "sha256": "63512676c3a89869d8723a20fac14516969da153afc3e983d6a4077c534c9299",
+            "tokens": 565826
+          },
+          {
+            "bytes": 980808,
+            "docs": 500,
+            "meta": "tokens/test/test-00002.meta.json",
+            "path": "tokens/test/test-00002.tokens.npy",
+            "sha256": "6a573bb12a4a86c9d5843f1acb442762928247461218b8ba6dc0953b3c76dc19",
+            "tokens": 490340
+          },
+          {
+            "bytes": 760612,
+            "docs": 347,
+            "meta": "tokens/test/test-00003.meta.json",
+            "path": "tokens/test/test-00003.tokens.npy",
+            "sha256": "0b43bc4acecbe47b1842f94d176cbc7fc115830f9ee186846ec942e4d83f7b77",
+            "tokens": 380242
+          }
+        ],
+        "tokens": 2094292
+      },
+      "train": {
+        "docs": 87063,
+        "shards": [
+          {
+            "bytes": 856570,
+            "docs": 500,
+            "meta": "tokens/train/train-00000.meta.json",
+            "path": "tokens/train/train-00000.tokens.npy",
+            "sha256": "f897778a7e695c7261870c4eb84dc6f6bdf5a433c4043e16c870a6594b64d448",
+            "tokens": 428221
+          },
+          {
+            "bytes": 1042524,
+            "docs": 500,
+            "meta": "tokens/train/train-00001.meta.json",
+            "path": "tokens/train/train-00001.tokens.npy",
+            "sha256": "a9656e6fd0cba492f471faca7a5850dee7250d07bd0b8c81089db7479b321359",
+            "tokens": 521198
+          },
+          {
+            "bytes": 1365732,
+            "docs": 500,
+            "meta": "tokens/train/train-00002.meta.json",
+            "path": "tokens/train/train-00002.tokens.npy",
+            "sha256": "e2abcbe067b2756918f278ef25d7ddf30e4a690b032775dfb26352257b7ad487",
+            "tokens": 682802
+          },
+          {
+            "bytes": 951712,
+            "docs": 500,
+            "meta": "tokens/train/train-00003.meta.json",
+            "path": "tokens/train/train-00003.tokens.npy",
+            "sha256": "afd4d3c23c6fccb29d215ff8d0ad1c2b759ee3e25120380110b694eb194464f2",
+            "tokens": 475792
+          },
+          {
+            "bytes": 913892,
+            "docs": 500,
+            "meta": "tokens/train/train-00004.meta.json",
+            "path": "tokens/train/train-00004.tokens.npy",
+            "sha256": "53ee22935d5fc26c8aad016513dbb84b2a40706711299c45c1259f283f502317",
+            "tokens": 456882
+          },
+          {
+            "bytes": 1372836,
+            "docs": 500,
+            "meta": "tokens/train/train-00005.meta.json",
+            "path": "tokens/train/train-00005.tokens.npy",
+            "sha256": "47b5254c96a7f4f74e9c98d90d53f07db1d761e0054ac72765251406806d1ee0",
+            "tokens": 686354
+          },
+          {
+            "bytes": 964320,
+            "docs": 500,
+            "meta": "tokens/train/train-00006.meta.json",
+            "path": "tokens/train/train-00006.tokens.npy",
+            "sha256": "be34c13558898034849f0474ab460bb0d07a3868a6123f0ea61ae7eb0e8737f2",
+            "tokens": 482096
+          },
+          {
+            "bytes": 1295606,
+            "docs": 500,
+            "meta": "tokens/train/train-00007.meta.json",
+            "path": "tokens/train/train-00007.tokens.npy",
+            "sha256": "732e5dc1066665f4826830c064b5aacca8a8cbf6dada01a7c1b4b0405ab31d00",
+            "tokens": 647739
+          },
+          {
+            "bytes": 864550,
+            "docs": 500,
+            "meta": "tokens/train/train-00008.meta.json",
+            "path": "tokens/train/train-00008.tokens.npy",
+            "sha256": "a42f75098d55ff94289f3d2d1ee0aaa9fcbfe1e8613ac004c59f33dba2522a8f",
+            "tokens": 432211
+          },
+          {
+            "bytes": 922662,
+            "docs": 500,
+            "meta": "tokens/train/train-00009.meta.json",
+            "path": "tokens/train/train-00009.tokens.npy",
+            "sha256": "06d6c87001e27393465bd48b653a5f75112420ff8129e96787b77a0d8bc9baf1",
+            "tokens": 461267
+          },
+          {
+            "bytes": 1233792,
+            "docs": 500,
+            "meta": "tokens/train/train-00010.meta.json",
+            "path": "tokens/train/train-00010.tokens.npy",
+            "sha256": "ae19ffc841c420ad4640e0f90503009a625c0a8c1dde05988d57b3c0505d783d",
+            "tokens": 616832
+          },
+          {
+            "bytes": 972480,
+            "docs": 500,
+            "meta": "tokens/train/train-00011.meta.json",
+            "path": "tokens/train/train-00011.tokens.npy",
+            "sha256": "ff39bf975f51e1a7a32c462ed181328d3e504659efc6b0f9a5affabaf5eedcd8",
+            "tokens": 486176
+          },
+          {
+            "bytes": 910778,
+            "docs": 500,
+            "meta": "tokens/train/train-00012.meta.json",
+            "path": "tokens/train/train-00012.tokens.npy",
+            "sha256": "2996ca72ddbdba9753c0bad43d8b5a3dc6a4f8d36da206e289127d92d3bf91b3",
+            "tokens": 455325
+          },
+          {
+            "bytes": 1156768,
+            "docs": 500,
+            "meta": "tokens/train/train-00013.meta.json",
+            "path": "tokens/train/train-00013.tokens.npy",
+            "sha256": "d8a11c629d858339647efb954bae3289da47428e76e14a63cf4885e434e20e06",
+            "tokens": 578320
+          },
+          {
+            "bytes": 876526,
+            "docs": 500,
+            "meta": "tokens/train/train-00014.meta.json",
+            "path": "tokens/train/train-00014.tokens.npy",
+            "sha256": "040d8fb6ea68b11696ea3fd4e7fe604b2bba64c84925f62d3fe8ab0e89e2ac93",
+            "tokens": 438199
+          },
+          {
+            "bytes": 1623838,
+            "docs": 500,
+            "meta": "tokens/train/train-00015.meta.json",
+            "path": "tokens/train/train-00015.tokens.npy",
+            "sha256": "4d5829ffb0ceb6befca72b9fd94aa15d2d09bb4d6ceb8ec5db595d96ad6c05f2",
+            "tokens": 811855
+          },
+          {
+            "bytes": 921686,
+            "docs": 500,
+            "meta": "tokens/train/train-00016.meta.json",
+            "path": "tokens/train/train-00016.tokens.npy",
+            "sha256": "9295b40a24229bce140bd0ab388bf3ac59f8c3e90ec7191096010e0028c4659f",
+            "tokens": 460779
+          },
+          {
+            "bytes": 937628,
+            "docs": 500,
+            "meta": "tokens/train/train-00017.meta.json",
+            "path": "tokens/train/train-00017.tokens.npy",
+            "sha256": "7e6c413bb24d0d11398e3c901a344e4847ead23bbd84411e9df500e6b50c8b61",
+            "tokens": 468750
+          },
+          {
+            "bytes": 1442576,
+            "docs": 500,
+            "meta": "tokens/train/train-00018.meta.json",
+            "path": "tokens/train/train-00018.tokens.npy",
+            "sha256": "4d074d95fbd96c099cef5a596af104d497b2520c0760e416d35736d3ccea3e96",
+            "tokens": 721224
+          },
+          {
+            "bytes": 914854,
+            "docs": 500,
+            "meta": "tokens/train/train-00019.meta.json",
+            "path": "tokens/train/train-00019.tokens.npy",
+            "sha256": "ec1322f0bdb4e43ff45604be90aa6e502071e8cb3b0cc993dc13bf6511d34847",
+            "tokens": 457363
+          },
+          {
+            "bytes": 1023314,
+            "docs": 500,
+            "meta": "tokens/train/train-00020.meta.json",
+            "path": "tokens/train/train-00020.tokens.npy",
+            "sha256": "58e11765820f15b9dcef0bd34cc97525ef8a40fa27477d66abc3f2ac248b7b62",
+            "tokens": 511593
+          },
+          {
+            "bytes": 1463102,
+            "docs": 500,
+            "meta": "tokens/train/train-00021.meta.json",
+            "path": "tokens/train/train-00021.tokens.npy",
+            "sha256": "1aa1fa90395cd5867242cb10a1243b60c9f1fcacb0c516377ffdb5ee3d39bb78",
+            "tokens": 731487
+          },
+          {
+            "bytes": 915144,
+            "docs": 500,
+            "meta": "tokens/train/train-00022.meta.json",
+            "path": "tokens/train/train-00022.tokens.npy",
+            "sha256": "fc9fe4d975da300791f7a2f64555150c9328721e960dceac289ad3dda98ab9a7",
+            "tokens": 457508
+          },
+          {
+            "bytes": 1298238,
+            "docs": 500,
+            "meta": "tokens/train/train-00023.meta.json",
+            "path": "tokens/train/train-00023.tokens.npy",
+            "sha256": "ad4c10dfd8b832ad9e0295fa4f594eff1bd9cbe8bfff8b4e1e6283fa4a2890b7",
+            "tokens": 649055
+          },
+          {
+            "bytes": 1075488,
+            "docs": 500,
+            "meta": "tokens/train/train-00024.meta.json",
+            "path": "tokens/train/train-00024.tokens.npy",
+            "sha256": "b6a1469baae876ac05931ab1621e5c01dacf5fc053b6b7df5b28ce25434e09eb",
+            "tokens": 537680
+          },
+          {
+            "bytes": 1027442,
+            "docs": 500,
+            "meta": "tokens/train/train-00025.meta.json",
+            "path": "tokens/train/train-00025.tokens.npy",
+            "sha256": "e70d549d256f10711522e7574ca0fcfa0a901e79308ca8997b4f41da83b14795",
+            "tokens": 513657
+          },
+          {
+            "bytes": 1411598,
+            "docs": 500,
+            "meta": "tokens/train/train-00026.meta.json",
+            "path": "tokens/train/train-00026.tokens.npy",
+            "sha256": "c9986a86c486efb66ca647ccff9542bdf6fd4f08eec825d20d5b8f4d955a9185",
+            "tokens": 705735
+          },
+          {
+            "bytes": 874846,
+            "docs": 500,
+            "meta": "tokens/train/train-00027.meta.json",
+            "path": "tokens/train/train-00027.tokens.npy",
+            "sha256": "f07a271081cc103839c35ea2de29dd25826b6c150b344a64f4ea36447203f5ba",
+            "tokens": 437359
+          },
+          {
+            "bytes": 950688,
+            "docs": 500,
+            "meta": "tokens/train/train-00028.meta.json",
+            "path": "tokens/train/train-00028.tokens.npy",
+            "sha256": "6b7e6e4530c5b0048c7ab088f27e1ca3bf563550bdb40289ed2b7a0b0fb0e907",
+            "tokens": 475280
+          },
+          {
+            "bytes": 1352338,
+            "docs": 500,
+            "meta": "tokens/train/train-00029.meta.json",
+            "path": "tokens/train/train-00029.tokens.npy",
+            "sha256": "56a9b9263ba3d41d26c3ac53acc5a493d3faeb56f7d998e0f2d2f761f9fbf0ca",
+            "tokens": 676105
+          },
+          {
+            "bytes": 951904,
+            "docs": 500,
+            "meta": "tokens/train/train-00030.meta.json",
+            "path": "tokens/train/train-00030.tokens.npy",
+            "sha256": "3e71b29752d8fd4128b1cd1ad8377bf6006fddf113ba5cc8f4a0e6ccfd4794a8",
+            "tokens": 475888
+          },
+          {
+            "bytes": 964738,
+            "docs": 500,
+            "meta": "tokens/train/train-00031.meta.json",
+            "path": "tokens/train/train-00031.tokens.npy",
+            "sha256": "1a01af992b5d91451cf0452287b7889179102f5e26a2ad7ee2fa9f22c9883d4b",
+            "tokens": 482305
+          },
+          {
+            "bytes": 1366248,
+            "docs": 500,
+            "meta": "tokens/train/train-00032.meta.json",
+            "path": "tokens/train/train-00032.tokens.npy",
+            "sha256": "9cf1e4da4034b9ad10c8c913c1ca3cc4bcceea971bb7a84c16b117e8c88ddcef",
+            "tokens": 683060
+          },
+          {
+            "bytes": 924066,
+            "docs": 500,
+            "meta": "tokens/train/train-00033.meta.json",
+            "path": "tokens/train/train-00033.tokens.npy",
+            "sha256": "42f02faed7577e815d231b70764d7e21b90b608ca31309e81a4e48cf24e58bbb",
+            "tokens": 461969
+          },
+          {
+            "bytes": 1373048,
+            "docs": 500,
+            "meta": "tokens/train/train-00034.meta.json",
+            "path": "tokens/train/train-00034.tokens.npy",
+            "sha256": "838fc0a77a332ae956c499c95c4bdea787259d8907d50a4f24a2e1e8d282828f",
+            "tokens": 686460
+          },
+          {
+            "bytes": 922386,
+            "docs": 500,
+            "meta": "tokens/train/train-00035.meta.json",
+            "path": "tokens/train/train-00035.tokens.npy",
+            "sha256": "50fd7e22fac67d76171c280253f61ab76c6d6e6fc6cf9fdbda2e1613861616a3",
+            "tokens": 461129
+          },
+          {
+            "bytes": 938782,
+            "docs": 500,
+            "meta": "tokens/train/train-00036.meta.json",
+            "path": "tokens/train/train-00036.tokens.npy",
+            "sha256": "4ac00206427c41b1fe2b49a981610119851686b5995d6fcfec1eb249ebbcb411",
+            "tokens": 469327
+          },
+          {
+            "bytes": 1449426,
+            "docs": 500,
+            "meta": "tokens/train/train-00037.meta.json",
+            "path": "tokens/train/train-00037.tokens.npy",
+            "sha256": "29753079c397dd5e1a5427caa7fa10182cea224be93b5664ac726cb2ee2a93ce",
+            "tokens": 724649
+          },
+          {
+            "bytes": 849464,
+            "docs": 500,
+            "meta": "tokens/train/train-00038.meta.json",
+            "path": "tokens/train/train-00038.tokens.npy",
+            "sha256": "98302e610e22146c18583c5ba54d139ec4544f279607fcac3e8c3c6f81618cf6",
+            "tokens": 424668
+          },
+          {
+            "bytes": 979982,
+            "docs": 500,
+            "meta": "tokens/train/train-00039.meta.json",
+            "path": "tokens/train/train-00039.tokens.npy",
+            "sha256": "9c475a32715b7ec2f335f42e2632e089f9fe11620cf7c80b77be2a350a31980a",
+            "tokens": 489927
+          },
+          {
+            "bytes": 1634686,
+            "docs": 500,
+            "meta": "tokens/train/train-00040.meta.json",
+            "path": "tokens/train/train-00040.tokens.npy",
+            "sha256": "d54ee99ddb18ed952566e49b4df970fdad32a616ec30d5047061955d145a97ca",
+            "tokens": 817279
+          },
+          {
+            "bytes": 944532,
+            "docs": 500,
+            "meta": "tokens/train/train-00041.meta.json",
+            "path": "tokens/train/train-00041.tokens.npy",
+            "sha256": "b938c79a0d3fbc36dbdc29153e0373edf196b706c3d1ea0402adffd6a7aa6670",
+            "tokens": 472202
+          },
+          {
+            "bytes": 956238,
+            "docs": 500,
+            "meta": "tokens/train/train-00042.meta.json",
+            "path": "tokens/train/train-00042.tokens.npy",
+            "sha256": "999f65b23ee56e1bae06c9fb8b259a5ccfc292d74f3dee900ea84c0e04786382",
+            "tokens": 478055
+          },
+          {
+            "bytes": 1413524,
+            "docs": 500,
+            "meta": "tokens/train/train-00043.meta.json",
+            "path": "tokens/train/train-00043.tokens.npy",
+            "sha256": "fc37033b33d9f3fc9a8115112e71d4f48b8509aa8ad21cfd9da356e2a6bdc015",
+            "tokens": 706698
+          },
+          {
+            "bytes": 972698,
+            "docs": 500,
+            "meta": "tokens/train/train-00044.meta.json",
+            "path": "tokens/train/train-00044.tokens.npy",
+            "sha256": "1cef229905eb9bdf2b6746365f27ea9f57686c2e76131bc424566f1d1dfb97ba",
+            "tokens": 486285
+          },
+          {
+            "bytes": 1272258,
+            "docs": 500,
+            "meta": "tokens/train/train-00045.meta.json",
+            "path": "tokens/train/train-00045.tokens.npy",
+            "sha256": "5f10dbc4f0fdc71259b7d4e72b02baf11a711ff61874ddf4bd3d6b5daff39787",
+            "tokens": 636065
+          },
+          {
+            "bytes": 1017282,
+            "docs": 500,
+            "meta": "tokens/train/train-00046.meta.json",
+            "path": "tokens/train/train-00046.tokens.npy",
+            "sha256": "0f1a6b291163547703480fa25fe230d50b98d5a9bdd8d16dc7407e38a0e988a5",
+            "tokens": 508577
+          },
+          {
+            "bytes": 997188,
+            "docs": 500,
+            "meta": "tokens/train/train-00047.meta.json",
+            "path": "tokens/train/train-00047.tokens.npy",
+            "sha256": "d07787610d37c0ccb74c2880aca6a5b67358cd40ae7cea6a7e6ed17068514576",
+            "tokens": 498530
+          },
+          {
+            "bytes": 1463054,
+            "docs": 500,
+            "meta": "tokens/train/train-00048.meta.json",
+            "path": "tokens/train/train-00048.tokens.npy",
+            "sha256": "9bac28d76814c94d448d3b8b62efd49334a0a35c3275c58824489865036e1369",
+            "tokens": 731463
+          },
+          {
+            "bytes": 922056,
+            "docs": 500,
+            "meta": "tokens/train/train-00049.meta.json",
+            "path": "tokens/train/train-00049.tokens.npy",
+            "sha256": "3943d6892f0b9c82af549524de5a4bf3e3faa18f99b545ec188399fd50b37504",
+            "tokens": 460964
+          },
+          {
+            "bytes": 1013024,
+            "docs": 500,
+            "meta": "tokens/train/train-00050.meta.json",
+            "path": "tokens/train/train-00050.tokens.npy",
+            "sha256": "0d7ce0408882e2d9262161eac8d65bf146c04f18493b4d77490c5777a600b93e",
+            "tokens": 506448
+          },
+          {
+            "bytes": 1353756,
+            "docs": 500,
+            "meta": "tokens/train/train-00051.meta.json",
+            "path": "tokens/train/train-00051.tokens.npy",
+            "sha256": "74ab5fa33ddea0ff68959030a65b8853ea245ceb6e8e2c7ce5eb8333ab68a2bb",
+            "tokens": 676814
+          },
+          {
+            "bytes": 950310,
+            "docs": 500,
+            "meta": "tokens/train/train-00052.meta.json",
+            "path": "tokens/train/train-00052.tokens.npy",
+            "sha256": "58b54f68ca043e61fdcccfeb69d2ca49b90d5fedef60dcf6b15656bd395ca9a2",
+            "tokens": 475091
+          },
+          {
+            "bytes": 917596,
+            "docs": 500,
+            "meta": "tokens/train/train-00053.meta.json",
+            "path": "tokens/train/train-00053.tokens.npy",
+            "sha256": "89ded91b1ab888cd0d73fe88934b4637a6167cfc3fd6e52060bffa88686014ba",
+            "tokens": 458734
+          },
+          {
+            "bytes": 1468636,
+            "docs": 500,
+            "meta": "tokens/train/train-00054.meta.json",
+            "path": "tokens/train/train-00054.tokens.npy",
+            "sha256": "39872e6bd74308f2e5af36db4b6bf9fe2b36833c94596e6c19e055ce6c355a4c",
+            "tokens": 734254
+          },
+          {
+            "bytes": 941556,
+            "docs": 500,
+            "meta": "tokens/train/train-00055.meta.json",
+            "path": "tokens/train/train-00055.tokens.npy",
+            "sha256": "56efff2fcaf739b066ee097661ab18661cfad0306e8a234910d068894a5409e7",
+            "tokens": 470714
+          },
+          {
+            "bytes": 1370446,
+            "docs": 500,
+            "meta": "tokens/train/train-00056.meta.json",
+            "path": "tokens/train/train-00056.tokens.npy",
+            "sha256": "4a1567e4492e1e9c6e905e34fac0a3aea68d9c70f37cf1776a1f6e6f4bad424e",
+            "tokens": 685159
+          },
+          {
+            "bytes": 921952,
+            "docs": 500,
+            "meta": "tokens/train/train-00057.meta.json",
+            "path": "tokens/train/train-00057.tokens.npy",
+            "sha256": "c6c93f7bf5ad9d81d609ec1f6e6476dc2b3901ec2442911e4a4f5edd57a1ce22",
+            "tokens": 460912
+          },
+          {
+            "bytes": 941448,
+            "docs": 500,
+            "meta": "tokens/train/train-00058.meta.json",
+            "path": "tokens/train/train-00058.tokens.npy",
+            "sha256": "5cb134824997d9bcb6bae3ef0415bd6965b73cbe328eef5ac27e8a6f562eedc2",
+            "tokens": 470660
+          },
+          {
+            "bytes": 1476920,
+            "docs": 500,
+            "meta": "tokens/train/train-00059.meta.json",
+            "path": "tokens/train/train-00059.tokens.npy",
+            "sha256": "130825bf864518250e468aa9efd54fae342d7015032bcef3c18d59eaec893bf8",
+            "tokens": 738396
+          },
+          {
+            "bytes": 968382,
+            "docs": 500,
+            "meta": "tokens/train/train-00060.meta.json",
+            "path": "tokens/train/train-00060.tokens.npy",
+            "sha256": "7448c9efb2eb7861f2c0fceb053bd2f8bddb6eb550e57a8aa0ae447584aac471",
+            "tokens": 484127
+          },
+          {
+            "bytes": 960258,
+            "docs": 500,
+            "meta": "tokens/train/train-00061.meta.json",
+            "path": "tokens/train/train-00061.tokens.npy",
+            "sha256": "ef537495e2a0b56560b0367c85b6e1c68a9063ea391e24cd41e52af49087a2f8",
+            "tokens": 480065
+          },
+          {
+            "bytes": 1495104,
+            "docs": 500,
+            "meta": "tokens/train/train-00062.meta.json",
+            "path": "tokens/train/train-00062.tokens.npy",
+            "sha256": "4111835eca1bd8fc1582d7faf6d083a34a53a32bf74f860585ce8fce3e2c2a3c",
+            "tokens": 747488
+          },
+          {
+            "bytes": 995374,
+            "docs": 500,
+            "meta": "tokens/train/train-00063.meta.json",
+            "path": "tokens/train/train-00063.tokens.npy",
+            "sha256": "83bca8daaf816efd0fff2c87f02a633bab310f3ded86532fa4edd7d6b3311daa",
+            "tokens": 497623
+          },
+          {
+            "bytes": 1223282,
+            "docs": 500,
+            "meta": "tokens/train/train-00064.meta.json",
+            "path": "tokens/train/train-00064.tokens.npy",
+            "sha256": "765d07ad8c00ca167e3bd1210890dea9635f32ffd0f89253e85a16578e93cfd8",
+            "tokens": 611577
+          },
+          {
+            "bytes": 984260,
+            "docs": 500,
+            "meta": "tokens/train/train-00065.meta.json",
+            "path": "tokens/train/train-00065.tokens.npy",
+            "sha256": "021e8d22624bf7652318c60d161e53c9941e65edc87aa73085173f42b303352c",
+            "tokens": 492066
+          },
+          {
+            "bytes": 951168,
+            "docs": 500,
+            "meta": "tokens/train/train-00066.meta.json",
+            "path": "tokens/train/train-00066.tokens.npy",
+            "sha256": "2de75dc51e9453d523f3b2d9627d893b141ed63e17d9340f7b1ac1741c717aa2",
+            "tokens": 475520
+          },
+          {
+            "bytes": 1227854,
+            "docs": 500,
+            "meta": "tokens/train/train-00067.meta.json",
+            "path": "tokens/train/train-00067.tokens.npy",
+            "sha256": "7dcba009b17c7a3d4b25e820fe9eff9e89a036354943554fb6ddb6f8b8d391c0",
+            "tokens": 613863
+          },
+          {
+            "bytes": 879466,
+            "docs": 500,
+            "meta": "tokens/train/train-00068.meta.json",
+            "path": "tokens/train/train-00068.tokens.npy",
+            "sha256": "111d18f60ac14eeb9984acfbbcf3c299e86b356620c226aefe8939d9b71feee6",
+            "tokens": 439669
+          },
+          {
+            "bytes": 1000316,
+            "docs": 500,
+            "meta": "tokens/train/train-00069.meta.json",
+            "path": "tokens/train/train-00069.tokens.npy",
+            "sha256": "73ac444b4dbe6f200fa4c8b13986d232ced241e9e950267502a69771ea8a04d6",
+            "tokens": 500094
+          },
+          {
+            "bytes": 1479368,
+            "docs": 500,
+            "meta": "tokens/train/train-00070.meta.json",
+            "path": "tokens/train/train-00070.tokens.npy",
+            "sha256": "5d4e103bb2c0018cb0a9abb37b93738c82814f93798cc2e0b5954fc05f8ef8a7",
+            "tokens": 739620
+          },
+          {
+            "bytes": 928090,
+            "docs": 500,
+            "meta": "tokens/train/train-00071.meta.json",
+            "path": "tokens/train/train-00071.tokens.npy",
+            "sha256": "49c541a7849e531bef89f6d1196af84e5610cf8972a72fd8e053ce914dcb361e",
+            "tokens": 463981
+          },
+          {
+            "bytes": 1012952,
+            "docs": 500,
+            "meta": "tokens/train/train-00072.meta.json",
+            "path": "tokens/train/train-00072.tokens.npy",
+            "sha256": "0042149d76f6905094076b972af19f56359bb84a8c8594babad2c486fcafbbde",
+            "tokens": 506412
+          },
+          {
+            "bytes": 1448060,
+            "docs": 500,
+            "meta": "tokens/train/train-00073.meta.json",
+            "path": "tokens/train/train-00073.tokens.npy",
+            "sha256": "5925b46e04fe57b26940edd9035fb67083498e988f148a1aed78af848aecaec3",
+            "tokens": 723966
+          },
+          {
+            "bytes": 983186,
+            "docs": 500,
+            "meta": "tokens/train/train-00074.meta.json",
+            "path": "tokens/train/train-00074.tokens.npy",
+            "sha256": "9f085035cfe629c776c632a72647da6226c2cb46488ecc246e9bb9175edb0092",
+            "tokens": 491529
+          },
+          {
+            "bytes": 1442906,
+            "docs": 500,
+            "meta": "tokens/train/train-00075.meta.json",
+            "path": "tokens/train/train-00075.tokens.npy",
+            "sha256": "a68ba067fed1346967aacf95ab4675c6a43d523a99c787788cb211752e2dd053",
+            "tokens": 721389
+          },
+          {
+            "bytes": 892990,
+            "docs": 500,
+            "meta": "tokens/train/train-00076.meta.json",
+            "path": "tokens/train/train-00076.tokens.npy",
+            "sha256": "d741d177168b32ad46143e61dea77c5e9995aad6715e06b45b65219783051d67",
+            "tokens": 446431
+          },
+          {
+            "bytes": 1022090,
+            "docs": 500,
+            "meta": "tokens/train/train-00077.meta.json",
+            "path": "tokens/train/train-00077.tokens.npy",
+            "sha256": "db8f5dc1068fbcd47afaf4e11d8bbf0adc549fdb55770f8f2e8dd4a28d1e4515",
+            "tokens": 510981
+          },
+          {
+            "bytes": 1491626,
+            "docs": 500,
+            "meta": "tokens/train/train-00078.meta.json",
+            "path": "tokens/train/train-00078.tokens.npy",
+            "sha256": "6dbb5e7a20cf1a397bec9f14f99d9a97c89e4d1e26f2af5992bd51cdfb3eab11",
+            "tokens": 745749
+          },
+          {
+            "bytes": 881496,
+            "docs": 500,
+            "meta": "tokens/train/train-00079.meta.json",
+            "path": "tokens/train/train-00079.tokens.npy",
+            "sha256": "91c5d945f18e3bb9ffaac1dbf21efe148519d83690dc2e012ed2cd9cae612d3c",
+            "tokens": 440684
+          },
+          {
+            "bytes": 994848,
+            "docs": 500,
+            "meta": "tokens/train/train-00080.meta.json",
+            "path": "tokens/train/train-00080.tokens.npy",
+            "sha256": "c7502360af2ca66028b72786baef780c4014e1f39f067e24040312f098e3db99",
+            "tokens": 497360
+          },
+          {
+            "bytes": 1360356,
+            "docs": 500,
+            "meta": "tokens/train/train-00081.meta.json",
+            "path": "tokens/train/train-00081.tokens.npy",
+            "sha256": "cfa5da1df783a74b23888bf74defe5fc17c2f0e0126eafd9609d31eabdce77c1",
+            "tokens": 680114
+          },
+          {
+            "bytes": 995558,
+            "docs": 500,
+            "meta": "tokens/train/train-00082.meta.json",
+            "path": "tokens/train/train-00082.tokens.npy",
+            "sha256": "fc90c2af8bd8f8a5e013a36cd90563921319a67765058a76f08376859cbc15b0",
+            "tokens": 497715
+          },
+          {
+            "bytes": 948804,
+            "docs": 500,
+            "meta": "tokens/train/train-00083.meta.json",
+            "path": "tokens/train/train-00083.tokens.npy",
+            "sha256": "9768683ff4e15a1f279ff44fbfe1f50727591b51fabfc9f34875eb12f118d856",
+            "tokens": 474338
+          },
+          {
+            "bytes": 1415230,
+            "docs": 500,
+            "meta": "tokens/train/train-00084.meta.json",
+            "path": "tokens/train/train-00084.tokens.npy",
+            "sha256": "775c23f9c4b9c55d5da1ee5c159d1ae20910035b34196c660cadaad44af2727b",
+            "tokens": 707551
+          },
+          {
+            "bytes": 955504,
+            "docs": 500,
+            "meta": "tokens/train/train-00085.meta.json",
+            "path": "tokens/train/train-00085.tokens.npy",
+            "sha256": "c0c28c8ac6ce5dbcdd5c18f5decab55ea633e8d3117198a26c9bb0d6ad0d44bf",
+            "tokens": 477688
+          },
+          {
+            "bytes": 1282362,
+            "docs": 500,
+            "meta": "tokens/train/train-00086.meta.json",
+            "path": "tokens/train/train-00086.tokens.npy",
+            "sha256": "b98d7658e20f8e0efa1a300802152b77a7ab087582633b8686b377fb5fea852a",
+            "tokens": 641117
+          },
+          {
+            "bytes": 872528,
+            "docs": 500,
+            "meta": "tokens/train/train-00087.meta.json",
+            "path": "tokens/train/train-00087.tokens.npy",
+            "sha256": "3c381ecd5da26263b1420bc388aa4ac864d2e159aa1ffc3e0e91ffb34a8f9335",
+            "tokens": 436200
+          },
+          {
+            "bytes": 953784,
+            "docs": 500,
+            "meta": "tokens/train/train-00088.meta.json",
+            "path": "tokens/train/train-00088.tokens.npy",
+            "sha256": "7a280673789e807fd144a271dedc5aec34dfa3d7ac7b02e1b0b577e6a11afc18",
+            "tokens": 476828
+          },
+          {
+            "bytes": 1379750,
+            "docs": 500,
+            "meta": "tokens/train/train-00089.meta.json",
+            "path": "tokens/train/train-00089.tokens.npy",
+            "sha256": "c1e6bde657c61507c19966483ecafc18595cb11de5b3dabf7e9427111283a406",
+            "tokens": 689811
+          },
+          {
+            "bytes": 909030,
+            "docs": 500,
+            "meta": "tokens/train/train-00090.meta.json",
+            "path": "tokens/train/train-00090.tokens.npy",
+            "sha256": "36fbf11d677bbe00ae8c779c0b3b8b21c36800ac3eed508cd2586e79ed8680b3",
+            "tokens": 454451
+          },
+          {
+            "bytes": 882994,
+            "docs": 500,
+            "meta": "tokens/train/train-00091.meta.json",
+            "path": "tokens/train/train-00091.tokens.npy",
+            "sha256": "34214c7b5284d73d6405f3d90d16e8081cf6b7e8cb4f3a10f29be8ac9e5ee80c",
+            "tokens": 441433
+          },
+          {
+            "bytes": 1306988,
+            "docs": 500,
+            "meta": "tokens/train/train-00092.meta.json",
+            "path": "tokens/train/train-00092.tokens.npy",
+            "sha256": "d182ad20d6048944a936f9b24ec63ecd98f9ab1f815dc247785c084eb402afb2",
+            "tokens": 653430
+          },
+          {
+            "bytes": 962906,
+            "docs": 500,
+            "meta": "tokens/train/train-00093.meta.json",
+            "path": "tokens/train/train-00093.tokens.npy",
+            "sha256": "bfff4b9a749a220f54bbb6d1669802e22437dd4481dcd71098324f930694a89b",
+            "tokens": 481389
+          },
+          {
+            "bytes": 1350016,
+            "docs": 500,
+            "meta": "tokens/train/train-00094.meta.json",
+            "path": "tokens/train/train-00094.tokens.npy",
+            "sha256": "e727269984058f34b533c88cb40f53532d05d745f8caf2c5cf37d3f967d6acc1",
+            "tokens": 674944
+          },
+          {
+            "bytes": 918874,
+            "docs": 500,
+            "meta": "tokens/train/train-00095.meta.json",
+            "path": "tokens/train/train-00095.tokens.npy",
+            "sha256": "71e84ab11c1b154920dd2b3076b052b2f66a55bb924adee8c1b1c7fc434f2b75",
+            "tokens": 459373
+          },
+          {
+            "bytes": 990782,
+            "docs": 500,
+            "meta": "tokens/train/train-00096.meta.json",
+            "path": "tokens/train/train-00096.tokens.npy",
+            "sha256": "715e77ee4894bdd92fe141f191289ae90ef42440475f07ea6f8f5343e70b5b1a",
+            "tokens": 495327
+          },
+          {
+            "bytes": 1255884,
+            "docs": 500,
+            "meta": "tokens/train/train-00097.meta.json",
+            "path": "tokens/train/train-00097.tokens.npy",
+            "sha256": "8f090f4d651c7bc4f054503043dc47c09fb851417aaa057982d04b861826fae0",
+            "tokens": 627878
+          },
+          {
+            "bytes": 913156,
+            "docs": 500,
+            "meta": "tokens/train/train-00098.meta.json",
+            "path": "tokens/train/train-00098.tokens.npy",
+            "sha256": "19687dfabac44589c2303f31d25a61c16fff7ab312764f6d37102400c9e8b7f6",
+            "tokens": 456514
+          },
+          {
+            "bytes": 921352,
+            "docs": 500,
+            "meta": "tokens/train/train-00099.meta.json",
+            "path": "tokens/train/train-00099.tokens.npy",
+            "sha256": "62c98891242840410574a5aa61841958b2ba549316aac81ab68c6ab06b2dd0de",
+            "tokens": 460612
+          },
+          {
+            "bytes": 1300724,
+            "docs": 500,
+            "meta": "tokens/train/train-00100.meta.json",
+            "path": "tokens/train/train-00100.tokens.npy",
+            "sha256": "338aecc4ebde984ac0f9faa2e3d383dad04f1f2cc7d1ff70c576111c796105f1",
+            "tokens": 650298
+          },
+          {
+            "bytes": 1001460,
+            "docs": 500,
+            "meta": "tokens/train/train-00101.meta.json",
+            "path": "tokens/train/train-00101.tokens.npy",
+            "sha256": "2205d49668194263c13fa5a8e8bf50d2bfbdc0b9d8c163b33cc1feb0b4366407",
+            "tokens": 500666
+          },
+          {
+            "bytes": 888280,
+            "docs": 500,
+            "meta": "tokens/train/train-00102.meta.json",
+            "path": "tokens/train/train-00102.tokens.npy",
+            "sha256": "1698a710ea2e824357a9ce327ab8b8fd7aa9f2f583b7ab4c8102a3715704d70b",
+            "tokens": 444076
+          },
+          {
+            "bytes": 1245026,
+            "docs": 500,
+            "meta": "tokens/train/train-00103.meta.json",
+            "path": "tokens/train/train-00103.tokens.npy",
+            "sha256": "f8746939ecf5867f8c4585b695fcf2080d7ff911e642c2fd6394faf9245cd33f",
+            "tokens": 622449
+          },
+          {
+            "bytes": 990210,
+            "docs": 500,
+            "meta": "tokens/train/train-00104.meta.json",
+            "path": "tokens/train/train-00104.tokens.npy",
+            "sha256": "d31e21449b7c4d48357c81220746bd66e14af0937ef679054437349daa94ca1a",
+            "tokens": 495041
+          },
+          {
+            "bytes": 1340718,
+            "docs": 500,
+            "meta": "tokens/train/train-00105.meta.json",
+            "path": "tokens/train/train-00105.tokens.npy",
+            "sha256": "ba0d01a6d1eb788bd625b7506b2d4d176870641c3d73a4ca7722fb19934c6790",
+            "tokens": 670295
+          },
+          {
+            "bytes": 891240,
+            "docs": 500,
+            "meta": "tokens/train/train-00106.meta.json",
+            "path": "tokens/train/train-00106.tokens.npy",
+            "sha256": "5de60d5876bb35abb147f7e954c655c25153eb02e32ffde61e15574ed19aca91",
+            "tokens": 445556
+          },
+          {
+            "bytes": 1006896,
+            "docs": 500,
+            "meta": "tokens/train/train-00107.meta.json",
+            "path": "tokens/train/train-00107.tokens.npy",
+            "sha256": "3c73e2a9f57bcc6f82906c8434fdc7fc8d92ee4416a168bbc4734c867feabe0d",
+            "tokens": 503384
+          },
+          {
+            "bytes": 1347674,
+            "docs": 500,
+            "meta": "tokens/train/train-00108.meta.json",
+            "path": "tokens/train/train-00108.tokens.npy",
+            "sha256": "5e4aa2da62d1d01d8c7683bb77b2a98e182160c1a225c3267fdb3793ed07cc64",
+            "tokens": 673773
+          },
+          {
+            "bytes": 951566,
+            "docs": 500,
+            "meta": "tokens/train/train-00109.meta.json",
+            "path": "tokens/train/train-00109.tokens.npy",
+            "sha256": "fde08b491c79afac019c9d1909820461560e8fce168032a3cde8d21ab608f6bb",
+            "tokens": 475719
+          },
+          {
+            "bytes": 958160,
+            "docs": 500,
+            "meta": "tokens/train/train-00110.meta.json",
+            "path": "tokens/train/train-00110.tokens.npy",
+            "sha256": "087a0f6f8d7a805e31199361b4cbf1446d183342af6b7b98f886450ca207c37f",
+            "tokens": 479016
+          },
+          {
+            "bytes": 1313174,
+            "docs": 500,
+            "meta": "tokens/train/train-00111.meta.json",
+            "path": "tokens/train/train-00111.tokens.npy",
+            "sha256": "e6a17b35fd0c0b97f4ea07436e99526b5896ce7ddf866be4903cff1dc4947ca7",
+            "tokens": 656523
+          },
+          {
+            "bytes": 973682,
+            "docs": 500,
+            "meta": "tokens/train/train-00112.meta.json",
+            "path": "tokens/train/train-00112.tokens.npy",
+            "sha256": "d65f1af7c7a3141b1c76b8c3ddbdc84610ad3fc9e7901fc3376b5b2b8977d40f",
+            "tokens": 486777
+          },
+          {
+            "bytes": 994938,
+            "docs": 500,
+            "meta": "tokens/train/train-00113.meta.json",
+            "path": "tokens/train/train-00113.tokens.npy",
+            "sha256": "f46c159f8576a4ce79ed25d4cad2175f21c085d76b5067fc1dde98a1bf529917",
+            "tokens": 497405
+          },
+          {
+            "bytes": 1490522,
+            "docs": 500,
+            "meta": "tokens/train/train-00114.meta.json",
+            "path": "tokens/train/train-00114.tokens.npy",
+            "sha256": "ffc5dfd3eed477d546dfa11441a14b4943063ed5cad2fb4c932371b13ba28992",
+            "tokens": 745197
+          },
+          {
+            "bytes": 960318,
+            "docs": 500,
+            "meta": "tokens/train/train-00115.meta.json",
+            "path": "tokens/train/train-00115.tokens.npy",
+            "sha256": "a9c668102214e58fb1191ab790dd38b6173614203fa504dde5c51cb6d2cce186",
+            "tokens": 480095
+          },
+          {
+            "bytes": 1370736,
+            "docs": 500,
+            "meta": "tokens/train/train-00116.meta.json",
+            "path": "tokens/train/train-00116.tokens.npy",
+            "sha256": "a800f0bb531c80616c032dfc1fbd3cdaa7be6215b6901c90ae43129814a2fbe3",
+            "tokens": 685304
+          },
+          {
+            "bytes": 884854,
+            "docs": 500,
+            "meta": "tokens/train/train-00117.meta.json",
+            "path": "tokens/train/train-00117.tokens.npy",
+            "sha256": "c76dcee4b2d025ec645e79ed82fb081744b57271cd29e07cd903b83c55a44284",
+            "tokens": 442363
+          },
+          {
+            "bytes": 923302,
+            "docs": 500,
+            "meta": "tokens/train/train-00118.meta.json",
+            "path": "tokens/train/train-00118.tokens.npy",
+            "sha256": "acdfb25ccd2476f2415c2640eb84c409789a154329ec116b342cc897896f1063",
+            "tokens": 461587
+          },
+          {
+            "bytes": 1308140,
+            "docs": 500,
+            "meta": "tokens/train/train-00119.meta.json",
+            "path": "tokens/train/train-00119.tokens.npy",
+            "sha256": "b249dc33d7ce91801505f1e1ae21e7d659b844e303b08fdb8e8fb5046b050394",
+            "tokens": 654006
+          },
+          {
+            "bytes": 964636,
+            "docs": 500,
+            "meta": "tokens/train/train-00120.meta.json",
+            "path": "tokens/train/train-00120.tokens.npy",
+            "sha256": "ced812727bf804f22b88c9536c05a06a8da453222d762e6a5ed12b4f806d900a",
+            "tokens": 482254
+          },
+          {
+            "bytes": 1001590,
+            "docs": 500,
+            "meta": "tokens/train/train-00121.meta.json",
+            "path": "tokens/train/train-00121.tokens.npy",
+            "sha256": "7a28e6d5d1dc47c5e973d21ffee8e5d0b91d0a31a6795709b0f0bfce4d9a3797",
+            "tokens": 500731
+          },
+          {
+            "bytes": 1361864,
+            "docs": 500,
+            "meta": "tokens/train/train-00122.meta.json",
+            "path": "tokens/train/train-00122.tokens.npy",
+            "sha256": "213355f9c1a628b48329bcca32fe413d2ccc9438ba784fa3cb23b9e50c3a75d8",
+            "tokens": 680868
+          },
+          {
+            "bytes": 956790,
+            "docs": 500,
+            "meta": "tokens/train/train-00123.meta.json",
+            "path": "tokens/train/train-00123.tokens.npy",
+            "sha256": "a15201ecc1d20f2b794540b54d24db50329bf67a9de36deae3acf0d5927e0f91",
+            "tokens": 478331
+          },
+          {
+            "bytes": 1004830,
+            "docs": 500,
+            "meta": "tokens/train/train-00124.meta.json",
+            "path": "tokens/train/train-00124.tokens.npy",
+            "sha256": "7ebcf9c8c2f2e566657dac3f0935872663961b08f9bbf58666c0b8cd5fdbc35d",
+            "tokens": 502351
+          },
+          {
+            "bytes": 1335930,
+            "docs": 500,
+            "meta": "tokens/train/train-00125.meta.json",
+            "path": "tokens/train/train-00125.tokens.npy",
+            "sha256": "aff73c756102f00a7b3fdd62ab5e727246d8052e28299018090b9eaa38f64e81",
+            "tokens": 667901
+          },
+          {
+            "bytes": 940344,
+            "docs": 500,
+            "meta": "tokens/train/train-00126.meta.json",
+            "path": "tokens/train/train-00126.tokens.npy",
+            "sha256": "41f489513a02f1c032aae4650702bc990a62ffe2090be52072282c75a6db93dd",
+            "tokens": 470108
+          },
+          {
+            "bytes": 1364664,
+            "docs": 500,
+            "meta": "tokens/train/train-00127.meta.json",
+            "path": "tokens/train/train-00127.tokens.npy",
+            "sha256": "4cb1bede7052b58a6f48b260e06713d5d3fc0b011e5f6f5aac003110d51ace4f",
+            "tokens": 682268
+          },
+          {
+            "bytes": 923346,
+            "docs": 500,
+            "meta": "tokens/train/train-00128.meta.json",
+            "path": "tokens/train/train-00128.tokens.npy",
+            "sha256": "cbb69cfe67ecca94623c09bb977ecb5123c27bff26e0080c7ed369096cdafe9a",
+            "tokens": 461609
+          },
+          {
+            "bytes": 1000336,
+            "docs": 500,
+            "meta": "tokens/train/train-00129.meta.json",
+            "path": "tokens/train/train-00129.tokens.npy",
+            "sha256": "e063ce9e9f5a1ef91057aff55b1ad56b14e1a836ad7d939e88a47fb5c9699ef0",
+            "tokens": 500104
+          },
+          {
+            "bytes": 1270630,
+            "docs": 500,
+            "meta": "tokens/train/train-00130.meta.json",
+            "path": "tokens/train/train-00130.tokens.npy",
+            "sha256": "e2a3c190f8bcf9ba3a8e21f18bd6873fba4e501d947bc74acd9f7c74b0b553a5",
+            "tokens": 635251
+          },
+          {
+            "bytes": 894106,
+            "docs": 500,
+            "meta": "tokens/train/train-00131.meta.json",
+            "path": "tokens/train/train-00131.tokens.npy",
+            "sha256": "6cf097d4393e8a262c953b9608badfdbfead5da0c667b2e9cabfc522756ef0e3",
+            "tokens": 446989
+          },
+          {
+            "bytes": 942898,
+            "docs": 500,
+            "meta": "tokens/train/train-00132.meta.json",
+            "path": "tokens/train/train-00132.tokens.npy",
+            "sha256": "53aee74b35da1317f425091b8de2f8c4acfe278f3256ee7f3abf7d6048529afe",
+            "tokens": 471385
+          },
+          {
+            "bytes": 1288664,
+            "docs": 500,
+            "meta": "tokens/train/train-00133.meta.json",
+            "path": "tokens/train/train-00133.tokens.npy",
+            "sha256": "2f10d8a05054235268e6a4656761385d0b8eee4333f373d078b8035712b645ea",
+            "tokens": 644268
+          },
+          {
+            "bytes": 936640,
+            "docs": 500,
+            "meta": "tokens/train/train-00134.meta.json",
+            "path": "tokens/train/train-00134.tokens.npy",
+            "sha256": "ded4648781f1af38517bbbb0bfdbbb92ef62f9a569f2be27593990b62d76f903",
+            "tokens": 468256
+          },
+          {
+            "bytes": 1115642,
+            "docs": 500,
+            "meta": "tokens/train/train-00135.meta.json",
+            "path": "tokens/train/train-00135.tokens.npy",
+            "sha256": "391e708ba3f7d76793ec3e4d1c4a658e183685b4c0dbdfaf4277b46de242fc5b",
+            "tokens": 557757
+          },
+          {
+            "bytes": 1124806,
+            "docs": 500,
+            "meta": "tokens/train/train-00136.meta.json",
+            "path": "tokens/train/train-00136.tokens.npy",
+            "sha256": "7ed9f581584701e98fcecc3b2c3308ab521971c5fcce6cf65f4290129981c74d",
+            "tokens": 562339
+          },
+          {
+            "bytes": 1003462,
+            "docs": 500,
+            "meta": "tokens/train/train-00137.meta.json",
+            "path": "tokens/train/train-00137.tokens.npy",
+            "sha256": "29bf2add5d1d4155abfc2d42a180727252058906498ca06d24fe4818783892a9",
+            "tokens": 501667
+          },
+          {
+            "bytes": 1361988,
+            "docs": 500,
+            "meta": "tokens/train/train-00138.meta.json",
+            "path": "tokens/train/train-00138.tokens.npy",
+            "sha256": "e41d2828bdc80599711a891f8747c938a2d28eeb2b8743d8216b99144ddef0ba",
+            "tokens": 680930
+          },
+          {
+            "bytes": 914638,
+            "docs": 500,
+            "meta": "tokens/train/train-00139.meta.json",
+            "path": "tokens/train/train-00139.tokens.npy",
+            "sha256": "fdfa0fcde86bea6a00aa779e6d4a3481df956d48f57f976c8a3c48818233cb53",
+            "tokens": 457255
+          },
+          {
+            "bytes": 962800,
+            "docs": 500,
+            "meta": "tokens/train/train-00140.meta.json",
+            "path": "tokens/train/train-00140.tokens.npy",
+            "sha256": "c99625e751ae4e4fa6607abc34a39acb7859c92a64c11fa5ed55a30d0b309d1f",
+            "tokens": 481336
+          },
+          {
+            "bytes": 1441510,
+            "docs": 500,
+            "meta": "tokens/train/train-00141.meta.json",
+            "path": "tokens/train/train-00141.tokens.npy",
+            "sha256": "90ab92b78cb2862a5e762f975eeb027e20d0dfe51b7821fc24c94e475c37c7ca",
+            "tokens": 720691
+          },
+          {
+            "bytes": 964572,
+            "docs": 500,
+            "meta": "tokens/train/train-00142.meta.json",
+            "path": "tokens/train/train-00142.tokens.npy",
+            "sha256": "4cbf2b5d0dd400df9664c72a8e26e5b70645a4d11e25c021f8a231a6675625c0",
+            "tokens": 482222
+          },
+          {
+            "bytes": 1022522,
+            "docs": 500,
+            "meta": "tokens/train/train-00143.meta.json",
+            "path": "tokens/train/train-00143.tokens.npy",
+            "sha256": "4b247afec091b26b40ceec4cb37a1d70f3791ae5b100bdc40e89a75e25395d16",
+            "tokens": 511197
+          },
+          {
+            "bytes": 1191872,
+            "docs": 500,
+            "meta": "tokens/train/train-00144.meta.json",
+            "path": "tokens/train/train-00144.tokens.npy",
+            "sha256": "2a81588d350dbf18c57a990bef21edd4e3ff717604d67576d10f2ce222ec788e",
+            "tokens": 595872
+          },
+          {
+            "bytes": 992350,
+            "docs": 500,
+            "meta": "tokens/train/train-00145.meta.json",
+            "path": "tokens/train/train-00145.tokens.npy",
+            "sha256": "c34b8eb8d5ed256c8311613735160a11ff886e3f892fb5305a4903ac53c83d29",
+            "tokens": 496111
+          },
+          {
+            "bytes": 1244594,
+            "docs": 500,
+            "meta": "tokens/train/train-00146.meta.json",
+            "path": "tokens/train/train-00146.tokens.npy",
+            "sha256": "3f5ba8c89f850e33f76689ff73b774dbaf0131eae5f4424425106956a4d139a4",
+            "tokens": 622233
+          },
+          {
+            "bytes": 873946,
+            "docs": 500,
+            "meta": "tokens/train/train-00147.meta.json",
+            "path": "tokens/train/train-00147.tokens.npy",
+            "sha256": "b675b328757ec49380081b948b0aadd99474d419965b3c998a4ee8ce04714403",
+            "tokens": 436909
+          },
+          {
+            "bytes": 1011590,
+            "docs": 500,
+            "meta": "tokens/train/train-00148.meta.json",
+            "path": "tokens/train/train-00148.tokens.npy",
+            "sha256": "7f9ca0bf770594c32059e37c53786e99d4eadbd5d3832dd61c2a85c8d116af7e",
+            "tokens": 505731
+          },
+          {
+            "bytes": 1353056,
+            "docs": 500,
+            "meta": "tokens/train/train-00149.meta.json",
+            "path": "tokens/train/train-00149.tokens.npy",
+            "sha256": "32000ac36142baca60ea4ff9a0de363d2d678b295df6369e62775d9a82a60c16",
+            "tokens": 676464
+          },
+          {
+            "bytes": 932600,
+            "docs": 500,
+            "meta": "tokens/train/train-00150.meta.json",
+            "path": "tokens/train/train-00150.tokens.npy",
+            "sha256": "436182923319261e25c1615a3e3cb5fd0fbe6e281b1bb0c70f2c1c6519edc5ab",
+            "tokens": 466236
+          },
+          {
+            "bytes": 957992,
+            "docs": 500,
+            "meta": "tokens/train/train-00151.meta.json",
+            "path": "tokens/train/train-00151.tokens.npy",
+            "sha256": "8af43d9f905a6b72f25dbd53395616eb19950126adadfa8664b7532b6951b290",
+            "tokens": 478932
+          },
+          {
+            "bytes": 1209380,
+            "docs": 500,
+            "meta": "tokens/train/train-00152.meta.json",
+            "path": "tokens/train/train-00152.tokens.npy",
+            "sha256": "2aed4ea41ee359cff45e3a4da00429b814f0afe8742df8876165bf745ee2b980",
+            "tokens": 604626
+          },
+          {
+            "bytes": 995516,
+            "docs": 500,
+            "meta": "tokens/train/train-00153.meta.json",
+            "path": "tokens/train/train-00153.tokens.npy",
+            "sha256": "00c518f5b2ea324538d6c932863f232074a6b723c66596cdf3ed2b9c47763ecd",
+            "tokens": 497694
+          },
+          {
+            "bytes": 1001268,
+            "docs": 500,
+            "meta": "tokens/train/train-00154.meta.json",
+            "path": "tokens/train/train-00154.tokens.npy",
+            "sha256": "6172ddc7685ae8080489176d2f56aa0633f73a3bc07f6b424800a2014ad5e0e0",
+            "tokens": 500570
+          },
+          {
+            "bytes": 1239708,
+            "docs": 500,
+            "meta": "tokens/train/train-00155.meta.json",
+            "path": "tokens/train/train-00155.tokens.npy",
+            "sha256": "0e9bbc5d9d440ae505675ca17863ac69833b4ab8bb449d2749fa5bcf1bdecf6c",
+            "tokens": 619790
+          },
+          {
+            "bytes": 962174,
+            "docs": 500,
+            "meta": "tokens/train/train-00156.meta.json",
+            "path": "tokens/train/train-00156.tokens.npy",
+            "sha256": "23604d988f74c29c2099264edd0ad9e570c563f2e4865d187daca617c3fec0e7",
+            "tokens": 481023
+          },
+          {
+            "bytes": 1353952,
+            "docs": 500,
+            "meta": "tokens/train/train-00157.meta.json",
+            "path": "tokens/train/train-00157.tokens.npy",
+            "sha256": "c13dc12975754233a6b09f17e2872aabcf210721b76cf44322a28513204d9759",
+            "tokens": 676912
+          },
+          {
+            "bytes": 959232,
+            "docs": 500,
+            "meta": "tokens/train/train-00158.meta.json",
+            "path": "tokens/train/train-00158.tokens.npy",
+            "sha256": "d2e4d3949f44e24847d861d1321b0c3de5219b600c34399299f69ae3d8e46e73",
+            "tokens": 479552
+          },
+          {
+            "bytes": 1003914,
+            "docs": 500,
+            "meta": "tokens/train/train-00159.meta.json",
+            "path": "tokens/train/train-00159.tokens.npy",
+            "sha256": "835d717c53408785a60f481d83338aaae4765a220ac567d92817ea9903bae57d",
+            "tokens": 501893
+          },
+          {
+            "bytes": 1445888,
+            "docs": 500,
+            "meta": "tokens/train/train-00160.meta.json",
+            "path": "tokens/train/train-00160.tokens.npy",
+            "sha256": "7c157661810adf23d8f2293550b8cf001d84b4c43f42acf4173fd91582b259cb",
+            "tokens": 722880
+          },
+          {
+            "bytes": 934544,
+            "docs": 500,
+            "meta": "tokens/train/train-00161.meta.json",
+            "path": "tokens/train/train-00161.tokens.npy",
+            "sha256": "25d3342aa3b834a19a248adafedf257058066b378c4dfa4d28fe7484da3c43bf",
+            "tokens": 467208
+          },
+          {
+            "bytes": 989098,
+            "docs": 500,
+            "meta": "tokens/train/train-00162.meta.json",
+            "path": "tokens/train/train-00162.tokens.npy",
+            "sha256": "18176992a6e563340b002c752fe7b81aa0a6b4a053a1b01ef0a1a76efd986c7e",
+            "tokens": 494485
+          },
+          {
+            "bytes": 1363160,
+            "docs": 500,
+            "meta": "tokens/train/train-00163.meta.json",
+            "path": "tokens/train/train-00163.tokens.npy",
+            "sha256": "74e63d92139d272de4e5cbf0e928be1ce14452ffc330d482a9e267cc194406dc",
+            "tokens": 681516
+          },
+          {
+            "bytes": 938710,
+            "docs": 500,
+            "meta": "tokens/train/train-00164.meta.json",
+            "path": "tokens/train/train-00164.tokens.npy",
+            "sha256": "68d1360b922cfb8b6ac5a79ae0fa64ff1f4ce3b92fd23850bd74fb14a4780492",
+            "tokens": 469291
+          },
+          {
+            "bytes": 1234244,
+            "docs": 500,
+            "meta": "tokens/train/train-00165.meta.json",
+            "path": "tokens/train/train-00165.tokens.npy",
+            "sha256": "8c8440ccf56bc8178b13d3fb05bfec1d1a347a513c6a75b55419f7196b4428c7",
+            "tokens": 617058
+          },
+          {
+            "bytes": 896682,
+            "docs": 500,
+            "meta": "tokens/train/train-00166.meta.json",
+            "path": "tokens/train/train-00166.tokens.npy",
+            "sha256": "23e119a610ef112e2a9bb3b13a08ff948ce52657ebb03270ad75596a0a6b0a7b",
+            "tokens": 448277
+          },
+          {
+            "bytes": 992854,
+            "docs": 500,
+            "meta": "tokens/train/train-00167.meta.json",
+            "path": "tokens/train/train-00167.tokens.npy",
+            "sha256": "ef98183e178c31b85e14cdddff1702cdf4f9ce4e834b06daa1831ade8f632095",
+            "tokens": 496363
+          },
+          {
+            "bytes": 1294604,
+            "docs": 500,
+            "meta": "tokens/train/train-00168.meta.json",
+            "path": "tokens/train/train-00168.tokens.npy",
+            "sha256": "166230bef9b36277125295a8a8501a7c22c8150ae91bb6674c3342656f6e90b1",
+            "tokens": 647238
+          },
+          {
+            "bytes": 890542,
+            "docs": 500,
+            "meta": "tokens/train/train-00169.meta.json",
+            "path": "tokens/train/train-00169.tokens.npy",
+            "sha256": "3458f1b3082f542e70d3991b2e1c102b2cdce8af7970c3de2e698dc021e70d59",
+            "tokens": 445207
+          },
+          {
+            "bytes": 1027376,
+            "docs": 500,
+            "meta": "tokens/train/train-00170.meta.json",
+            "path": "tokens/train/train-00170.tokens.npy",
+            "sha256": "c6f5de37aec25f45ce2885c5c9ed5a9e06969d876ef6167530f680e748ba97c8",
+            "tokens": 513624
+          },
+          {
+            "bytes": 1424304,
+            "docs": 500,
+            "meta": "tokens/train/train-00171.meta.json",
+            "path": "tokens/train/train-00171.tokens.npy",
+            "sha256": "79bde5cd18d0c26a3355037e1bf8f662558993956ff8104d721bc3ca3545543f",
+            "tokens": 712088
+          },
+          {
+            "bytes": 941556,
+            "docs": 500,
+            "meta": "tokens/train/train-00172.meta.json",
+            "path": "tokens/train/train-00172.tokens.npy",
+            "sha256": "1e4b5ece4bad10dc5981e3ff82d077e484cd127aa22e850db2ef583e4a6aa08b",
+            "tokens": 470714
+          },
+          {
+            "bytes": 1442648,
+            "docs": 500,
+            "meta": "tokens/train/train-00173.meta.json",
+            "path": "tokens/train/train-00173.tokens.npy",
+            "sha256": "b3eba889ff1aa0ec61d42de7f2323ac92b82b965332e57ce3e18516f3b238abe",
+            "tokens": 721260
+          },
+          {
+            "bytes": 143018,
+            "docs": 63,
+            "meta": "tokens/train/train-00174.meta.json",
+            "path": "tokens/train/train-00174.tokens.npy",
+            "sha256": "c38e097d1166b238fffc9f3b7585776e3b03043aa338975652a415f773fc9ad8",
+            "tokens": 71445
+          }
+        ],
+        "tokens": 95951233
+      },
+      "validation": {
+        "docs": 1874,
+        "shards": [
+          {
+            "bytes": 1098614,
+            "docs": 500,
+            "meta": "tokens/validation/validation-00000.meta.json",
+            "path": "tokens/validation/validation-00000.tokens.npy",
+            "sha256": "44a8cb429659f0a0095ecc70a38b1e6fc1afc351466ffdcb08fd976ce9d66c5c",
+            "tokens": 549243
+          },
+          {
+            "bytes": 1195234,
+            "docs": 500,
+            "meta": "tokens/validation/validation-00001.meta.json",
+            "path": "tokens/validation/validation-00001.tokens.npy",
+            "sha256": "04f8a0575903720a0570f8787ef6a8d95f264096f9825ec9bd14a8b2cdefb51a",
+            "tokens": 597553
+          },
+          {
+            "bytes": 1127296,
+            "docs": 500,
+            "meta": "tokens/validation/validation-00002.meta.json",
+            "path": "tokens/validation/validation-00002.tokens.npy",
+            "sha256": "59e72d4a088566d6bbf0ae609928757e5c99c493b0566c6b7e0805148641f26b",
+            "tokens": 563584
+          },
+          {
+            "bytes": 824122,
+            "docs": 374,
+            "meta": "tokens/validation/validation-00003.meta.json",
+            "path": "tokens/validation/validation-00003.tokens.npy",
+            "sha256": "40c8a571cafe58c930308dce257da57de9f6352f4d1839dfa230acb8dca7c12c",
+            "tokens": 411997
+          }
+        ],
+        "tokens": 2122377
+      }
+    },
+    "tokenizer": {
+      "model": "tokenizer/bpe8192.model",
+      "sha256": "411227a8e5289d6f4b450059b744ed278532a4624d3895f1a4979600c49ae034",
+      "train_text": "tokenizer/bpe8192.train.txt",
+      "train_text_sha256": "1f2ffe5bd7f199411a8495ea2439018b3cc11d484d27f3e3cfecbb922590377e",
+      "vocab": "tokenizer/bpe8192.vocab",
+      "vocab_sha256": "d5c6e6cb204450aa85668b918b90da380e73d5c308c0003ce69ec553e62a95b7"
+    },
+    "total_tokens": 100167902,
+    "vocab_size": 8192
+  }
+}

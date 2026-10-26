@@ -42,11 +42,11 @@ def write_source(path, docs):
 class FakeSource:
     """In-memory source with the same interface as the real adapters."""
 
-    name = "local-jsonl"
-
-    def __init__(self, docs, revision="fake-rev-1", license_name="unknown"):
+    def __init__(self, docs, revision="fake-rev-1", license_name="unknown",
+                 name="local-jsonl", dataset_id="local/jsonl"):
+        self.name = name
         self.spec = sources.SourceSpec(
-            name="local-jsonl", dataset_id="local/jsonl", config="-",
+            name=name, dataset_id=dataset_id, config="-",
             split="train", license_name=license_name, access="local")
         self.revision = revision
         self.docs = docs
@@ -60,7 +60,7 @@ class FakeSource:
                 return
             doc = self.docs[index]
             yield sources.SourceDocument(
-                doc_key=f"local/jsonl@{self.revision}:{doc['id']}",
+                doc_key=f"{self.spec.dataset_id}@{self.revision}:{doc['id']}",
                 source=self.name,
                 dataset_id=self.spec.dataset_id,
                 revision=self.revision,

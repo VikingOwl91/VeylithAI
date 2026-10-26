@@ -123,8 +123,9 @@ the tokenizer input, unchanged.
 Model parameter effect for the v2 reference architecture: the untied token
 embedding and output head grow by `(8192 - 1000) * 256 * 2 = 3,682,304`
 parameters, so a v2-shaped model at 8192 tokens has about 29.28M total and
-the same 9.89M active per token (embeddings are always active). The
-vocabulary decision is recorded before any model work.
+13.57M active per token under the audit convention (the 9.89M of the 1000
+vocabulary plus the 3.68M embedding/head delta; embeddings count as active).
+The vocabulary decision is recorded before any model work.
 
 ## 7. Budgets
 
@@ -133,7 +134,7 @@ vocabulary decision is recorded before any model work.
 | streaming smoke | 100 documents, one page | prove adapter, schema, revision |
 | pilot | 2,000 documents, max 2M characters | prove the full pipeline and tokenizer |
 | 10M-token pilot | 11,400 documents, 10,333,164 train tokens, 194 MB | done 2026-10-26; 8192 BPE |
-| 100M-token pilot | later, new budget, `datasets` backend | not started, no automatic escalation |
+| 100M multi-source corpus | 90,784 documents, 95,951,233 train tokens, 1.9 GB | done 2026-10-26; FineWeb/Wikipedia/Cosmopedia, Python-Edu blocked |
 | 1B-token corpus | later, multi-GB | real v3 pretraining, not this step |
 
 The pilot root lives outside git (`--root`), with only manifests and reports
@@ -174,15 +175,18 @@ committed. No corpus or token shard is committed.
 | M4 loader | done, concat and document packing, deterministic sampling |
 | M5 pilot | done, 2000 documents / 1.92M tokens, verified |
 | 10M-token pilot | done, 11,399 documents / 10.33M train tokens, 8192 BPE, deep + near-dup verification green |
-| 100M-token pilot | not started, needs a separate budget and the `datasets` backend |
+| 100M multi-source corpus | done, 90,784 documents / 95.95M train tokens, 8192 BPE, deep + near-dup verification green; Python-Edu blocked |
+| v3.1 design note | done, `docs/V3.1-DESIGN.md`; no model code or GPU run |
 
 ## 11. Next steps after this step
 
-1. v3.1 starts only with a separate approval: define the v3 model
-   width/depth and compute budget, then exactly one GPU run.
-2. Compare against the frozen v2 numbers with the bits/char protocol; do not
-   compare raw token losses across tokenizers.
-3. Use the 8192 tokenizer as the preliminary default (fertility 1.57 vs
-   1.78 for 4096 on held-out text); no model quality is claimed yet.
-4. A 100M-token pilot is a new, separately approved step with the `datasets`
-   backend, 1 % validation/test and a new root. No automatic escalation.
+1. v3.1 starts only with a separate approval: choose the candidate from
+   `docs/V3.1-DESIGN.md` (smaller MoE primary, dense baseline control,
+   v2 MoE reference), fix the command, then exactly one GPU run.
+2. Compare against the frozen v2 numbers with the bits/char protocol; report
+   per source and never compare raw token losses across tokenizers.
+3. Use the 8192 tokenizer as the preliminary default; per-source fertility
+   is 1.55 (FineWeb), 1.75 (Wikipedia), 1.57 (Cosmopedia).
+4. Python-Edu needs The Stack v2 terms review and acceptance before it can
+   be added; do not substitute or backfill the 5 % gap silently.
+5. No 100M+ escalation or automatic follow-up run.

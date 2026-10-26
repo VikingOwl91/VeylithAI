@@ -7,17 +7,26 @@ system package, and no network for the test suite.
 
 | item | value |
 |---|---|
-| Python | 3.14.8 |
-| numpy | 2.5.4 |
-| sentencepiece | 0.2.2 |
-| `datasets` | not installed (optional scale backend) |
-| network | only for the FineWeb-Edu smoke and materialization |
+| project env | `~/veylith-v3-env`, Python 3.12.12 |
+| datasets / pyarrow | 5.1.0 / 26.0.0 (project env only) |
+| numpy / sentencepiece | 2.5.4 / 0.2.2 |
+| system Python | 3.14.8, used for the v2/torch tests |
+| network | only for the FineWeb-Edu/Wikipedia/Cosmopedia smoke and materialization |
+
+Create the isolated environment once (no global packages):
+
+```bash
+uv venv --python 3.12 ~/veylith-v3-env
+uv pip install --python ~/veylith-v3-env/bin/python \
+    datasets pyarrow sentencepiece numpy pytest
+```
 
 ## Tests
 
 ```bash
-python3 -m pytest veylith/v3/tests -q           # 36 passed, 1 skipped
-python3 -m pytest veylith/v2/tests veylith/tests veylith/v3/tests -q  # 125 passed, 1 skipped
+~/veylith-v3-env/bin/python -m pytest veylith/v3/tests -q
+# 43 passed, 2 skipped in the project env; 44 passed, 1 skipped on system Python
+python3 -m pytest veylith/v2/tests veylith/tests -q   # 89 passed
 ```
 
 The skipped test is the opt-in network smoke
@@ -88,6 +97,50 @@ benchmark at `veylith/v3/docs/loader-benchmark-10m-2026-10-26.json`.
 `verify --deep --near-dups` decodes every token span, strips EOS and compares
 the text hash with the document shard, checks every shard sha256, the manifest
 digest and split isolation, and recomputes SimHashes over all kept documents.
+
+## Multi-source 100M corpus
+
+Requires the project environment (datasets/pyarrow). The plan files live in
+`veylith/v3/plans/`.
+
+```bash
+VENV=~/veylith-v3-env/bin/python
+ROOT=~/veylith-v3-data/multi-100m-20261026
+
+$VENV veylith/v3/pipeline.py prepare-multi \
+    --plan veylith/v3/plans/corpus-100m.json --root "$ROOT"
+$VENV veylith/v3/pipeline.py tokenize --root "$ROOT" --vocab 8192
+$VENV veylith/v3/pipeline.py verify --root "$ROOT" --deep --near-dups
+$VENV veylith/v3/pipeline.py report-multi --root "$ROOT"
+$VENV veylith/v3/benchmark_loader.py --root "$ROOT" \
+    --seq-len 256 --batch-size 8 --batches 200 --warmup 50
+```
+
+Reference values (2026-10-26):
+
+| item | value |
+|---|---|
+| sources used | FineWeb-Edu, Wikipedia, Cosmopedia v2 |
+| blocked | Python-Edu (The Stack v2 gated, license `other`, no text) |
+| revisions | `87f0914`, `b04c8d1c`, `3ba9d605` |
+| rows / accepted / available | 97,280 / 95,188 / 95,180 |
+| selected documents | 90,784 (train 87,063, validation 1,874, test 1,847) |
+| train tokens | 95,951,233 (60,356,799 / 20,335,474 / 15,258,960) |
+| validation / test tokens | 2,122,377 / 2,094,292 |
+| tokenizer model sha256 | `411227a8e5289d6f4b450059b744ed278532a4624d3895f1a4979600c49ae034` |
+| manifest digest | `7a6e7991dd83244ced4c9c13627028e1824f00b0f58735cc665323ff111bdcf0` |
+| root size | 1.9 GB |
+| prepare / tokenize / verify | 811 s / 98 s / 375 s |
+| peak RSS | 2.78 / 3.68 / 0.91 GB |
+| loader | 374,810 sequences, 1.10M tokens/s, 227 MB, resume equal |
+
+The pilot plan is `veylith/v3/plans/pilot-multi-1m.json`; it produces about
+1M train tokens per cleared source. The blocked source is listed in the plan
+and logged; it is not silently skipped.
+
+Per-source held-out fertility of the 8192 tokenizer: FineWeb 1.5533,
+Wikipedia 1.7487, Cosmopedia 1.5668. The manifest and the multi-source
+report are committed under `veylith/v3/docs/`.
 
 ## Tokenizer comparison
 

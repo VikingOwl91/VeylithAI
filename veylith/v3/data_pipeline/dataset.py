@@ -165,7 +165,8 @@ def resolve(root: str, relative: str) -> str:
 
 def build_manifest(*, source: dict, seed: int, split_policy: dict, filters: dict,
                    dedup: dict, counts: dict, documents: dict,
-                   tokenization=None) -> dict:
+                   tokenization=None, sources=None, quotas=None,
+                   shuffle=None) -> dict:
     manifest = {
         "format_version": FORMAT_VERSION,
         "pipeline_version": PIPELINE_VERSION,
@@ -179,6 +180,12 @@ def build_manifest(*, source: dict, seed: int, split_policy: dict, filters: dict
         "documents": documents,
         "tokenization": tokenization,
     }
+    if sources is not None:
+        manifest["sources"] = sources
+    if quotas is not None:
+        manifest["quotas"] = quotas
+    if shuffle is not None:
+        manifest["shuffle"] = shuffle
     manifest["digest"] = manifest_digest(manifest)
     return manifest
 
@@ -217,6 +224,58 @@ def validate_manifest(manifest: dict) -> list[str]:
                 "documents", "chars"):
         if key not in counts:
             problems.append(f"missing counts.{key}")
+
+    sources_list = manifest.get("sources")
+    source_names = []
+    if sources_list is not None:
+        if not isinstance(sources_list, list) or not sources_list:
+            problems.append("sources must be a non-empty list")
+        else:
+            for item in sources_list:
+                for key in ("name", "dataset_id", "config", "split",
+                            "revision", "license", "access"):
+                    if key not in item:
+                        problems.append(f"source entry missing {key}")
+                source_names.append(item.get("name"))
+            if len(set(source_names)) != len(source_names):
+                problems.append("duplicate source names")
+            quotas = manifest.get("quotas")
+            if quotas is not None:
+                for name in quotas:
+                    if name not in source_names:
+                        problems.append(f"quota for unknown source: {name}")
+                    for key in ("train_tokens_target", "est_chars_per_token"):
+                        if key not in quotas[name]:
+                            problems.append(f"quota {name} missing {key}")
+            shuffle = manifest.get("shuffle")
+            if shuffle is not None:
+                for key in ("seed", "buckets", "method"):
+                    if key not in shuffle:
+                        problems.append(f"shuffle missing {key}")
+    by_source = counts.get("by_source")
+    if by_source is not None:
+        if sources_list is None:
+            problems.append("counts.by_source without sources")
+        for name, entry in by_source.items():
+            if source_names and name not in source_names:
+                problems.append(f"counts.by_source for unknown source: {name}")
+            for split in SPLITS:
+                if split not in entry.get("documents", {}):
+                    problems.append(f"by_source {name} missing documents.{split}")
+                if split not in entry.get("chars", {}):
+                    problems.append(f"by_source {name} missing chars.{split}")
+        if not problems:
+            for split in SPLITS:
+                total_docs = sum(int(entry["documents"][split])
+                                 for entry in by_source.values())
+                total_chars = sum(int(entry["chars"][split])
+                                  for entry in by_source.values())
+                if isinstance(counts.get("documents"), dict) and total_docs != int(
+                        counts["documents"].get(split, -1)):
+                    problems.append(f"by_source documents.{split} do not sum to counts")
+                if isinstance(counts.get("chars"), dict) and total_chars != int(
+                        counts["chars"].get(split, -1)):
+                    problems.append(f"by_source chars.{split} do not sum to counts")
 
     documents = manifest["documents"]
     for split in SPLITS:
@@ -281,6 +340,10 @@ def verify_corpus(root: str, deep: bool = False) -> dict:
     seen_keys: dict[str, str] = {}
     doc_by_key: dict[str, str] = {}
     doc_shards: dict[str, list[dict]] = {}
+    source_names = [item["name"] for item in manifest.get("sources", [])]
+    per_source = {name: {"documents": {split: 0 for split in SPLITS},
+                         "chars": {split: 0 for split in SPLITS}}
+                  for name in source_names}
 
     for split in SPLITS:
         shards = manifest["documents"][split]
@@ -314,11 +377,33 @@ def verify_corpus(root: str, deep: bool = False) -> dict:
                         f"{seen_keys[key]} and {split}")
                 seen_keys[key] = split
                 doc_by_key[key] = sha256_text(text)
+                if source_names:
+                    source = record.get("source")
+                    if source not in source_names:
+                        result["problems"].append(
+                            f"document {key} has unknown source {source!r}")
+                    else:
+                        per_source[source]["documents"][split] += 1
+                        per_source[source]["chars"][split] += len(text)
                 expected = split_for(key, manifest["split_policy"]["val_permille"],
                                      manifest["split_policy"]["test_permille"])
                 if expected != split:
                     result["problems"].append(
                         f"doc {key} is in {split}, split policy says {expected}")
+
+    if source_names and isinstance(manifest["counts"].get("by_source"), dict):
+        for name in source_names:
+            for split in SPLITS:
+                if per_source[name]["documents"][split] != int(
+                        manifest["counts"]["by_source"].get(name, {})
+                        .get("documents", {}).get(split, -1)):
+                    result["problems"].append(
+                        f"by_source documents mismatch for {name}/{split}")
+                if per_source[name]["chars"][split] != int(
+                        manifest["counts"]["by_source"].get(name, {})
+                        .get("chars", {}).get(split, -1)):
+                    result["problems"].append(
+                        f"by_source chars mismatch for {name}/{split}")
 
     tokenization = manifest["tokenization"]
     if tokenization is not None:
@@ -340,6 +425,7 @@ def verify_corpus(root: str, deep: bool = False) -> dict:
             if os.path.exists(model_file):
                 processor = spm.SentencePieceProcessor(model_file=model_file)
         eos_id = tokenization["special_ids"]["eos"]
+        token_by_source = {}
         for split in SPLITS:
             shards = tokenization["splits"][split].get("shards", [])
             total_tokens = 0
@@ -370,6 +456,10 @@ def verify_corpus(root: str, deep: bool = False) -> dict:
                     if not 0 <= start < end <= int(meta["tokens"]):
                         result["problems"].append(f"bad offsets for {key}")
                         continue
+                    source = doc.get("source")
+                    if source is not None:
+                        token_by_source.setdefault(source, {sp: 0 for sp in SPLITS})
+                        token_by_source[source][split] += end - start
                     if doc["text_sha256"] != doc_by_key[key]:
                         result["problems"].append(f"text hash mismatch for {key}")
                     if tokens is not None:
@@ -382,6 +472,14 @@ def verify_corpus(root: str, deep: bool = False) -> dict:
             if total_tokens != expected_tokens:
                 result["problems"].append(
                     f"token count mismatch for {split}: {total_tokens} != {expected_tokens}")
+        declared = tokenization.get("by_source")
+        if declared is not None:
+            for name, splits_map in declared.items():
+                for split in SPLITS:
+                    actual = int(token_by_source.get(name, {}).get(split, 0))
+                    if actual != int(splits_map.get(split, -1)):
+                        result["problems"].append(
+                            f"token by_source mismatch for {name}/{split}")
 
     result["ok"] = not result["problems"]
     return result

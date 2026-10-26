@@ -131,6 +131,7 @@ def tokenize_corpus(root: str, *, vocab_size: int = 8192, log=print) -> dict:
 
     splits = {}
     total_tokens = 0
+    by_source = {}
     for split in ds.SPLITS:
         shard_meta = []
         split_tokens = 0
@@ -148,11 +149,16 @@ def tokenize_corpus(root: str, *, vocab_size: int = 8192, log=print) -> dict:
                 ids.append(eos_id)
                 docs_meta.append({
                     "doc_key": record["doc_key"],
+                    "source": record.get("source"),
                     "start": start,
                     "end": len(ids),
                     "tokens": len(ids) - start,
                     "text_sha256": ds.sha256_text(record["text"]),
                 })
+                if record.get("source") is not None:
+                    by_source.setdefault(record["source"],
+                                         {item: 0 for item in ds.SPLITS})
+                    by_source[record["source"]][split] += len(ids) - start
             array = np.asarray(ids, dtype=np.uint16)
             data_rel = ds.token_shard_relpath(split, index)
             meta_rel = ds.token_meta_relpath(split, index)
@@ -187,6 +193,15 @@ def tokenize_corpus(root: str, *, vocab_size: int = 8192, log=print) -> dict:
         log(f"  tokens {split}: {split_docs} docs, {split_tokens:,} tokens")
 
     tokenization = {**tokenizer, "splits": splits, "total_tokens": total_tokens}
+    if manifest.get("sources"):
+        for item in manifest["sources"]:
+            by_source.setdefault(item["name"], {split: 0 for split in ds.SPLITS})
+        tokenization["by_source"] = by_source
+        if isinstance(manifest["counts"].get("by_source"), dict):
+            for name, split_tokens in by_source.items():
+                entry = manifest["counts"]["by_source"].setdefault(
+                    name, {"documents": {}, "chars": {}})
+                entry["tokens"] = split_tokens
     manifest["tokenization"] = tokenization
     manifest["digest"] = ds.manifest_digest(manifest)
     problems = ds.validate_manifest(manifest)

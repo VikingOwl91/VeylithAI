@@ -1,0 +1,18 @@
+{
+  "batch_size": 8,
+  "batches_per_second": 539.5,
+  "measured_batches": 200,
+  "measured_tokens": 409600,
+  "order_digest": "65de94471144cc1d1cb15ef895a9236778586a2e88114b3b80f417574418fc56",
+  "peak_rss_mb": 227.1,
+  "plan_seconds": 0.843,
+  "plan_sequences": 374810,
+  "plan_tokens": 95951233,
+  "resume_equal": true,
+  "root": "~/veylith-v3-data/multi-100m-20261026",
+  "seq_len": 256,
+  "split": "train",
+  "tokens_per_second": 1104894.3,
+  "verified": true,
+  "wall_seconds": 0.371
+}

@@ -276,6 +276,7 @@ def _load_state(path: str):
 
 
 def run_prepare(source, root: str, *, limit_docs: int,
+                limit_chars: int | None = None,
                 filter_config: FilterConfig | None = None,
                 val_permille: int = 5, test_permille: int = 5,
                 shard_docs: int = 1000, resume: bool = False,
@@ -321,6 +322,7 @@ def run_prepare(source, root: str, *, limit_docs: int,
         index_entries = _load_index(staging)
         staged_keys = {entry["doc_key"] for entry in index_entries}
         staged = int(state["staged"])
+        staged_chars = sum(int(entry["chars"]) for entry in index_entries)
         shard_index = int(state["shard_index"])
         next_offset = int(state["next_offset"])
         rejected = dict(state.get("rejected") or {})
@@ -330,6 +332,7 @@ def run_prepare(source, root: str, *, limit_docs: int,
     else:
         staged_keys = set()
         staged = 0
+        staged_chars = 0
         shard_index = 0
         next_offset = 0
         rejected = {}
@@ -352,11 +355,11 @@ def run_prepare(source, root: str, *, limit_docs: int,
     buffer_records: list[dict] = []
     buffer_index: list[dict] = []
     buffer_start = next_offset
-    stop = staged >= limit_docs
+    stop = staged >= limit_docs or (limit_chars is not None and staged_chars >= limit_chars)
     max_rows = max_rows if max_rows is not None else max(1000, (limit_docs - staged) * 10 + 100)
 
     def flush(offset_after: int) -> None:
-        nonlocal shard_index, staged, next_offset
+        nonlocal shard_index, staged, staged_chars, next_offset
         wrote = bool(buffer_records)
         shard_name = None
         if wrote:
@@ -365,6 +368,7 @@ def run_prepare(source, root: str, *, limit_docs: int,
             ds.write_jsonl_atomic(os.path.join(staging, shard_name), buffer_records)
             ds.write_jsonl_atomic(os.path.join(staging, index_name), buffer_index)
             staged += len(buffer_records)
+            staged_chars += sum(int(entry["chars"]) for entry in buffer_index)
             shard_index += 1
             buffer_records.clear()
             buffer_index.clear()
@@ -401,7 +405,10 @@ def run_prepare(source, root: str, *, limit_docs: int,
                                    "meta": doc.meta})
             buffer_index.append(entry)
             staged_keys.add(doc.doc_key)
-            if staged + len(buffer_records) >= limit_docs:
+            buffer_chars = sum(int(entry["chars"]) for entry in buffer_index)
+            if staged + len(buffer_records) >= limit_docs or (
+                    limit_chars is not None
+                    and staged_chars + buffer_chars >= limit_chars):
                 flush(int(doc.arrival_index) + 1)
                 break
             if len(buffer_records) >= shard_docs:
@@ -411,9 +418,9 @@ def run_prepare(source, root: str, *, limit_docs: int,
         flush(next_offset)
 
     if not finalize:
-        return {"staged": staged, "state_path": state_path,
-                "shard_index": shard_index, "rejected": rejected,
-                "rows_seen": rows_seen}
+        return {"staged": staged, "staged_chars": staged_chars,
+                "state_path": state_path, "shard_index": shard_index,
+                "rejected": rejected, "rows_seen": rows_seen}
 
     return finalize_corpus(source, root, filter_config=cfg,
                            val_permille=val_permille,

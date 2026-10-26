@@ -12,10 +12,13 @@ token shards) from Hugging Face sources and feeds deterministic training
 batches. The model architecture is not part of this step; v2 remains the
 reference.
 
-The v3.0 pilot is materialized: 11,399 FineWeb-Edu documents, 10,333,164
-train tokens, 8192-token BPE, 98/1/1 splits, deep verification green. See
-`docs/PILOT-10M-2026-10-26.md` for timings, tokenizer comparison and
-limitations.
+The v3.0 corpus is materialized: 90,784 documents from FineWeb-Edu,
+Wikipedia and Cosmopedia v2, 95,951,233 train tokens, 8192-token BPE, 2 %
+validation and 2 % test, deep verification green. Python-Edu is blocked
+because its text requires The Stack v2 (gated, license `other`); the 5 %
+share is reported, not backfilled. See
+`docs/MULTI-SOURCE-100M-2026-10-26.md`, the earlier
+`docs/PILOT-10M-2026-10-26.md` and `docs/V3.1-DESIGN.md`.
 
 See `PLAN.md` for goals and milestones, `docs/DATA-SOURCES.md` for sources
 and licenses, `docs/REPRODUCE.md` for commands, and
@@ -31,7 +34,9 @@ and licenses, `docs/REPRODUCE.md` for commands, and
 | `data_pipeline/tokenize.py` | BPE training on the train split, token shards with document offsets |
 | `data_pipeline/loader.py` | non-overlapping sequence packing, deterministic epoch sampling, mid-epoch resume |
 | `data_pipeline/tokenizer_compare.py` | train and compare BPE vocabularies on the train split |
-| `data_pipeline/cli.py` | CLI for inspect, prepare, tokenize, compare, verify and batches |
+| `data_pipeline/multi_source.py` | per-source plans, cross-source merge, quotas, bucket shuffle, per-source report |
+| `data_pipeline/cli.py` | CLI for inspect, prepare, prepare-multi, merge, tokenize, compare, verify, report and batches |
+| `plans/` | reproducible multi-source budget plans (pilot and 100M) |
 | `benchmark_loader.py` | CPU loader throughput and peak-RSS benchmark |
 | `pipeline.py` | entry point, `python3 veylith/v3/pipeline.py --help` |
 
@@ -105,6 +110,20 @@ python3 veylith/v3/pipeline.py batches \
 # loader throughput and peak RSS
 python3 veylith/v3/benchmark_loader.py \
     --root ~/veylith-v3-data/fineweb-10m-20261026
+
+# multi-source pipeline (project environment with datasets/pyarrow)
+python3 veylith/v3/pipeline.py prepare-multi \
+    --plan veylith/v3/plans/pilot-multi-1m.json \
+    --root ~/veylith-v3-data/multi-pilot-20261026
+python3 veylith/v3/pipeline.py prepare-multi \
+    --plan veylith/v3/plans/corpus-100m.json \
+    --root ~/veylith-v3-data/multi-100m-20261026
+python3 veylith/v3/pipeline.py tokenize \
+    --root ~/veylith-v3-data/multi-100m-20261026 --vocab 8192
+python3 veylith/v3/pipeline.py verify \
+    --root ~/veylith-v3-data/multi-100m-20261026 --deep --near-dups
+python3 veylith/v3/pipeline.py report-multi \
+    --root ~/veylith-v3-data/multi-100m-20261026
 ```
 
 Exit codes: 0 success, 1 validation or local error, 2 access denied,
@@ -131,17 +150,23 @@ outside the repository; no corpus, tokenizer or token shard is committed.
 
 ## Sources
 
-Implemented: FineWeb-Edu, config `sample-10BT`, public, ODC-By 1.0. Two
-backends:
+| source | config | license | status |
+|---|---|---|---|
+| FineWeb-Edu | `sample-10BT` | ODC-By 1.0 | used |
+| Wikipedia | `20231101.en` | CC BY-SA 3.0 + GFDL | used |
+| Cosmopedia v2 | `cosmopedia-v2` (SmolLM-Corpus) | ODC-By 1.0 | used, synthetic |
+| Python-Edu | `python-edu` (SmolLM-Corpus) | The Stack v2, `other` | **blocked** (no text, gated terms) |
 
-- `http` (default): paged rows from the Hugging Face datasets-server, 100
-  rows per request, bounded retries, `revision` pinned. No extra dependency.
-- `datasets`: `datasets.load_dataset(..., streaming=True)`. The scale path;
-  requires the library in a project environment. It is not installed in the
-  system Python, so the pipeline does not depend on it.
+Two backends:
 
-Documented extension points, not implemented: Wikimedia Wikipedia,
-Cosmopedia v2, Python-Edu. See `docs/DATA-SOURCES.md`.
+- `http`: paged rows from the Hugging Face datasets-server, 100 rows per
+  request, bounded retries, `revision` pinned. No extra dependency.
+- `datasets`: `datasets.load_dataset(..., streaming=True)` in the project
+  environment (`~/veylith-v3-env`, Python 3.12, datasets 5.1.0,
+  pyarrow 26.0.0). The multi-source runs use this backend.
+
+See `docs/DATA-SOURCES.md` for revisions, schemas, attribution and the
+Python-Edu block.
 
 ## Tokenizer
 
@@ -168,27 +193,38 @@ Measured on 226 held-out documents of the 10M pilot:
 8192 is chosen for the 12 % lower fertility at 2.1M extra parameters; no
 model quality is claimed.
 
+Multi-source held-out fertility (100M corpus, 8192):
+
+| source | heldout docs | chars/token | fertility |
+|---|---:|---:|---:|
+| FineWeb-Edu | 2,692 | 3.9458 | 1.5533 |
+| Wikipedia | 319 | 3.6082 | 1.7487 |
+| Cosmopedia v2 | 710 | 4.3743 | 1.5668 |
+
 ## Tests
 
 ```bash
 python3 -m pytest veylith/v3/tests -q
 ```
 
-The suite is CPU-only and offline: 36 passed, 1 skipped. The full
-repository suite is 125 passed, 1 skipped. It covers normalization and
-filters, split determinism and isolation, exact and near deduplication,
-shard and manifest integrity, resume, tokenizer reproducibility and
-train-only training, tokenizer comparison, token roundtrips and document
-boundaries, packing coverage, mid-epoch resume and sampling determinism,
-source error classes and the CLI end to end. The network smoke test is
-opt-in: `VEYLITH_NETWORK_TESTS=1`.
+The suite is CPU-only and offline. In the project environment: 43 passed,
+2 skipped (network smoke and the missing-`datasets` path); on the system
+Python, where `datasets` is absent: 44 passed, 1 skipped. The v2 suite is
+89 passed. Covered: normalization and filters, split determinism and
+isolation, exact and near deduplication (including across sources), quotas
+and shortfall, shard and manifest integrity, resume, tokenizer
+reproducibility and train-only training, tokenizer comparison, token
+roundtrips and document boundaries, packing coverage, mid-epoch resume and
+sampling determinism, source error classes and the CLI end to end. The
+network smoke test is opt-in: `VEYLITH_NETWORK_TESTS=1`.
 
 ## Limits
 
 - The prepare step holds the index metadata of all staged documents in
-  memory and on disk (about 320 bytes per document on disk). The 10M pilot
-  peaked at 87.8 MB RSS for 11.4k documents. 100k documents should stay
-  under a few hundred MB; 10M documents need bucketing or external sorting.
+  memory and on disk (about 320 bytes per document on disk). The 100M
+  multi-source run peaked at 2.78 GB RSS for 90,784 documents (adapters,
+  datasets buffers and the merge pass included). 10M documents need
+  bucketing or external sorting.
 - Near-duplicate detection targets shared boilerplate and near-identical
   text. Small edits in otherwise unique text can exceed the Hamming
   threshold; MinHash or embedding-based dedup is future work.
@@ -197,6 +233,11 @@ opt-in: `VEYLITH_NETWORK_TESTS=1`.
   full 2000-document run hit HTTP 429 after three bounded retries. The
   `datasets` backend is the scale path; the local materialized corpus is the
   reproducibility anchor.
-- Validation and test in the 10M pilot have 125 and 101 documents. Enough
-  for tokenizer measurements, not for model quality claims.
+- Validation and test in the 100M corpus have 1,874 and 1,847 documents
+  (2.06 % / 2.03 %) with all three sources represented. Enough for
+  tokenizer and per-source evaluation, not for broad quality claims.
+- Python-Edu is blocked; the 100M target is 95.95M train tokens. The gap is
+  reported, not backfilled.
+- Cosmopedia is 15.9 % synthetic; contamination and hallucination risks are
+  documented in the multi-source report and the v3.1 design note.
 - No GPU code, no model training, no model benchmark in this step.

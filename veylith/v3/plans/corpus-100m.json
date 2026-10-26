@@ -1,0 +1,46 @@
+{
+  "name": "corpus-100m",
+  "note": "target 100M train tokens; 95M planned from cleared sources, Python-Edu 5M blocked by The Stack v2 terms/access",
+  "seed": 0,
+  "val_permille": 20,
+  "test_permille": 20,
+  "sources": [
+    {
+      "name": "fineweb-edu",
+      "config": "sample-10BT",
+      "train_tokens": 60000000,
+      "est_chars_per_token": 3.9723,
+      "max_docs": 90000,
+      "max_rows": 400000,
+      "min_chars": 200,
+      "max_chars": 20000
+    },
+    {
+      "name": "wikipedia",
+      "config": "20231101.en",
+      "train_tokens": 20000000,
+      "est_chars_per_token": 3.63,
+      "max_docs": 10000,
+      "max_rows": 60000,
+      "min_chars": 200,
+      "max_chars": 100000
+    },
+    {
+      "name": "cosmopedia-v2",
+      "config": "cosmopedia-v2",
+      "train_tokens": 15000000,
+      "est_chars_per_token": 4.4489,
+      "max_docs": 30000,
+      "max_rows": 100000,
+      "min_chars": 200,
+      "max_chars": 20000
+    }
+  ],
+  "blocked": [
+    {
+      "name": "python-edu",
+      "train_tokens": 5000000,
+      "reason": "metadata-only dataset; text requires The Stack v2 (gated, license 'other') and the stack card is not accessible without accepting its terms"
+    }
+  ]
+}

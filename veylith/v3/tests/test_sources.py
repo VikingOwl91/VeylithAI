@@ -52,7 +52,7 @@ def test_http_source_pins_revision_and_retries_transient_errors():
     items = [urllib.error.HTTPError(url, 500, "boom", {}, None), rows_payload(2)]
     opener, calls = make_opener(items)
     delays = []
-    source = sources.FineWebEdu(revision="rev-123", opener=opener,
+    source = sources.FineWebEdu(revision="rev-123", backend="http", opener=opener,
                                 sleep=delays.append)
     documents = list(source.iter_documents(limit_rows=2))
     assert [doc.source_id for doc in documents] == ["id-0", "id-1"]
@@ -66,7 +66,7 @@ def test_http_source_pins_revision_and_retries_transient_errors():
 def test_http_auth_error_is_typed_and_mentions_no_credentials():
     url = "https://datasets-server.huggingface.co/rows"
     opener, calls = make_opener([urllib.error.HTTPError(url, 401, "denied", {}, None)])
-    source = sources.FineWebEdu(revision="rev-123", opener=opener)
+    source = sources.FineWebEdu(revision="rev-123", backend="http", opener=opener)
     with pytest.raises(sources.SourceAuthError) as err:
         list(source.iter_documents(limit_rows=1))
     assert "huggingface-cli login" in str(err.value)
@@ -77,7 +77,7 @@ def test_http_auth_error_is_typed_and_mentions_no_credentials():
 def test_http_network_error_after_bounded_retries():
     opener, calls = make_opener([urllib.error.URLError("offline")] * 3)
     delays = []
-    source = sources.FineWebEdu(revision="rev-123", opener=opener,
+    source = sources.FineWebEdu(revision="rev-123", backend="http", opener=opener,
                                 sleep=delays.append)
     with pytest.raises(sources.SourceNetworkError):
         list(source.iter_documents(limit_rows=1))
@@ -87,7 +87,7 @@ def test_http_network_error_after_bounded_retries():
 
 def test_http_schema_drift_is_rejected():
     opener, _ = make_opener([rows_payload(1, features=("text",))])
-    source = sources.FineWebEdu(revision="rev-123", opener=opener)
+    source = sources.FineWebEdu(revision="rev-123", backend="http", opener=opener)
     with pytest.raises(sources.SourceSchemaError) as err:
         list(source.iter_documents(limit_rows=1))
     assert "id" in str(err.value)
@@ -96,7 +96,7 @@ def test_http_schema_drift_is_rejected():
 def test_http_404_is_a_source_error():
     url = "https://datasets-server.huggingface.co/rows"
     opener, _ = make_opener([urllib.error.HTTPError(url, 404, "missing", {}, None)])
-    source = sources.FineWebEdu(revision="rev-123", opener=opener)
+    source = sources.FineWebEdu(revision="rev-123", backend="http", opener=opener)
     with pytest.raises(sources.SourceError):
         list(source.iter_documents(limit_rows=1))
 
@@ -120,11 +120,84 @@ def test_local_source_rejects_missing_text(tmp_path):
         list(source.iter_documents(limit_rows=1))
 
 
-def test_planned_sources_are_documented_but_not_implemented():
-    assert "wikipedia" in sources.PLANNED_SOURCES
-    with pytest.raises(sources.SourceError) as err:
-        sources.open_source("wikipedia")
-    assert "extension point" in str(err.value)
+def test_python_edu_is_blocked_by_license_and_access():
+    assert "python-edu" in sources.BLOCKED_SOURCES
+    with pytest.raises(sources.SourceBlockedError) as err:
+        sources.open_source("python-edu")
+    assert "Stack v2" in str(err.value)
+
+
+def test_hf_datasets_source_uses_id_fields(monkeypatch):
+    import sys
+    import types
+
+    rows = [{"id": "7", "text": "Anarchism " * 50, "title": "Anarchism",
+             "url": "https://en.wikipedia.org/wiki/Anarchism"}]
+
+    def fake_load(dataset, name=None, split=None, streaming=False, revision=None):
+        assert streaming is True
+        assert revision == "rev-1"
+        return iter(rows)
+
+    monkeypatch.setitem(sys.modules, "datasets",
+                        types.SimpleNamespace(load_dataset=fake_load))
+    wikipedia = sources.HFDatasetsSource("wikipedia", revision="rev-1")
+    documents = list(wikipedia.iter_documents(limit_rows=1))
+    assert documents[0].doc_key == "wikimedia/wikipedia@rev-1:7"
+    assert documents[0].meta["title"] == "Anarchism"
+    assert documents[0].meta["url"].startswith("https://en.wikipedia.org/")
+
+
+def test_hf_datasets_source_uses_content_hash_for_cosmopedia(monkeypatch):
+    import hashlib
+    import sys
+    import types
+
+    text = "synthetic textbook " * 60
+    rows = [{"text": text, "audience": "college_students", "format": "textbook",
+             "seed_data": "fineweb", "token_length": 805}]
+
+    def fake_load(dataset, name=None, split=None, streaming=False, revision=None):
+        assert dataset == "HuggingFaceTB/smollm-corpus"
+        assert name == "cosmopedia-v2"
+        assert revision == "rev-1"
+        return iter(rows)
+
+    monkeypatch.setitem(sys.modules, "datasets",
+                        types.SimpleNamespace(load_dataset=fake_load))
+    cosmopedia = sources.HFDatasetsSource("cosmopedia-v2", revision="rev-1")
+    documents = list(cosmopedia.iter_documents(limit_rows=1))
+    expected = hashlib.sha256(text.encode()).hexdigest()[:32]
+    assert documents[0].doc_key == f"HuggingFaceTB/smollm-corpus@rev-1:{expected}"
+    assert documents[0].meta["seed_data"] == "fineweb"
+
+
+def test_hf_datasets_source_rejects_a_missing_text_field(monkeypatch):
+    import sys
+    import types
+
+    def fake_load(dataset, name=None, split=None, streaming=False, revision=None):
+        return iter([{"id": "1"}])
+
+    monkeypatch.setitem(sys.modules, "datasets",
+                        types.SimpleNamespace(load_dataset=fake_load))
+    source = sources.HFDatasetsSource("wikipedia", revision="rev-1")
+    with pytest.raises(sources.SourceSchemaError):
+        list(source.iter_documents(limit_rows=1))
+
+
+def test_hf_datasets_source_classifies_auth_errors(monkeypatch):
+    import sys
+    import types
+
+    def fake_load(dataset, name=None, split=None, streaming=False, revision=None):
+        raise OSError("401 Client Error: Unauthorized")
+
+    monkeypatch.setitem(sys.modules, "datasets",
+                        types.SimpleNamespace(load_dataset=fake_load))
+    source = sources.HFDatasetsSource("wikipedia", revision="rev-1")
+    with pytest.raises(sources.SourceAuthError):
+        list(source.iter_documents(limit_rows=1))
 
 
 def test_local_source_requires_a_path():
@@ -138,7 +211,7 @@ def test_http_429_uses_a_longer_bounded_backoff():
              rows_payload(1)]
     opener, calls = make_opener(items)
     delays = []
-    source = sources.FineWebEdu(revision="rev-123", opener=opener,
+    source = sources.FineWebEdu(revision="rev-123", backend="http", opener=opener,
                                 sleep=delays.append)
     documents = list(source.iter_documents(limit_rows=1))
     assert len(documents) == 1
@@ -148,7 +221,7 @@ def test_http_429_uses_a_longer_bounded_backoff():
 def test_page_delay_is_applied_only_between_pages():
     opener, calls = make_opener([rows_payload(100), rows_payload(1)])
     delays = []
-    source = sources.FineWebEdu(revision="rev-123", opener=opener,
+    source = sources.FineWebEdu(revision="rev-123", backend="http", opener=opener,
                                 sleep=delays.append, page_delay=0.25)
     documents = list(source.iter_documents(limit_rows=101))
     assert len(documents) == 101

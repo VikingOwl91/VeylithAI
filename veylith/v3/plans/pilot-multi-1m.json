@@ -1,0 +1,46 @@
+{
+  "name": "pilot-multi-1m",
+  "note": "1M train tokens per cleared source; Python-Edu is blocked (see blocked)",
+  "seed": 0,
+  "val_permille": 10,
+  "test_permille": 10,
+  "sources": [
+    {
+      "name": "fineweb-edu",
+      "config": "sample-10BT",
+      "train_tokens": 1000000,
+      "est_chars_per_token": 3.94,
+      "max_docs": 6000,
+      "max_rows": 20000,
+      "min_chars": 200,
+      "max_chars": 20000
+    },
+    {
+      "name": "wikipedia",
+      "config": "20231101.en",
+      "train_tokens": 1000000,
+      "est_chars_per_token": 4.5,
+      "max_docs": 6000,
+      "max_rows": 20000,
+      "min_chars": 200,
+      "max_chars": 100000
+    },
+    {
+      "name": "cosmopedia-v2",
+      "config": "cosmopedia-v2",
+      "train_tokens": 1000000,
+      "est_chars_per_token": 4.0,
+      "max_docs": 6000,
+      "max_rows": 20000,
+      "min_chars": 200,
+      "max_chars": 20000
+    }
+  ],
+  "blocked": [
+    {
+      "name": "python-edu",
+      "train_tokens": 1000000,
+      "reason": "metadata-only dataset; text requires The Stack v2 (gated, license 'other') and the stack card is not accessible without accepting its terms"
+    }
+  ]
+}

@@ -87,6 +87,27 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--near-dup-hamming", type=int, default=3)
     verify.set_defaults(func=cmd_verify)
 
+    multi = sub.add_parser("prepare-multi",
+                           help="prepare all plan sources and merge them")
+    multi.add_argument("--plan", required=True)
+    multi.add_argument("--root", required=True)
+    multi.add_argument("--resume", action="store_true")
+    multi.add_argument("--page-delay", type=float, default=0.0)
+    multi.add_argument("--shard-docs", type=int, default=500)
+    multi.set_defaults(func=cmd_prepare_multi)
+
+    merge = sub.add_parser("merge", help="re-merge prepared per-source corpora")
+    merge.add_argument("--plan", required=True)
+    merge.add_argument("--root", required=True)
+    merge.add_argument("--seed", type=int, default=None)
+    merge.add_argument("--shard-docs", type=int, default=500)
+    merge.set_defaults(func=cmd_merge)
+
+    report = sub.add_parser("report-multi", help="per-source counts and fertility")
+    report.add_argument("--root", required=True)
+    report.add_argument("--out", default=None)
+    report.set_defaults(func=cmd_report_multi)
+
     compare = sub.add_parser("compare-tokenizers",
                              help="train and compare BPE vocabularies on the train split")
     compare.add_argument("--root", default=DEFAULT_ROOT)
@@ -195,6 +216,52 @@ def cmd_verify(args) -> int:
     return 0
 
 
+def cmd_prepare_multi(args) -> int:
+    from . import multi_source
+    plan = multi_source.load_plan(args.plan)
+    manifest = multi_source.prepare_multi(
+        plan, args.root, resume=args.resume, page_delay=args.page_delay,
+        shard_docs=args.shard_docs)
+    counts = manifest["counts"]
+    print(f"manifest: {ds.manifest_path(args.root)}")
+    print(f"digest:   {manifest['digest']}")
+    print(f"documents: {counts['documents']}  chars: {counts['chars']}")
+    for name, entry in sorted(counts.get("by_source", {}).items()):
+        print(f"  {name}: {entry['documents']} chars={entry['chars']}")
+    return 0
+
+
+def cmd_merge(args) -> int:
+    from . import multi_source
+    plan = multi_source.load_plan(args.plan)
+    quotas = {entry["name"]: {
+        "train_tokens_target": int(entry["train_tokens"]),
+        "est_chars_per_token": float(entry.get("est_chars_per_token", 4.0)),
+    } for entry in plan["sources"]}
+    seed = args.seed if args.seed is not None else int(plan.get("seed", 0))
+    manifest = multi_source.merge_sources(
+        args.root, quotas, seed=seed, shard_docs=args.shard_docs,
+        val_permille=int(plan.get("val_permille", 10)),
+        test_permille=int(plan.get("test_permille", 10)))
+    print(f"digest: {manifest['digest']}")
+    print(f"documents: {manifest['counts']['documents']}")
+    return 0
+
+
+def cmd_report_multi(args) -> int:
+    from . import multi_source
+    out = args.out or os.path.join(ds.corpus_dir(args.root), "multi-source-report.json")
+    report = multi_source.report_multi(args.root, out)
+    print(f"wrote {out}")
+    for name, entry in sorted(report["sources"].items()):
+        print(f"  {name}: train={entry['train_tokens']:,} "
+              f"heldout_docs={entry['heldout']['docs']} "
+              f"chars/token={entry['chars_per_token_heldout']} "
+              f"fertility={entry['fertility_tokens_per_word']}")
+    print(f"total train tokens: {report['totals']['train_tokens']:,}")
+    return 0
+
+
 def cmd_compare(args) -> int:
     from . import tokenizer_compare
     vocabs = [int(value) for value in args.vocabs.split(",") if value.strip()]
@@ -243,6 +310,9 @@ def main(argv=None) -> int:
     args = parser.parse_args(argv)
     try:
         return int(args.func(args))
+    except sources.SourceBlockedError as exc:
+        print(f"blocked source: {exc}", file=sys.stderr)
+        return 5
     except sources.SourceAuthError as exc:
         print(f"access denied: {exc}", file=sys.stderr)
         return 2
