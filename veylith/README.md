@@ -4,6 +4,30 @@ A from-scratch language model family, trained on Tiny Shakespeare on a
 single AMD RX 9070 XT (ROCm, bf16). Every weight starts random and is
 learned by gradient descent on this machine. No pretrained anything.
 
+## Project status
+
+veylith is a research project, not a product. v1.x and v2.x are
+experimental research prototypes and feasibility studies. They are not
+finished, production-ready or generally usable language models, and no
+checkpoint in this repository is a released model.
+
+The experiments study transformer and MoE architectures, training and
+inference implementations, ROCm/GPU compatibility, checkpointing and
+resume, routing, attention and multi-token prediction, overfitting and
+generalization, and reproducible evaluation.
+
+| label | meaning |
+|---|---|
+| v1.x | Experimental Transformer Baselines |
+| v2.x | Experimental MoE Architecture Research |
+| v3.0 | Pretraining Data Infrastructure |
+| v3.1 | Initial Pretraining Experiments |
+
+Software version, architecture version, training run, checkpoint and
+published model are separate things and must be named separately. The tag
+`v2-research-freeze-2026-10-26` marks a frozen research state, not a model
+release.
+
 ## Layout
 
 - `v1/` - the original: char-level or custom-BPE tokenizer, learned

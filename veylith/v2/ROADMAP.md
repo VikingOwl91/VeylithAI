@@ -1,5 +1,23 @@
 # veylith v2: Roadmap
 
+## Projektstatus und Versionssemantik
+
+veylith ist ein Forschungsprojekt, kein Produkt. v1.x und v2.x sind
+experimentelle Forschungsprototypen und technische Machbarkeitsstudien,
+keine fertig trainierten, produktionsreifen oder allgemein einsetzbaren
+Sprachmodelle. Kein Checkpoint ist ein veroeffentlichtes Modell.
+
+| Bezeichnung | Bedeutung |
+|---|---|
+| v1.x | Experimental Transformer Baselines |
+| v2.x | Experimental MoE Architecture Research |
+| v3.0 | Pretraining Data Infrastructure |
+| v3.1 | Initial Pretraining Experiments |
+
+Der Tag `v2-research-freeze-2026-10-26` ist ein Forschungsstand, kein
+Model Release. Diese Roadmap plant Experimente; sie beschreibt keinen
+Produktstatus.
+
 Stand 2026-10-26. Evidenzbasis: `STATUS-2026-10-26.md`. Reihenfolge nach
 Korrektheit vor Performance vor Architektur. Jede Massnahme braucht ein
 Abnahmekriterium, das ohne riskante GPU-Experimente pruefbar ist.

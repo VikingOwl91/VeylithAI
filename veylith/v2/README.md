@@ -1,5 +1,10 @@
 # veylith v2
 
+> Research status: v2.x is an experimental MoE architecture research
+> prototype, not a trained, production-ready or generally usable language
+> model. Checkpoints are experiment artifacts. The v2 freeze tag is a
+> research state, not a model release. See `FREEZE-2026-10-26.md`.
+
 A miniature 2026 frontier-style transformer, still trained from scratch
 on Tiny Shakespeare. Same recipe as v1, upgraded architecture:
 
