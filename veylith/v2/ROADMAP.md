@@ -87,6 +87,10 @@ Eval-Fenster, Selektionsziel in Checkpoint und State).
 
 ### P0-4 Konfigurations- und Grenzfallpruefungen
 
+**Status: umgesetzt am 2026-10-26** (`--device` validiert, `validate_config`
+und `validate_args`, MTP-Guard, klares Fehlerbild fuer Prompts,
+Dependency-Manifest, 29 zusaetzliche CPU-Tests).
+
 - **Problem und Evidenz**: D7 (`block_size 1` plus MTP ergibt NaN) und
   D5 (kein `--device`). Beides still oder nur per Umgebungsvariable
   umgehbar.
@@ -94,9 +98,11 @@ Eval-Fenster, Selektionsziel in Checkpoint und State).
   Trick.
 - **Aufwand**: S.
 - **Risiken**: keine, rein additiv.
-- **Abnahme**: `--device cpu|cuda|auto`; MTP wird bei zu kurzen Fenstern
-  uebersprungen oder mit klarer Fehlermeldung abgelehnt; Tests decken
-  beide Faelle ab.
+- **Abnahme**: `--device auto|cpu|cuda|mps` mit Validierung; MTP wird bei
+  zu kurzen Fenstern mit klarer Fehlermeldung abgelehnt; Prompts mit
+  unbekannten Zeichen ergeben eine verstaendliche Meldung; ungueltige
+  Argumente werden vor dem Training abgelehnt; Dependency-Manifest
+  vorhanden; Tests decken alle Faelle ab.
 
 ## P1: Performance und Training
 

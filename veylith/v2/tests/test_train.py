@@ -497,3 +497,179 @@ def test_cli_records_evaluation_and_selection_metadata(tmp_path):
     assert ckpt["val_loss"] == pytest.approx(ckpt["metrics"]["composite_loss"])
     assert ckpt["metrics"]["main_perplexity"] == pytest.approx(
         math.exp(ckpt["metrics"]["main_ce"]))
+
+
+# ------------------------------------------- device, config and prompt (P0-4)
+
+def test_pick_device_auto_keeps_the_historical_pick(monkeypatch):
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    assert T.pick_device("auto") == "cuda"
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: True)
+    assert T.pick_device("auto") == "mps"
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
+    assert T.pick_device("auto") == "cpu"
+    assert T.pick_device() == "cpu"
+
+
+def test_pick_device_validates_explicit_choices(monkeypatch):
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: False)
+    with pytest.raises(ValueError, match="--device cuda"):
+        T.pick_device("cuda")
+
+    monkeypatch.setattr(torch.cuda, "is_available", lambda: True)
+    assert T.pick_device("cuda") == "cuda"
+    # an explicit cpu never falls back to a visible GPU
+    assert T.pick_device("cpu") == "cpu"
+
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: False)
+    with pytest.raises(ValueError, match="--device mps"):
+        T.pick_device("mps")
+    monkeypatch.setattr(torch.backends.mps, "is_available", lambda: True)
+    assert T.pick_device("mps") == "mps"
+
+
+def test_config_rejects_block_size_one_with_mtp():
+    with pytest.raises(ValueError) as err:
+        T.GPT(make_cfg(block_size=1, n_mtp=1))
+    message = str(err.value)
+    assert "block_size" in message and "n_mtp" in message
+
+
+def test_config_allows_block_size_one_without_mtp():
+    model = T.GPT(make_cfg(block_size=1, n_mtp=0)).eval()
+    x = torch.randint(0, VOCAB, (2, 1))
+    _, loss = model(x, x)
+    assert torch.isfinite(loss)
+
+
+@pytest.mark.parametrize("over, needle", [
+    ({"n_layer": 0}, "n_layer"),
+    ({"n_embd": 0}, "n_embd"),
+    ({"sliding_window": 0}, "sliding_window"),
+    ({"full_attn_every": 0}, "full_attn_every"),
+    ({"n_experts_per_tok": 5}, "n_experts_per_tok"),
+    ({"n_mtp": -1}, "n_mtp"),
+    ({"vocab_size": 0}, "vocab_size"),
+])
+def test_config_rejects_invalid_values(over, needle):
+    with pytest.raises(ValueError) as err:
+        T.GPT(make_cfg(**over))
+    assert needle in str(err.value)
+
+
+@pytest.mark.parametrize("over, needle", [
+    ({"max_iters": 0}, "--max_iters"),
+    ({"batch_size": 0}, "--batch_size"),
+    ({"eval_iters": 0}, "--eval_iters"),
+    ({"eval_interval": 0}, "--eval_interval"),
+    ({"save_every": -1}, "--save-every"),
+    ({"warmup_iters": -1}, "--warmup_iters"),
+    ({"lr": 0.0}, "--lr"),
+    ({"stop_after": -1}, "--stop-after"),
+    ({"checkpoint": ""}, "--checkpoint"),
+    ({"block_size": 1}, "block_size"),
+])
+def test_validate_args_rejects_invalid_values(tmp_path, over, needle):
+    args = make_args(tmp_path / "ckpt.pt")
+    for key, value in over.items():
+        setattr(args, key, value)
+    with pytest.raises(ValueError) as err:
+        T.validate_args(args)
+    assert needle in str(err.value)
+
+
+def test_validate_args_accepts_the_defaults(tmp_path):
+    T.validate_args(make_args(tmp_path / "ckpt.pt"))
+    T.validate_args(T.parse_args([]))
+
+
+def _char_tokenizer(tmp_path, monkeypatch):
+    corpus = tmp_path / "mini.txt"
+    corpus.write_text("abc abc abc\n" * 50, encoding="utf-8")
+    monkeypatch.setattr(T, "DATA_PATH", str(corpus))
+    _, _, encode, decode, vocab, _ = T.load_data("char", 1000)
+    return encode, decode, vocab
+
+
+def test_generate_rejects_characters_outside_the_vocabulary(tmp_path, monkeypatch):
+    encode, decode, vocab = _char_tokenizer(tmp_path, monkeypatch)
+    model = T.GPT(make_cfg(vocab_size=vocab, block_size=8)).eval()
+    with pytest.raises(ValueError) as err:
+        T.generate(model, encode, decode, "cpu", prompt="abZ", max_new_tokens=1)
+    message = str(err.value)
+    assert "'Z'" in message and "vocabulary" in message and "abZ" in message
+
+
+def test_generate_accepts_a_known_char_prompt(tmp_path, monkeypatch):
+    encode, decode, vocab = _char_tokenizer(tmp_path, monkeypatch)
+    model = T.GPT(make_cfg(vocab_size=vocab, block_size=8)).eval()
+    text = T.generate(model, encode, decode, "cpu", prompt="abc", max_new_tokens=4)
+    assert isinstance(text, str) and text.startswith("abc")
+
+
+def test_generate_validates_sampling_parameters(tmp_path, monkeypatch):
+    encode, decode, vocab = _char_tokenizer(tmp_path, monkeypatch)
+    model = T.GPT(make_cfg(vocab_size=vocab, block_size=8)).eval()
+    with pytest.raises(ValueError, match="prompt"):
+        T.generate(model, encode, decode, "cpu", prompt="")
+    with pytest.raises(ValueError, match="temperature"):
+        T.generate(model, encode, decode, "cpu", prompt="abc", temperature=0.0)
+    with pytest.raises(ValueError, match="top_k"):
+        T.generate(model, encode, decode, "cpu", prompt="abc", top_k=0)
+
+
+def test_bpe_prompt_accepts_characters_outside_the_training_text():
+    pytest.importorskip("sentencepiece")
+    model_path = os.path.join(V2, "data", "tinyshakespeare_bpe1000.model")
+    if not os.path.exists(model_path):
+        pytest.skip("no BPE tokenizer in this worktree")
+    encode, decode = T.tokenizer_from_info({"type": "bpe", "model_path": model_path})
+    prompt = "Ω≈ç√✅"
+    ids = encode(prompt)
+    assert ids, "byte fallback must encode any character"
+    assert decode(ids) == prompt
+    model = T.GPT(make_cfg(vocab_size=1000, block_size=8)).eval()
+    text = T.generate(model, encode, decode, "cpu", prompt=prompt, max_new_tokens=2)
+    assert isinstance(text, str) and text
+
+
+def _tiny_cli(tmp_path, corpus, extra=None, device="cpu"):
+    data_dir = tmp_path / "data"
+    data_dir.mkdir(exist_ok=True)
+    (data_dir / "tinyshakespeare.txt").write_text(corpus, encoding="utf-8")
+    cmd = [
+        sys.executable, os.path.join(V2, "train.py"), "--device", device,
+        "--tokenizer", "char", "--n_layer", "1", "--n_head", "2", "--n_kv_head", "1",
+        "--n_embd", "32", "--block_size", "16", "--sliding_window", "8",
+        "--n_experts", "4", "--n_experts_per_tok", "2", "--first_k_dense", "1",
+        "--batch_size", "4", "--max_iters", "2", "--eval_interval", "1",
+        "--eval_iters", "1", "--warmup_iters", "1", "--dropout", "0.0",
+        "--save-every", "0", "--checkpoint", "ckpt.pt",
+    ]
+    return cmd + (extra or [])
+
+
+def test_cli_rejects_invalid_eval_iters(tmp_path):
+    cmd = _tiny_cli(tmp_path, "abc\n" * 100, ["--eval_iters", "0"])
+    run = subprocess.run(cmd, cwd=tmp_path, capture_output=True, text=True, timeout=180)
+    assert run.returncode == 1
+    assert "--eval_iters" in run.stderr
+    assert "Traceback" not in run.stderr
+
+
+def test_cli_rejects_an_unavailable_device(tmp_path):
+    cmd = _tiny_cli(tmp_path, "abc\n" * 100, device="cuda")
+    run = subprocess.run(cmd, cwd=tmp_path, capture_output=True, text=True, timeout=180)
+    assert run.returncode == 1
+    assert "--device cuda" in run.stderr
+    assert "Traceback" not in run.stderr
+
+
+def test_cli_skips_a_sample_it_cannot_encode(tmp_path):
+    cmd = _tiny_cli(tmp_path, "the quick brown fox jumps over the lazy dog. " * 300)
+    run = subprocess.run(cmd, cwd=tmp_path, capture_output=True, text=True, timeout=180)
+    assert run.returncode == 0, run.stderr
+    assert "sample generation skipped" in run.stdout
+    assert "'R'" in run.stdout
+    assert (tmp_path / "ckpt.pt").exists()

@@ -39,11 +39,14 @@ def main():
     encode, decode = tokenizer_from_info(info)
 
     print(f"loaded {args.checkpoint} (val loss {ckpt['val_loss']:.4f}) on {device}\n")
-    print(generate(model, encode, decode, device,
-                   prompt=args.prompt,
-                   max_new_tokens=args.max_new_tokens,
-                   temperature=args.temperature,
-                   top_k=args.top_k))
+    try:
+        print(generate(model, encode, decode, device,
+                       prompt=args.prompt,
+                       max_new_tokens=args.max_new_tokens,
+                       temperature=args.temperature,
+                       top_k=args.top_k))
+    except ValueError as exc:
+        raise SystemExit(str(exc))
 
 
 if __name__ == "__main__":

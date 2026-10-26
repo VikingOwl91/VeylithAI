@@ -70,14 +70,22 @@ class Config:
 
 
 def pick_device(device="auto"):
-    """`auto` keeps the historical pick; anything else is returned as given."""
-    if device != "auto":
-        return device
-    if torch.cuda.is_available():  # NVIDIA (CUDA) and AMD (ROCm) both land here
-        return "cuda"
-    if torch.backends.mps.is_available():
-        return "mps"
-    return "cpu"
+    """`auto` keeps the historical pick; an explicit device is validated.
+
+    An explicitly requested device never falls back silently: if it is not
+    available, this raises ValueError naming the device.
+    """
+    if device == "auto":
+        if torch.cuda.is_available():  # NVIDIA (CUDA) and AMD (ROCm) both land here
+            return "cuda"
+        if torch.backends.mps.is_available():
+            return "mps"
+        return "cpu"
+    if device == "cuda" and not torch.cuda.is_available():
+        raise ValueError("--device cuda was requested but CUDA/ROCm is not available")
+    if device == "mps" and not torch.backends.mps.is_available():
+        raise ValueError("--device mps was requested but MPS is not available")
+    return device
 
 
 # ------------------------------------------------------------------- data
@@ -167,6 +175,65 @@ def get_batch(split_data, block_size, batch_size, device, generator=None):
     return x.to(device), y.to(device)
 
 
+# --------------------------------------------------------------- validation
+
+def _require(condition, message):
+    if not condition:
+        raise ValueError(message)
+
+
+def _check_context_and_mtp(block_size, n_mtp):
+    """The t+2 target needs two positions in a window."""
+    _require(block_size >= 1, f"block_size must be >= 1, got {block_size}")
+    _require(block_size >= 2 or n_mtp < 1,
+             f"block_size must be >= 2 when n_mtp >= 1 (the t+2 target needs two "
+             f"positions), got block_size {block_size} with n_mtp {n_mtp}")
+
+
+def validate_config(cfg):
+    """Reject model configs that cannot train sanely; called by GPT.__init__."""
+    _check_context_and_mtp(cfg.block_size, cfg.n_mtp)
+    _require(cfg.n_layer >= 1, f"n_layer must be >= 1, got {cfg.n_layer}")
+    _require(cfg.n_embd >= 1, f"n_embd must be >= 1, got {cfg.n_embd}")
+    _require(cfg.n_head >= 1, f"n_head must be >= 1, got {cfg.n_head}")
+    _require(cfg.n_kv_head >= 1, f"n_kv_head must be >= 1, got {cfg.n_kv_head}")
+    _require(cfg.sliding_window >= 1,
+             f"sliding_window must be >= 1, got {cfg.sliding_window}")
+    _require(cfg.full_attn_every >= 1,
+             f"full_attn_every must be >= 1, got {cfg.full_attn_every}")
+    _require(cfg.n_experts >= 1, f"n_experts must be >= 1, got {cfg.n_experts}")
+    _require(1 <= cfg.n_experts_per_tok <= cfg.n_experts,
+             f"n_experts_per_tok must be between 1 and n_experts ({cfg.n_experts}), "
+             f"got {cfg.n_experts_per_tok}")
+    _require(cfg.first_k_dense >= 0,
+             f"first_k_dense must be >= 0, got {cfg.first_k_dense}")
+    _require(cfg.n_mtp >= 0, f"n_mtp must be >= 0, got {cfg.n_mtp}")
+    _require(cfg.mlp_ratio > 0, f"mlp_ratio must be > 0, got {cfg.mlp_ratio}")
+    _require(cfg.vocab_size >= 1, f"vocab_size must be >= 1, got {cfg.vocab_size}")
+
+
+def validate_args(args):
+    """Reject training args that would fail later or silently produce garbage.
+
+    Messages use the exact CLI spelling, which is mixed: the original flags use
+    underscores (--eval_iters), the later ones dashes (--save-every).
+    """
+    _check_context_and_mtp(args.block_size, args.n_mtp)
+    _require(args.max_iters >= 1, f"--max_iters must be >= 1, got {args.max_iters}")
+    _require(args.batch_size >= 1, f"--batch_size must be >= 1, got {args.batch_size}")
+    _require(args.eval_iters >= 1, f"--eval_iters must be >= 1, got {args.eval_iters}")
+    _require(args.eval_interval >= 1,
+             f"--eval_interval must be >= 1, got {args.eval_interval}")
+    _require(args.save_every is None or args.save_every >= 0,
+             f"--save-every must be >= 0 (0 disables it), got {args.save_every}")
+    _require(args.warmup_iters >= 0,
+             f"--warmup_iters must be >= 0, got {args.warmup_iters}")
+    _require(args.lr > 0, f"--lr must be > 0, got {args.lr}")
+    _require(args.stop_after is None or args.stop_after >= 0,
+             f"--stop-after must be >= 0, got {args.stop_after}")
+    _require(bool(args.checkpoint), "--checkpoint must not be empty")
+
+
 # ------------------------------------------------------------------ model
 
 class RMSNorm(nn.Module):
@@ -200,9 +267,9 @@ class CausalSelfAttention(nn.Module):
 
     def __init__(self, cfg, layer_idx):
         super().__init__()
-        assert cfg.n_embd % cfg.n_head == 0
-        assert cfg.n_head % cfg.n_kv_head == 0
-        assert (cfg.n_embd // cfg.n_head) % 2 == 0  # RoPE needs an even head_dim
+        assert cfg.n_embd % cfg.n_head == 0, "n_embd must be divisible by n_head"
+        assert cfg.n_head % cfg.n_kv_head == 0, "n_head must be divisible by n_kv_head"
+        assert (cfg.n_embd // cfg.n_head) % 2 == 0, "head_dim (n_embd // n_head) must be even for RoPE"
         self.n_head = cfg.n_head
         self.n_kv_head = cfg.n_kv_head
         self.n_rep = cfg.n_head // cfg.n_kv_head
@@ -330,6 +397,7 @@ class Block(nn.Module):
 class GPT(nn.Module):
     def __init__(self, cfg):
         super().__init__()
+        validate_config(cfg)
         self.cfg = cfg
         self.block_size = cfg.block_size
         self.tok_emb = nn.Embedding(cfg.vocab_size, cfg.n_embd)
@@ -669,8 +737,24 @@ def run_training(model, optimizer, train_data, val_data, args, device, autocast,
 @torch.no_grad()
 def generate(model, encode, decode, device, prompt="\n", max_new_tokens=500,
              temperature=0.8, top_k=40):
+    if not prompt:
+        raise ValueError("prompt must not be empty")
+    if temperature <= 0:
+        raise ValueError(f"temperature must be > 0, got {temperature}")
+    if top_k is not None and top_k < 1:
+        raise ValueError(f"top_k must be >= 1 or None, got {top_k}")
+    try:
+        prompt_ids = encode(prompt)
+    except KeyError as exc:
+        unknown = exc.args[0] if exc.args else "?"
+        raise ValueError(
+            f"prompt {prompt!r} contains {unknown!r}, which is not in this "
+            f"checkpoint's character vocabulary. A char tokenizer has a fixed "
+            f"set of characters; use a prompt the model was trained on, or a "
+            f"BPE checkpoint (byte fallback encodes anything)."
+        ) from exc
     model.eval()
-    idx = torch.tensor([encode(prompt)], dtype=torch.long, device=device)
+    idx = torch.tensor([prompt_ids], dtype=torch.long, device=device)
     for _ in range(max_new_tokens):
         logits, _ = model(idx[:, -model.block_size:])
         logits = logits[:, -1, :] / temperature
@@ -733,9 +817,13 @@ def parse_args(argv=None):
 
 def main():
     args = parse_args()
+    try:
+        validate_args(args)
+        device = pick_device(args.device)
+    except ValueError as exc:
+        raise SystemExit(str(exc))
 
     torch.manual_seed(args.seed)
-    device = pick_device(args.device)
     suffix = f" ({torch.cuda.get_device_name(0)})" if device == "cuda" else ""
     print(f"device: {device}{suffix}")
 
@@ -828,7 +916,10 @@ def main():
           f"(composite val loss {val_loss:.4f}, selected by {args.select_metric})")
 
     print("\n--- sample generation (prompt: 'ROMEO:') ---")
-    print(generate(model, encode, decode, device, prompt="ROMEO:", max_new_tokens=300))
+    try:
+        print(generate(model, encode, decode, device, prompt="ROMEO:", max_new_tokens=300))
+    except ValueError as exc:
+        print(f"sample generation skipped: {exc}")
 
 
 if __name__ == "__main__":

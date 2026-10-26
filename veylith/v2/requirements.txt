@@ -1,0 +1,14 @@
+# veylith v2 runtime dependencies.
+#
+# Tested with: Python 3.14.8, torch 2.14.1+rocm7.2 (system ROCm build,
+# RX 9070 XT) and torch 2.16.0.dev20261006+rocm7.14 (isolated venv).
+# Any PyTorch build with bf16 autocast works; CPU-only runs need no GPU build.
+#
+# No platform-specific ROCm wheel is pinned on purpose: install the build that
+# matches your driver, for example
+#   pip install torch --index-url https://download.pytorch.org/whl/rocm6.2
+torch>=2.14
+
+# Only needed for --tokenizer bpe (byte fallback, so any character encodes).
+# Tested: 0.2.2
+sentencepiece>=0.2

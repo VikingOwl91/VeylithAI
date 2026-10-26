@@ -20,6 +20,9 @@ Every design choice is grounded in a config under `../reference/`
 ## Run
 
 ```bash
+pip install -r requirements.txt          # runtime; sentencepiece only for BPE
+pip install -r requirements-dev.txt      # adds pytest, on top of the above
+
 python train.py                                           # char tokenizer
 python train.py --tokenizer bpe --bpe_vocab_size 1000     # custom BPE
 python sample.py                                          # generate from checkpoint
@@ -108,6 +111,30 @@ plain next-token CE, v2 reports a composite that includes MTP; tokenizer,
 corpus and evaluation procedure differ as well. Compare `main_ce` per token only
 against runs with the same tokenizer, corpus and eval mode, or compare bits per
 character.
+
+## Validation and failure modes
+
+Errors surface before training starts and name the parameter.
+
+- `--device`: `auto` is the historical pick (CUDA/ROCm, then MPS, then CPU).
+  An explicit `cpu`, `cuda` or `mps` is never silently replaced: an unavailable
+  device aborts with `--device cuda was requested but CUDA/ROCm is not available`.
+- Config: `n_layer`, `n_embd`, `n_head`, `n_kv_head`, `sliding_window`,
+  `full_attn_every`, `n_experts`, `n_experts_per_tok`, `first_k_dense`, `n_mtp`,
+  `mlp_ratio` and `vocab_size` are checked when the model is built. `n_embd`
+  must be divisible by `n_head`, `n_head` by `n_kv_head`, and the head width
+  must be even for RoPE. Those three are assertions, so `python -O` disables
+  them.
+- MTP needs a window of at least two positions: `n_mtp >= 1` with `block_size 1`
+  is rejected instead of producing a NaN loss. Without MTP, a window of one
+  token remains valid.
+- Training args: `--max_iters`, `--batch_size`, `--eval_iters`,
+  `--eval_interval`, `--save-every`, `--warmup_iters`, `--lr`, `--stop-after`
+  and `--checkpoint` are validated up front.
+- Prompts: a char tokenizer has a fixed set of characters, so a prompt with any
+  other character raises an explicit error naming it. The demonstration sample
+  at the end of a run is skipped with that message, so a finished run still
+  writes its checkpoint. BPE tokenizers use byte fallback and encode anything.
 
 ## Notes
 
