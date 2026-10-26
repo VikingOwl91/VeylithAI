@@ -25,7 +25,9 @@ uv pip install --python ~/veylith-v3-env/bin/python \
 
 ```bash
 ~/veylith-v3-env/bin/python -m pytest veylith/v3/tests -q
-# 43 passed, 2 skipped in the project env; 44 passed, 1 skipped on system Python
+# 43 passed, 3 skipped in the project env (torch absent skips architecture)
+python3 -m pytest veylith/v3/tests -q
+# 62 passed, 1 skipped on system Python (architecture tests included)
 python3 -m pytest veylith/v2/tests veylith/tests -q   # 89 passed
 ```
 

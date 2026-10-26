@@ -176,7 +176,8 @@ committed. No corpus or token shard is committed.
 | M5 pilot | done, 2000 documents / 1.92M tokens, verified |
 | 10M-token pilot | done, 11,399 documents / 10.33M train tokens, 8192 BPE, deep + near-dup verification green |
 | 100M multi-source corpus | done, 90,784 documents / 95.95M train tokens, 8192 BPE, deep + near-dup verification green; Python-Edu blocked |
-| v3.1 design note | done, `docs/V3.1-DESIGN.md`; no model code or GPU run |
+| v3.1 design note | done, `docs/V3.1-DESIGN.md`; 0.1B decision |
+| v3.1-A architecture | done, CPU-validated model/accounting and 18 tests; no GPU run |
 
 ## 11. Next steps after this step
 

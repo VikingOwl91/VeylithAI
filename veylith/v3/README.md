@@ -2,15 +2,17 @@
 
 > Research status: v3.0 is pretraining data infrastructure, not a trained
 > model. v1.x and v2.x are experimental research prototypes, not finished or
-> production-ready language models. v3.1 (initial pretraining experiments)
-> has not started. No checkpoint in this repository is a released model.
+> production-ready language models. v3.1-A (initial pretraining
+> experiments) has a CPU-validated architecture design; no training run
+> has started. No checkpoint in this repository is a released model.
 
 This directory is the first v3 step: a modular, streaming-capable
 pretraining data pipeline, CPU only, separate from GPU training. It
 materializes a versioned local corpus (documents, manifests, tokenizer and
 token shards) from Hugging Face sources and feeds deterministic training
-batches. The model architecture is not part of this step; v2 remains the
-reference.
+batches. The v3.1-A architecture is designed and CPU-validated in
+`architecture/`; v2 remains the frozen reference and no training run has
+started.
 
 The v3.0 corpus is materialized: 90,784 documents from FineWeb-Edu,
 Wikipedia and Cosmopedia v2, 95,951,233 train tokens, 8192-token BPE, 2 %
@@ -35,6 +37,9 @@ and licenses, `docs/REPRODUCE.md` for commands, and
 | `data_pipeline/loader.py` | non-overlapping sequence packing, deterministic epoch sampling, mid-epoch resume |
 | `data_pipeline/tokenizer_compare.py` | train and compare BPE vocabularies on the train split |
 | `data_pipeline/multi_source.py` | per-source plans, cross-source merge, quotas, bucket shuffle, per-source report |
+| `architecture/config.py` | v3.1-A candidates and validation |
+| `architecture/model.py` | CPU reference model: GQA/RoPE, hybrid SWA, sparse/dense MoE, no MTP |
+| `architecture/accounting.py` | exact parameter accounting, active counts, memory and compute estimates |
 | `data_pipeline/cli.py` | CLI for inspect, prepare, prepare-multi, merge, tokenize, compare, verify, report and batches |
 | `plans/` | reproducible multi-source budget plans (pilot and 100M) |
 | `benchmark_loader.py` | CPU loader throughput and peak-RSS benchmark |
@@ -201,16 +206,35 @@ Multi-source held-out fertility (100M corpus, 8192):
 | Wikipedia | 319 | 3.6082 | 1.7487 |
 | Cosmopedia v2 | 710 | 4.3743 | 1.5668 |
 
+## v3.1-A architecture
+
+Four ~0.1B candidates are defined; the primary is A.
+
+| id | config | total | active (sparse) | role |
+|---|---|---:|---:|---|
+| A | 8L, 512w, GQA 8/2, top-2, ffn 960, no shared | 98.34M | 36.41M | primary |
+| B | 10L, 512w, top-2, ffn 800, 2 dense | 97.82M | 38.84M | depth ablation |
+| C | 12L, 384w, top-2, ffn 736, shared | 95.88M | 39.92M | fallback |
+| D | 8L, 512w, top-1, ffn 896, shared | 102.47M | 35.03M | routing ablation |
+
+Vocabulary 8192, context 512, no MTP. Counts are exact for the analytical
+formulas and cross-checked on meta-instantiated models; active counts are
+cross-checked with forward hooks. Memory and compute estimates, the MTP
+exclusion and the evaluation protocol are in
+`docs/V3.1-ARCHITECTURE.md`, `docs/V3.1-MEMORY-COMPUTE.md` and
+`docs/V3.1-EVALUATION.md`.
+
 ## Tests
 
 ```bash
 python3 -m pytest veylith/v3/tests -q
 ```
 
-The suite is CPU-only and offline. In the project environment: 43 passed,
-2 skipped (network smoke and the missing-`datasets` path); on the system
-Python, where `datasets` is absent: 44 passed, 1 skipped. The v2 suite is
-89 passed. Covered: normalization and filters, split determinism and
+The suite is CPU-only and offline. On the system Python: 62 passed,
+1 skipped (network smoke); in the project environment (`datasets` present,
+no torch): 43 passed, 3 skipped (network, missing-`datasets` path and the
+architecture module). The v2 suite is 89 passed. Combined system run:
+151 passed, 1 skipped. Covered: normalization and filters, split determinism and
 isolation, exact and near deduplication (including across sources), quotas
 and shortfall, shard and manifest integrity, resume, tokenizer
 reproducibility and train-only training, tokenizer comparison, token
