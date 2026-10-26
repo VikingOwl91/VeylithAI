@@ -1,9 +1,14 @@
 # DRAFT upstream issue report (NOT SUBMITTED)
 
 **Status:** draft only. Do not submit without the user's approval.
+**Scope (2026-10-26):** the reproduction below is the 8-expert/top-2
+configuration. A later 16-expert/top-4 run still faulted on
+2.16.0.dev20261006 (exit 134, same signature), so the passing builds in
+the table are configuration-dependent and no general fix is claimed. The
+responsible change is not identified.
 
 **Target:** PyTorch (ROCm backend) - https://github.com/pytorch/pytorch/issues
-**Title:** [ROCm] GPU memory fault (OOB write) in backward of sparse-MoE-style variable-size index ops, bf16, gfx1201
+**Title:** [ROCm] GPU memory fault in sparse-MoE training backward pass (bf16, gfx1201)
 
 ## Summary
 
@@ -78,6 +83,10 @@ of a mapped segment whose last block is a 16-20MB fp32 tensor).
   (same expert kernels) - consistent with a layout-sensitive OOB write.
 - An OOB index in `index_add` (control test) reproduces the same fault
   signature, confirming the fault class.
+- In a later 16-expert/top-4 run on 2.16.0.dev20261006, rocprof named a
+  hipBLASLt GEMM (`Cijk_Ailk_Bjlk_...`, solution 107018) at the fault. That
+  configuration still aborts on that build. The kernel is not confirmed as
+  the root cause.
 - rocprofv3 is available but cannot finalize after a GPU fault (hangs
   with "kernels still active"); compute-sanitizer and rocgdb are not
   installed on the repro machine, so we could not capture the exact
@@ -96,11 +105,16 @@ of a mapped segment whose last block is a 16-20MB fp32 tensor).
 | 2.15.0.dev20261005+rocm7.14 | 7.14 (venv) | PASSES 4/4 (+2/2 re-verified) |
 | 2.16.0.dev20261006+rocm7.14 | 7.14 (venv) | PASSES 12/12 |
 
-So ROCm 7.14 does NOT fix it; the fix is a PyTorch change in the 2.15 dev
-cycle, narrowed by date bisect to commits on **2026-10-01/02**. The 2.14
-stable line is affected on both ROCm 7.2 and 7.14. Sparse-MoE correctness
-on the fixed build is verified against the dense reference (see
-root-cause.md Phase 3 section).
+So ROCm 7.14 does NOT fix it; the behavior changes within the 2.15 dev
+cycle, narrowed by date bisect to **2026-10-01/02**. The responsible
+commit is not identified. The 2.14 stable line is affected on both ROCm
+7.2 and 7.14. Sparse-MoE correctness on 2.16.0.dev20261006 is verified
+against the dense reference (see root-cause.md Phase 3 section).
+
+Later evidence (16 experts, top-4, batch 64, block 256): the same
+signature still aborts on 2.16.0.dev20261006 (exit 134, "Page not
+present", 2 MiB-aligned address). The passing builds above therefore do
+not mean the fault is gone in general.
 
 ## Sparse vs dense benchmark (Phase D, torch 2.16.0.dev20261006+rocm7.14)
 
@@ -116,7 +130,7 @@ after warmup, CUDA events, medians:
 | peak GPU allocated | 4.70 GB | 8.02 GB |
 
 Sparse is 12% faster per training step and uses 41% less peak memory on
-the fixed build.
+2.16.0.dev20261006.
 
 ## Sparse-MoE correctness (Phase C summary)
 
@@ -129,10 +143,12 @@ flat over 200 iters; no NaN/Inf.
 ## Request
 
 Could you help identify the change landed in the 2.15 dev cycle on
-2026-10-01/02 that resolves this (so we know whether it is a deliberate
+2026-10-01/02 that changes this behavior (so we know whether it is a
+deliberate
 fix or a side effect; note it also made the sparse path FASTER than the
 dense-equivalent), whether it is relevant to backport to the 2.14
-line, and the faulting kernel on this path (variable-size
+line, why a 16-expert/top-4 configuration still faults on 2.16.0.dev20261006,
+and the faulting kernel on this path (variable-size
 `index_select`/`index_add` backward and/or expert weight-grad GEMMs under
 bf16 autocast, gfx1201, ROCm 7.2/7.14)? Happy to provide more traces or
 test patches.

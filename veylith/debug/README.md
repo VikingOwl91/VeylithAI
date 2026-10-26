@@ -3,20 +3,53 @@
 Investigation of the GPU "Memory access fault" (page not present) that
 killed sparse-MoE training runs of veylith v2. The working dense-MoE
 v2 and all of v1 are preserved on `main`; this directory and the
-`debug/rocm-sparse-moe-fault` branch are the investigation sandbox.
+`debug/rocm-*` branches are the investigation sandbox.
 
-**Status: complete (Phase 3 done).** Root cause: a bf16 GPU kernel on the
-sparse-MoE backward path writes out of bounds despite in-bounds indices
-(PyTorch/ROCm kernel bug). Our implementation is correct. **Fix window
-narrowed to PyTorch commits on 2026-10-01/02** (date bisect over 40
-nightly builds; faults on 2.14.1 with ROCm 7.2 AND 7.14 and on
-2.15.0.dev20260824; passes on 2.15.0.dev20261002, 2.15.0.dev20261005,
-2.16.0.dev20261006). **Sparse-MoE verdict:** correct (equivalent to dense
-reference), stable, 12% faster per training step and 41% less peak memory
-than the dense workaround on the fixed build. Adopt sparse MoE when the
-training environment runs PyTorch >= 2.15 stable. See
-`version-comparison.md`, `version-isolation/`, `root-cause.md`,
-`issue-report.md` (draft, not submitted).
+**Status (2026-10-26): no general fix confirmed.** The evidence separates
+into four tiers.
+
+**1. Observed failing and passing runs.** The deterministic reproducer
+(defaults: 8 experts, top-2) faults on torch 2.14.1 with ROCm 7.2 and
+7.14, and on 2.15.0.dev nightlies through 20261001 (2/2 each on the date
+bisect). The same reproducer completes on 2.15.0.dev20261002 (2/2),
+2.15.0.dev20261005 (4/4) and 2.16.0.dev20261006 (12/12).
+
+**2. The fault is not gone in general.** A sparse benchmark with 16
+experts and top-4 (batch 64, block 256, bf16) aborted on
+2.16.0.dev20261006 with exit 134 and the same signature
+(`Memory access fault ... Page not present`, 2 MiB-aligned address). A
+configuration that does not reproduce on a build is not a fixed build.
+
+**3. Fix attribution is a hypothesis.** The behavior changes inside the
+PyTorch main window 2026-10-01 to 2026-10-02 (82 commits). PR #196920
+(eager hipBLAS(Lt) workspaces) is the strongest candidate: enabling the
+old workspace cache on a passing build reintroduces the fault, while
+disabling it on a failing build does not prevent it. No revert or
+cherry-pick was built, so the commit is not proven.
+
+**4. The mechanism is a hypothesis.** The later investigation points at a
+layout-dependent over-read in hipBLASLt solution 107018 at the end of an
+allocation, based on rocprof dispatch logs and a CPU model of the kernel's
+address arithmetic. It is not confirmed on hardware, and this repository
+does not claim a confirmed hipBLASLt bug.
+
+**Workaround candidate, not a fix.**
+`PYTORCH_HIP_ALLOC_CONF=roundup_power2_divisions:4` moved the candidate
+operand away from the 2 MiB boundary, and one full benchmark run passed
+with an identical GEMM sequence and identical kernel solutions. One run,
+no guarantee for other shapes, batches or longer runs.
+
+**Sparse-MoE verdict.** Numerically equivalent to the dense reference
+(verified), 12% faster per step and 41% less peak memory at batch 64 /
+block 256 on 2.16.0.dev20261006. **Not recommended for adoption**: a
+tested configuration still faults on the newest tested nightly, torch
+2.14.1 is affected, and no stable PyTorch >= 2.15 release was available.
+The dense-combined workaround stays shipped.
+
+Evidence: `version-comparison.md`, `version-isolation/`, `root-cause.md`,
+`phase4-scaling.md`, `issue-report.md` (draft, not submitted). The E16/K4
+analysis and its read-only archive are under
+`~/investigations/amdgpu-2026-10-24/`.
 
 ## Contents
 
@@ -30,6 +63,8 @@ training environment runs PyTorch >= 2.15 stable. See
   installs (testA rocm7.14, testB rocm7.2, testC/testD nightlies,
   testE first 2.15 nightly), smoke tests, per-env reproducer suites,
   `version-comparison.md` matrix.
+- `phase4-scaling.md` - sparse vs dense scaling grid (batch, block and
+  expert configurations) with the measured results and the open questions.
 - `reproducer.py` - minimal deterministic reproducer (random data, no
   dataset, CLI knobs; `--no_optimizer --grad_filter experts` is the
   deterministic fault mode).
@@ -53,3 +88,5 @@ python3 reproducer.py --no_optimizer --grad_filter experts --iters 100
 
 Deterministic in this mode (faults ~100% at iter ~26-49). The original
 training-loop configuration faults at ~17% per 250 iters (1/6 measured).
+Both figures were measured on torch 2.14.1; on 2.15.0.dev20261002 and
+later the same command completes.

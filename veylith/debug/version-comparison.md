@@ -1,15 +1,19 @@
 # Version comparison: does the fault persist across PyTorch/ROCm builds?
 
+> **Status note (2026-10-26).** The "fixed" wording below is scoped to the
+> tested reproducer (8 experts, top-2). A later 16-expert/top-4 run faulted
+> on 2.16.0.dev20261006, so no general fix is established. See `README.md`.
+
 **Question:** is the BF16 sparse-MoE backward memory fault specific to our
 PyTorch 2.14.1 / ROCm 7.2 environment, or does it also occur with newer
 ROCm-enabled PyTorch builds?
 
 **Answer:** the fault reproduces on torch 2.14.1 with BOTH ROCm 7.2 and
-ROCm 7.14 (ROCm 7.14 does NOT fix it), and is fixed in newer PyTorch
-builds: the first tested working version is **torch 2.15.0.dev20261005
-(+rocm7.14)**. The fix is therefore in **PyTorch's 2.15 dev cycle**
-(somewhere between the 2.15.0.dev builds of 2026-08-24 and 2026-10-05),
-not in the ROCm runtime.
+ROCm 7.14 (ROCm 7.14 does NOT fix it), and no longer reproduces in newer
+PyTorch builds **for this reproducer**: the first tested working version is
+**torch 2.15.0.dev20261005 (+rocm7.14)**. The behavior change is therefore
+in **PyTorch's 2.15 dev cycle** (somewhere between the 2.15.0.dev builds of
+2026-08-24 and 2026-10-05), not in the ROCm runtime.
 
 ## Test matrix
 
@@ -38,10 +42,11 @@ math libraries all come from the venv's `rocm-sdk-core` 7.14.1 packages).
 
 ## Interpretation
 
-1. **Bug fixed in a newer version (PyTorch).** testA vs testD/testC is a
-   clean ROCm-controlled comparison: same GPU, same kernel driver, same
-   ROCm 7.14 runtime lineage (torch.version.hip = 7.14.60850 in both),
-   same reproducer, same seeds. torch 2.14.1 faults, torch 2.15.0.dev20261005
+1. **No longer reproducible in newer PyTorch (for this reproducer).**
+   testA vs testD/testC is a clean ROCm-controlled comparison: same GPU,
+   same kernel driver, same ROCm 7.14 runtime lineage
+   (torch.version.hip = 7.14.60850 in both), same reproducer, same seeds.
+   torch 2.14.1 faults, torch 2.15.0.dev20261005
    and 2.16.0.dev20261006 do not. The fix is in PyTorch, not ROCm.
 2. **Reproducible across ROCm versions on torch 2.14.1.** ROCm 7.2
    (baseline, testB) and ROCm 7.14 (testA) both fault. ROCm 7.14 does
@@ -50,7 +55,7 @@ math libraries all come from the venv's `rocm-sdk-core` 7.14.1 packages).
    (testB) faults identically to the Arch package (baseline).
 4. **Not an isolation artifact.** testB/testA/testC/testD/testE all run
    fully isolated venvs and the faulting ones still fault.
-5. **Fix window:** between `2.15.0.dev20260824` (faults 4/4) and
+5. **Behavior-change window:** between `2.15.0.dev20260824` (faults 4/4) and
    `2.15.0.dev20261005` (passes 4/4), i.e. PyTorch commits landed between
    2026-08-24 and 2026-10-05 in the 2.15 dev cycle.
 6. **Inconclusive/untested:** no PyTorch version older than 2.14.1 was
@@ -72,20 +77,23 @@ reproducer (0 faults in 4+12 runs) and all smoke checks.
 - Recommendation: keep the dense-MoE workaround (already shipped in v2)
   on the current stable environment; switch the training environment to a
   stable PyTorch >= 2.15 (with ROCm 7.14 or newer) when it is released,
-  then re-verify with this reproducer and the smoke tests before
-  returning to sparse MoE.
+  then re-verify with this reproducer **and with the target expert/top-k
+  configuration** (16 experts/top-4 still faulted on 2.16.0.dev20261006)
+  before returning to sparse MoE.
 - Upgrading the system torch is a system change (Arch package), so that
   decision stays with the user; the venvs here prove the newer builds
   work on this exact GPU/driver without touching the system.
 
 ## Remaining uncertainties
 
-- The exact PyTorch commit/PR that fixed it: nightlies are date-tagged,
-  not commit-tagged; the window is 2026-08-24 to 2026-10-05. Bisecting
-  further would mean installing more dated nightlies; the window is
-  narrow enough for the upstream report to point at.
+- The exact PyTorch commit/PR that changed the behavior: nightlies are
+  date-tagged, not commit-tagged; the window is 2026-08-24 to 2026-10-05.
+  Bisecting further would mean installing more dated nightlies; the window
+  is narrow enough for the upstream report to point at.
 - The kernel-level root cause remains unnamed (no compute-sanitizer/
   rocgdb on this machine); the cross-version evidence localizes it to a
-  PyTorch ROCm kernel on the sparse-MoE backward path (bf16), fixed in
-  the 2.15 cycle.
+  PyTorch ROCm kernel on the sparse-MoE backward path (bf16), no longer
+  reproducible for the tested reproducer from the 2.15 cycle on. A later
+  analysis hypothesizes a layout-dependent over-read in one hipBLASLt
+  solution; that is not hardware-verified (see `README.md`).
 - PyTorch versions older than 2.14.1 untested.

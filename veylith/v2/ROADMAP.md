@@ -73,6 +73,11 @@ Eval-Fenster, Selektionsziel in Checkpoint und State).
 
 ### P0-3 Doku-Widersprueche aufloesen
 
+**Status: umgesetzt am 2026-10-26.** W1, W2 und W4 sind korrigiert, W3 ist
+als offene Frage dokumentiert. Neu im Repo: `debug/phase4-scaling.md`. Die
+unversionierte Arbeitskopie im Investigation-Worktree bleibt unangetastet;
+massgeblich ist die versionierte Fassung.
+
 - **Problem und Evidenz**: W1 und W4. Die Repo-Doku behauptet einen
   behobenen Fault und empfiehlt Sparse-Adoption, was die spaetere
   Untersuchung nicht deckt. `phase4-scaling.md` steht auf PENDING,

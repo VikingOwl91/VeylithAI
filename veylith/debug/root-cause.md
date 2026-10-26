@@ -1,5 +1,11 @@
 # Root-cause analysis: ROCm memory access fault in veylith v2 sparse MoE
 
+> **Status note (2026-10-26).** This is the Phase 2/3 report. Its "fixed"
+> statements and its sparse-MoE recommendation are scoped to the tested
+> 8-expert/top-2 reproducer. A later 16-expert/top-4 run faulted on
+> 2.16.0.dev20261006, so no general fix is established and adoption is not
+> recommended. See `README.md` for the current status.
+
 **Question:** is the root cause (a) our sparse MoE implementation, (b) the
 PyTorch/ROCm integration, or (c) an underlying HIP/GPU kernel issue?
 
@@ -8,14 +14,17 @@ PyTorch/ROCm integration, or (c) an underlying HIP/GPU kernel issue?
 implementation's math and indices are correct (audited line by line; the
 dense-MoE rewrite of the same math is stable; a deliberate OOB-index
 control reproduces the same fault signature). The fault is a
-PyTorch-on-ROCm kernel bug, and it is **fixed in newer PyTorch**: the
-version isolation study (`version-comparison.md`, this branch) shows the
-fault reproduces on torch 2.14.1 with ROCm 7.2 AND 7.14, and is gone in
-torch 2.15.0.dev20261005+rocm7.14 and 2.16.0.dev20261006+rocm7.14. The fix
-window is PyTorch commits between 2026-08-24 and 2026-10-05 in the 2.15
-dev cycle. The exact kernel is still not named (no compute-sanitizer/
+PyTorch-on-ROCm kernel issue that is **no longer reproducible in newer
+PyTorch for the tested reproducer**. The version isolation study
+(`version-comparison.md`, this branch) shows the fault reproduces on
+torch 2.14.1 with ROCm 7.2 AND 7.14, and does not reproduce on
+torch 2.15.0.dev20261005+rocm7.14 and
+2.16.0.dev20261006+rocm7.14. The behavior-change window is PyTorch commits
+between 2026-08-24 and 2026-10-05 in the 2.15 dev cycle. The exact kernel
+of the 8-expert/top-2 reproducer is still not named (no compute-sanitizer/
 rocgdb on this box), but the cross-version evidence makes the
-classification firm. A deterministic reproducer and a draft upstream
+classification firm. The 16-expert/top-4 run still faulted on
+2.16.0.dev20261006. A deterministic reproducer and a draft upstream
 issue are included.
 
 ## Confirmed observations
@@ -90,10 +99,11 @@ unmapped VA), which (a) validates the OOB-write theory for the real
 fault and (b) confirms the real code, whose indices are in bounds, must
 be faulting inside a kernel rather than at the index level.
 
-## Phase 3 (this branch): narrowed fix window and sparse-MoE verdict
+## Phase 3 (this branch): narrowed behavior-change window and sparse-MoE verdict
 
-**Fix window: PyTorch commits on 2026-10-01/02.** Date-based binary search
-over the 40 nightly builds between 20260824 and 20261005 (each tested in a
+**Behavior-change window: PyTorch commits on 2026-10-01/02.** Date-based
+binary search over the 40 nightly builds between 20260824 and 20261005
+(each tested in a
 disposable uv venv, 2 reproducer runs per build): 20260913, 20260924,
 20260930 and 20261001 all fault 2/2; 20261002 passes 2/2. Boundary:
 `2.15.0.dev20261001` faults, `2.15.0.dev20261002` passes. Anchors
@@ -126,15 +136,17 @@ GPU utilization sampling failed this run (`--loop` is not a valid
 rocm-smi flag); reported as not measured rather than estimated.
 
 Interesting cross-check: on the OLD torch (2.14.1), sparse trained SLOWER
-than dense (4.4-4.8 vs 5.8 it/s); on the fixed torch (2.16.0.dev) the
+than dense (4.4-4.8 vs 5.8 it/s); on the newer torch (2.16.0.dev) the
 order flips (sparse 8.1 vs dense 7.1 it/s) - consistent with the 2.15-cycle
-fix also improving the index kernels' performance.
+change also improving the index kernels' performance.
 
-**Recommendation status:** the sparse implementation is correct and
-stable on torch >= 2.15.0.dev20261005; it is UNSAFE on any torch 2.14.x
-build (faults 100% in the deterministic mode). Adopt sparse MoE only
-after the training environment runs PyTorch >= 2.15 stable (or a pinned
-2.15-dev/2.16-dev build), verified with the reproducer.
+**Recommendation status:** the sparse implementation is correct, and it is
+stable in the runs recorded here on torch 2.15.0.dev20261005 and later; it
+is UNSAFE on any torch 2.14.x build (faults 100% in the deterministic
+mode). Do not adopt sparse MoE on the strength of these runs alone: a
+16-expert/top-4 configuration still faulted on 2.16.0.dev20261006.
+Re-verify the target configuration, not just the reproducer, on a stable
+PyTorch release (>= 2.15 at the time of writing).
 
 ## Recommendation
 
@@ -142,25 +154,28 @@ after the training environment runs PyTorch >= 2.15 stable (or a pinned
 routing (no variable-size gather/scatter), which is stable. Keep it.
 The sparse variant is preserved in git history for reference.
 
-**Upstream:** this is a PyTorch-on-ROCm kernel bug, fixed in the 2.15 dev
-cycle. The version isolation study (`version-comparison.md`) shows:
+**Upstream:** this is a PyTorch-on-ROCm kernel issue that is no longer
+reproducible for the tested configuration from the 2.15 dev cycle on. The
+version isolation study (`version-comparison.md`) shows:
 torch 2.14.1 faults with ROCm 7.2 AND ROCm 7.14 (so ROCm 7.14 does not
 fix it), while torch 2.15.0.dev20261005+rocm7.14 and
 2.16.0.dev20261006+rocm7.14 pass the deterministic reproducer 0 faults in
-16 runs. The fix window is PyTorch commits between 2026-08-24 and
-2026-10-05 (2.15 dev cycle). This makes the upstream report stronger: it
-points the maintainers at a regression window and a deterministic
-reproducer. The strongest candidate area is ATen's variable-size index
-kernels on ROCm for bf16 on gfx1201 (`index_add`/`index_select`
-backward). The draft report is in `issue-report.md` (NOT submitted, per
-instructions).
+16 runs. The behavior-change window is PyTorch commits between 2026-08-24
+and 2026-10-05 (2.15 dev cycle). This makes the upstream report stronger:
+it points the maintainers at a regression window and a deterministic
+reproducer. In the later 16-expert/top-4 run the kernel named at the fault
+is a hipBLASLt GEMM (`Cijk_Ailk_Bjlk_...`), not an index kernel; for the
+8-expert/top-2 reproducer the faulting kernel remains unnamed. The later
+working hypothesis is a layout-dependent over-read in one hipBLASLt
+solution, which is not hardware-verified. The draft report is in
+`issue-report.md` (NOT submitted, per instructions).
 
 ## Remaining uncertainties
 
-- The exact PyTorch commit/PR that fixed it: the window is PyTorch
-  commits between 2026-08-24 and 2026-10-05 (2.15 dev cycle), narrowed by
-  dated nightlies (testE faults on 20260824, testD passes on 20261005).
-  Bisecting further would mean more dated-nightly installs.
+- The exact PyTorch commit/PR that changed the behavior: the window is
+  PyTorch commits between 2026-08-24 and 2026-10-05 (2.15 dev cycle),
+  narrowed by dated nightlies (testE faults on 20260824, testD passes on
+  20261005). Bisecting further would mean more dated-nightly installs.
 - The exact faulting kernel is not named: no compute-sanitizer/rocgdb on
   this box, rocprofv3 cannot finalize after a GPU fault (hangs with
   "kernels still active"), and PyTorch's memory-history stack capture is
