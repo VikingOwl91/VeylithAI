@@ -1,0 +1,1822 @@
+{
+  "backend_selection": {
+    "api": "torch.backends.cuda.preferred_blas_library",
+    "ck_rejection": "RuntimeError: architecture supported for CK GEMM: 0",
+    "default": "Cublaslt -> hipBLASLt (rocblaslt_matmul)",
+    "dispatch_evidence": {
+      "hipblaslt_call": "rocblaslt_matmul",
+      "hipblaslt_log_lines": 24,
+      "rocblas_call": "rocblas_gemm_ex",
+      "rocblas_log_lines": 24
+    },
+    "env_var": "TORCH_BLAS_PREFER_HIPBLASLT=1/0 selects the same two settings",
+    "options": {
+      "ck": "installed but unsupported on gfx1201",
+      "cublas": "rocBLAS",
+      "cublaslt": "hipBLASLt"
+    }
+  },
+  "cases": [
+    {
+      "A": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          512,
+          960
+        ],
+        "strides": [
+          1,
+          512
+        ]
+      },
+      "calls_per_update": 896,
+      "case": 0,
+      "delta_ms_per_update": -0.4204369104433443,
+      "fp32_reference": {
+        "max_abs": 0.25,
+        "mean_abs": 0.025473613291978836,
+        "relative_l2": 0.0016567555721849203
+      },
+      "hipblaslt_allocating_ms": 0.056994015251224626,
+      "hipblaslt_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR1_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKXCCM0_TLDS2_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.058621579542163224,
+        "p95": 0.0717421105849309,
+        "run1": 0.05790382078690081,
+        "run2": 0.05933933829742563
+      },
+      "hipblaslt_trans": [
+        "OP_T",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 1065,
+      "name": "fwd_expert_w1w2",
+      "output_dims": [
+        4088,
+        960
+      ],
+      "perf1_ms_per_update": 49.09,
+      "ratio_hip_over_roc": 0.9920590432528793,
+      "rocblas_allocating_ms": 0.05768204883026275,
+      "rocblas_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR1_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKXCCM0_TLDS2_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.059090817165425885,
+        "p95": 0.07375165445187912,
+        "run1": 0.05815138967523019,
+        "run2": 0.06003024465562159
+      },
+      "rocblas_trans": [
+        "T",
+        "N",
+        960,
+        4088,
+        512
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          960,
+          4088
+        ],
+        "strides": [
+          1,
+          960
+        ]
+      },
+      "B": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 1792,
+      "case": 1,
+      "delta_ms_per_update": -1.2772157164632834,
+      "fp32_reference": {
+        "max_abs": 0.980682373046875,
+        "mean_abs": 0.07206705212593079,
+        "relative_l2": 0.0016633955528959632
+      },
+      "hipblaslt_allocating_ms": 0.054482682028226696,
+      "hipblaslt_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB0_LBSPPM0_LPA32_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL0_PGR1_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW2_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA2_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.05942798817450398,
+        "p95": 0.06706164285634285,
+        "run1": 0.060211819509724186,
+        "run2": 0.05864415683928378
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_T"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 1358,
+      "name": "dw_expert_w1w2",
+      "output_dims": [
+        960,
+        512
+      ],
+      "perf1_ms_per_update": 47.11,
+      "ratio_hip_over_roc": 0.988148928334287,
+      "rocblas_allocating_ms": 0.055024392118419294,
+      "rocblas_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB0_LBSPPM0_LPA32_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL0_PGR1_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW2_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA2_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.06014072015913751,
+        "p95": 0.07079487702878198,
+        "run1": 0.057996400590901664,
+        "run2": 0.062285039727373356
+      },
+      "rocblas_trans": [
+        "N",
+        "T",
+        512,
+        960,
+        4088
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          960
+        ],
+        "strides": [
+          960,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          960,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 1792,
+      "case": 2,
+      "delta_ms_per_update": -2.6305569819239256,
+      "fp32_reference": {
+        "max_abs": 0.489288330078125,
+        "mean_abs": 0.03486534580588341,
+        "relative_l2": 0.001661317190155387
+      },
+      "hipblaslt_allocating_ms": 0.04898245056261821,
+      "hipblaslt_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.05096265508322686,
+        "p95": 0.06873397304186396,
+        "run1": 0.0503309303404125,
+        "run2": 0.05159437982604122
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 1292,
+      "name": "nn_4088_960_512",
+      "output_dims": [
+        4088,
+        512
+      ],
+      "perf1_ms_per_update": 39.82,
+      "ratio_hip_over_roc": 0.972002137125955,
+      "rocblas_allocating_ms": 0.050267456653985645,
+      "rocblas_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.05243059982760405,
+        "p95": 0.0713499984532759,
+        "run1": 0.051712205882390366,
+        "run2": 0.053148993772817725
+      },
+      "rocblas_trans": [
+        "N",
+        "N",
+        512,
+        4088,
+        960
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          512,
+          4088
+        ],
+        "strides": [
+          1,
+          512
+        ]
+      },
+      "B": {
+        "dims": [
+          4088,
+          960
+        ],
+        "strides": [
+          960,
+          1
+        ]
+      },
+      "calls_per_update": 896,
+      "case": 3,
+      "delta_ms_per_update": 0.0913288210398484,
+      "fp32_reference": {
+        "max_abs": 0.98095703125,
+        "mean_abs": 0.07197204232215881,
+        "relative_l2": 0.0016631289618089795
+      },
+      "hipblaslt_allocating_ms": 0.05519612991377748,
+      "hipblaslt_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB0_LBSPPM0_LPA32_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL0_PGR2_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW2_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA2_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.055778946595194556,
+        "p95": 0.05696254073936715,
+        "run1": 0.056113397150016536,
+        "run2": 0.055444496040372576
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_T"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 1674,
+      "name": "dw_expert_w3",
+      "output_dims": [
+        512,
+        960
+      ],
+      "perf1_ms_per_update": 23.41,
+      "ratio_hip_over_roc": 1.0018307282441339,
+      "rocblas_allocating_ms": 0.05539087962880486,
+      "rocblas_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB0_LBSPPM0_LPA32_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL0_PGR2_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW2_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA2_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.05567701710742687,
+        "p95": 0.05573085543316797,
+        "run1": 0.05549395489960541,
+        "run2": 0.055860079315248334
+      },
+      "rocblas_trans": [
+        "N",
+        "T",
+        960,
+        512,
+        4088
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          512,
+          960
+        ],
+        "strides": [
+          960,
+          1
+        ]
+      },
+      "calls_per_update": 896,
+      "case": 4,
+      "delta_ms_per_update": -0.013987097471141574,
+      "fp32_reference": {
+        "max_abs": 0.25000762939453125,
+        "mean_abs": 0.025393106043338776,
+        "relative_l2": 0.0016566321719437838
+      },
+      "hipblaslt_allocating_ms": 0.056794947607632935,
+      "hipblaslt_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM32_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.057331513238212554,
+        "p95": 0.05912245915297576,
+        "run1": 0.05759712591485291,
+        "run2": 0.0570659005615722
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 1666,
+      "name": "nn_4088_512_960",
+      "output_dims": [
+        4088,
+        960
+      ],
+      "perf1_ms_per_update": 23.14,
+      "ratio_hip_over_roc": 0.9997277875713477,
+      "rocblas_allocating_ms": 0.05713494268050619,
+      "rocblas_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM32_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.05734712383806874,
+        "p95": 0.05741088655243414,
+        "run1": 0.05721416597107553,
+        "run2": 0.057480081705061956
+      },
+      "rocblas_trans": [
+        "N",
+        "N",
+        960,
+        4088,
+        512
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          960
+        ],
+        "strides": [
+          960,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          960,
+          512
+        ],
+        "strides": [
+          1,
+          960
+        ]
+      },
+      "calls_per_update": 448,
+      "case": 5,
+      "delta_ms_per_update": -0.06103196524770471,
+      "fp32_reference": {
+        "max_abs": 0.4981842041015625,
+        "mean_abs": 0.03486211597919464,
+        "relative_l2": 0.0016616847133263946
+      },
+      "hipblaslt_allocating_ms": 0.04731848195338728,
+      "hipblaslt_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.046390702056249886,
+        "p95": 0.04653767420425366,
+        "run1": 0.046318979548757376,
+        "run2": 0.04646242456374239
+      },
+      "hipblaslt_trans": [
+        "OP_T",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 2166,
+      "name": "fwd_expert_w3",
+      "output_dims": [
+        4088,
+        512
+      ],
+      "perf1_ms_per_update": 21.19,
+      "ratio_hip_over_roc": 0.9970719741616931,
+      "rocblas_allocating_ms": 0.04658312211272699,
+      "rocblas_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.04652693412153494,
+        "p95": 0.04664009556497618,
+        "run1": 0.04644379939907381,
+        "run2": 0.046610068843996065
+      },
+      "rocblas_trans": [
+        "T",
+        "N",
+        512,
+        4088,
+        960
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          8192,
+          4088
+        ],
+        "strides": [
+          1,
+          8192
+        ]
+      },
+      "B": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 16,
+      "case": 6,
+      "delta_ms_per_update": -0.09432587947230786,
+      "fp32_reference": {
+        "max_abs": 0.997314453125,
+        "mean_abs": 0.07181624323129654,
+        "relative_l2": 0.0016607524594292045
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x32x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA1_GRVWB1_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB512_LBSPPM0_LPA16_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.859691824989568,
+        "p95": 1.317922570015071,
+        "run1": 0.8623227199859684,
+        "run2": 0.8570609299931675
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_T"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 100,
+      "name": "dw_head",
+      "output_dims": [
+        8192,
+        512
+      ],
+      "perf1_ms_per_update": 6.39,
+      "ratio_hip_over_roc": 0.9931891697123107,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x32x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA1_GRVWB1_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB512_LBSPPM0_LPA16_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.8655871924565872,
+        "p95": 1.369941440061666,
+        "run1": 0.8724360399355646,
+        "run2": 0.8587383449776098
+      },
+      "rocblas_trans": [
+        "N",
+        "T",
+        512,
+        8192,
+        4088
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          512,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 256,
+      "case": 7,
+      "delta_ms_per_update": -0.018340009642258792,
+      "fp32_reference": {
+        "max_abs": 0.24999237060546875,
+        "mean_abs": 0.025387989357113838,
+        "relative_l2": 0.0016570771113038063
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB256_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB4_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.03290237946505746,
+        "p95": 0.03323922965450791,
+        "run1": 0.03295257879252513,
+        "run2": 0.032852180137589795
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 3034,
+      "name": "nn_4088_512_512",
+      "output_dims": [
+        4088,
+        512
+      ],
+      "perf1_ms_per_update": 5.65,
+      "ratio_hip_over_roc": 0.9978273603768185,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB256_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB4_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.032974020127722534,
+        "p95": 0.032939135795535895,
+        "run1": 0.03282674555072774,
+        "run2": 0.03312129470471732
+      },
+      "rocblas_trans": [
+        "N",
+        "N",
+        512,
+        4088,
+        512
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          512,
+          4088
+        ],
+        "strides": [
+          1,
+          512
+        ]
+      },
+      "B": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 256,
+      "case": 8,
+      "delta_ms_per_update": 0.04584848634291916,
+      "fp32_reference": {
+        "max_abs": 0.933563232421875,
+        "mean_abs": 0.07186667621135712,
+        "relative_l2": 0.00166087388060987
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA1_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB4_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA0_LBSPPB1024_LBSPPM0_LPA0_LPB32_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA2_NLCB1_ONLL0_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB2_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.03469283412009169,
+        "p95": 0.03508608665439896,
+        "run1": 0.03473401095498301,
+        "run2": 0.03465165728520037
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_T"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 2662,
+      "name": "tn_512_4088_512",
+      "output_dims": [
+        512,
+        512
+      ],
+      "perf1_ms_per_update": 4.83,
+      "ratio_hip_over_roc": 1.0051891118642817,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA1_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB4_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA0_LBSPPB1024_LBSPPM0_LPA0_LPB32_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA2_NLCB1_ONLL0_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB2_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.034513738470314664,
+        "p95": 0.03467850638185275,
+        "run1": 0.03444366209642964,
+        "run2": 0.034583814844199694
+      },
+      "rocblas_trans": [
+        "N",
+        "T",
+        512,
+        512,
+        4088
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          128,
+          4088
+        ],
+        "strides": [
+          1,
+          128
+        ]
+      },
+      "B": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 256,
+      "case": 9,
+      "delta_ms_per_update": -0.05243840365921493,
+      "fp32_reference": {
+        "max_abs": 0.9136962890625,
+        "mean_abs": 0.0719742476940155,
+        "relative_l2": 0.0016624160343781114
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT32x32x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA512_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT1_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL0_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.01810771486578919,
+        "p95": 0.0183252831880253,
+        "run1": 0.018009011661638374,
+        "run2": 0.018206418069940007
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_T"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 3920,
+      "name": "tn_128_4088_512",
+      "output_dims": [
+        128,
+        512
+      ],
+      "perf1_ms_per_update": 4.11,
+      "ratio_hip_over_roc": 0.988814365685223,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT32x32x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA512_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT1_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL0_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.018312552380083,
+        "p95": 0.01842316301101201,
+        "run1": 0.018301727168920704,
+        "run2": 0.018323377591245294
+      },
+      "rocblas_trans": [
+        "N",
+        "T",
+        512,
+        128,
+        4088
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          512,
+          512
+        ],
+        "strides": [
+          1,
+          512
+        ]
+      },
+      "calls_per_update": 128,
+      "case": 10,
+      "delta_ms_per_update": -0.027499302059485586,
+      "fp32_reference": {
+        "max_abs": 0.24999237060546875,
+        "mean_abs": 0.025451654568314552,
+        "relative_l2": 0.0016536988550797105
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.028502080503144477,
+        "p95": 0.028526707153842125,
+        "run1": 0.028373129635260706,
+        "run2": 0.02863103137102825
+      },
+      "hipblaslt_trans": [
+        "OP_T",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 3176,
+      "name": "nt_attn_512",
+      "output_dims": [
+        4088,
+        512
+      ],
+      "perf1_ms_per_update": 4.07,
+      "ratio_hip_over_roc": 0.9925187552734206,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.028716918800484208,
+        "p95": 0.028773864294415204,
+        "run1": 0.028694366810393813,
+        "run2": 0.028739470790574605
+      },
+      "rocblas_trans": [
+        "T",
+        "N",
+        512,
+        4088,
+        512
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          512,
+          8192
+        ],
+        "strides": [
+          1,
+          512
+        ]
+      },
+      "calls_per_update": 8,
+      "case": 11,
+      "delta_ms_per_update": -0.01651428502462826,
+      "fp32_reference": {
+        "max_abs": 0.2500152587890625,
+        "mean_abs": 0.02544114552438259,
+        "relative_l2": 0.0016561970114707947
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA4_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.3557408902821343,
+        "p95": 0.359319903484369,
+        "run1": 0.3569898086174488,
+        "run2": 0.35449197194681975
+      },
+      "hipblaslt_trans": [
+        "OP_T",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 287,
+      "name": "fwd_head",
+      "output_dims": [
+        4088,
+        8192
+      ],
+      "perf1_ms_per_update": 2.69,
+      "ratio_hip_over_roc": 0.9942306993664157,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA4_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.3578051759102128,
+        "p95": 0.35930116727213185,
+        "run1": 0.3573301951307641,
+        "run2": 0.35828015668966157
+      },
+      "rocblas_trans": [
+        "T",
+        "N",
+        8192,
+        4088,
+        512
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          8192
+        ],
+        "strides": [
+          8192,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          8192,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 16,
+      "case": 12,
+      "delta_ms_per_update": -0.02482346717011108,
+      "fp32_reference": {
+        "max_abs": 1.000396728515625,
+        "mean_abs": 0.10181553661823273,
+        "relative_l2": 0.0016570910811424255
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW4_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.3646852986703737,
+        "p95": 0.4490514349421035,
+        "run1": 0.3705445269262105,
+        "run2": 0.35882607041453685
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 211,
+      "name": "nn_4088_8192_512",
+      "output_dims": [
+        4088,
+        512
+      ],
+      "perf1_ms_per_update": 2.54,
+      "ratio_hip_over_roc": 0.995763760373509,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW4_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.36623676536850563,
+        "p95": 0.4775485023028566,
+        "run1": 0.36158986726606934,
+        "run2": 0.3708836634709419
+      },
+      "rocblas_trans": [
+        "N",
+        "N",
+        512,
+        4088,
+        8192
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          1365,
+          4088
+        ],
+        "strides": [
+          1,
+          1365
+        ]
+      },
+      "B": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 32,
+      "case": 13,
+      "delta_ms_per_update": -0.025202475797402535,
+      "fp32_reference": {
+        "max_abs": 0.91851806640625,
+        "mean_abs": 0.07182086259126663,
+        "relative_l2": 0.0016613299958407879
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT32x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA1_GRVWB1_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA512_LBSPPB1024_LBSPPM0_LPA16_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG16_8_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.1589809071610005,
+        "p95": 0.15956623102110318,
+        "run1": 0.15903720237600538,
+        "run2": 0.15892461194599564
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_T"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 570,
+      "name": "dw_dense_mlp",
+      "output_dims": [
+        1365,
+        512
+      ],
+      "perf1_ms_per_update": 2.44,
+      "ratio_hip_over_roc": 0.9950705086113365,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT32x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA1_GRVWB1_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA512_LBSPPB1024_LBSPPM0_LPA16_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG16_8_1.kd",
+      "rocblas_ms": {
+        "median": 0.15976848452966932,
+        "p95": 0.1603727087760426,
+        "run1": 0.15960930438922602,
+        "run2": 0.15992766467011263
+      },
+      "rocblas_trans": [
+        "N",
+        "T",
+        512,
+        1365,
+        4088
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          128
+        ],
+        "strides": [
+          128,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          128,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 256,
+      "case": 14,
+      "delta_ms_per_update": 0.30820556857347725,
+      "fp32_reference": {
+        "max_abs": 0.12499237060546875,
+        "mean_abs": 0.012585124932229519,
+        "relative_l2": 0.0016569083090871572
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.017730961478420786,
+        "p95": 0.017795624523236412,
+        "run1": 0.017425182109333612,
+        "run2": 0.018036740847507955
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 6019,
+      "name": "nn_4088_128_512",
+      "output_dims": [
+        4088,
+        512
+      ],
+      "perf1_ms_per_update": 2.37,
+      "ratio_hip_over_roc": 1.0728459831569466,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.01652703347618064,
+        "p95": 0.01706666805096587,
+        "run1": 0.016910493686078214,
+        "run2": 0.016143573266283066
+      },
+      "rocblas_trans": [
+        "N",
+        "N",
+        512,
+        4088,
+        128
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          512,
+          128
+        ],
+        "strides": [
+          1,
+          512
+        ]
+      },
+      "calls_per_update": 128,
+      "case": 15,
+      "delta_ms_per_update": 0.17680754365553408,
+      "fp32_reference": {
+        "max_abs": 0.2499847412109375,
+        "mean_abs": 0.025481564924120903,
+        "relative_l2": 0.001659941510297358
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB128_LBSPPM0_LPA16_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR2_PLR1_PKA0_SIA1_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKXCCM0_TLDS2_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.01800041349073085,
+        "p95": 0.018023335750664653,
+        "run1": 0.017899050502159123,
+        "run2": 0.018101776479302584
+      },
+      "hipblaslt_trans": [
+        "OP_T",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 5660,
+      "name": "nt_kv_128",
+      "output_dims": [
+        4088,
+        128
+      ],
+      "perf1_ms_per_update": 2.32,
+      "ratio_hip_over_roc": 1.0831157256494093,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB128_LBSPPM0_LPA16_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR2_PLR1_PKA0_SIA1_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKXCCM0_TLDS2_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.01661910455592199,
+        "p95": 0.01715162773896338,
+        "run1": 0.017049141784205576,
+        "run2": 0.016189067327638404
+      },
+      "rocblas_trans": [
+        "T",
+        "N",
+        128,
+        4088,
+        512
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          8,
+          4088
+        ],
+        "strides": [
+          1,
+          8
+        ]
+      },
+      "B": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 112,
+      "case": 16,
+      "delta_ms_per_update": 0.14174992674415532,
+      "fp32_reference": {
+        "max_abs": 0.499908447265625,
+        "mean_abs": 0.06903304159641266,
+        "relative_l2": 0.0016434473218396306
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT32x32x128_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA4_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA512_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT1_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL0_PGR2_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.01802543214592616,
+        "p95": 0.018184744046572505,
+        "run1": 0.01811510681386327,
+        "run2": 0.017935757477989048
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_T"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 6059,
+      "name": "tn_router_8",
+      "output_dims": [
+        8,
+        512
+      ],
+      "perf1_ms_per_update": 1.7,
+      "ratio_hip_over_roc": 1.0755154451073266,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT32x32x128_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA4_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA512_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT1_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL0_PGR2_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.016759807799996203,
+        "p95": 0.016851205479776827,
+        "run1": 0.01665376118278588,
+        "run2": 0.016865854417206526
+      },
+      "rocblas_trans": [
+        "N",
+        "T",
+        512,
+        8,
+        4088
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          512,
+          1365
+        ],
+        "strides": [
+          1,
+          512
+        ]
+      },
+      "calls_per_update": 16,
+      "case": 17,
+      "delta_ms_per_update": -0.024209825907069105,
+      "fp32_reference": {
+        "max_abs": 0.24997711181640625,
+        "mean_abs": 0.025390595197677612,
+        "relative_l2": 0.0016558697680011392
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.08023405022728286,
+        "p95": 0.0805629871506992,
+        "run1": 0.08022309678684299,
+        "run2": 0.08024500366772273
+      },
+      "hipblaslt_trans": [
+        "OP_T",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 1197,
+      "name": "nt_dense_mlp",
+      "output_dims": [
+        4088,
+        1365
+      ],
+      "perf1_ms_per_update": 1.22,
+      "ratio_hip_over_roc": 0.9814903167432367,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.08174716434647468,
+        "p95": 0.08060945363372173,
+        "run1": 0.08041420843531577,
+        "run2": 0.08308012025763359
+      },
+      "rocblas_trans": [
+        "T",
+        "N",
+        1365,
+        4088,
+        512
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          1365
+        ],
+        "strides": [
+          1365,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          1365,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 32,
+      "case": 18,
+      "delta_ms_per_update": -0.037910737478300316,
+      "fp32_reference": {
+        "max_abs": 0.500030517578125,
+        "mean_abs": 0.041530489921569824,
+        "relative_l2": 0.0016609100857749581
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.07207257681504718,
+        "p95": 0.07239126903519907,
+        "run1": 0.07168705438681931,
+        "run2": 0.07245809924327505
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 1379,
+      "name": "nn_4088_1365_512",
+      "output_dims": [
+        4088,
+        512
+      ],
+      "perf1_ms_per_update": 1.13,
+      "ratio_hip_over_roc": 0.9838280860666478,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.07325728736124407,
+        "p95": 0.07311486729369732,
+        "run1": 0.07253446627586899,
+        "run2": 0.07398010844661913
+      },
+      "rocblas_trans": [
+        "N",
+        "N",
+        512,
+        4088,
+        1365
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          8
+        ],
+        "strides": [
+          8,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          8,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "calls_per_update": 112,
+      "case": 19,
+      "delta_ms_per_update": 0.0003444192783971234,
+      "fp32_reference": {
+        "max_abs": 0.06026458740234375,
+        "mean_abs": 0.0031387838535010815,
+        "relative_l2": 0.0016587728168815374
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.01697295485404428,
+        "p95": 0.017642580463889022,
+        "run1": 0.017053666109966854,
+        "run2": 0.01689224359812171
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 5744,
+      "name": "nn_4088_8_512",
+      "output_dims": [
+        4088,
+        512
+      ],
+      "perf1_ms_per_update": 1.0,
+      "ratio_hip_over_roc": 1.0001812135493113,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB128_LBSPPM0_LPA0_LPB16_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL1_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.016969879681915736,
+        "p95": 0.017056812847382228,
+        "run1": 0.01692624486456724,
+        "run2": 0.01701351449926423
+      },
+      "rocblas_trans": [
+        "N",
+        "N",
+        512,
+        4088,
+        8
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          512,
+          4088
+        ],
+        "strides": [
+          1,
+          512
+        ]
+      },
+      "B": {
+        "dims": [
+          4088,
+          1365
+        ],
+        "strides": [
+          1365,
+          1
+        ]
+      },
+      "calls_per_update": 16,
+      "case": 20,
+      "delta_ms_per_update": -0.004320771546111102,
+      "fp32_reference": {
+        "max_abs": 0.96221923828125,
+        "mean_abs": 0.07184634357690811,
+        "relative_l2": 0.0016607650322839618
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x16_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA4_GRVWB4_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB2048_LBSPPM0_LPA0_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL0_PGR2_PLR1_PKA0_SIA2_SS1_SPO0_SRVW0_SSO0_SVW4_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO1_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB4_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.07504124946440713,
+        "p95": 0.07512023467473451,
+        "run1": 0.07473298692401843,
+        "run2": 0.07534951200479582
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_T"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 1172,
+      "name": "tn_512_4088_1365",
+      "output_dims": [
+        512,
+        1365
+      ],
+      "perf1_ms_per_update": 0.86,
+      "ratio_hip_over_roc": 0.9964142402278376,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x16_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_FDSI0_GRPM1_GRVWA4_GRVWB4_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA2048_LBSPPB2048_LBSPPM0_LPA0_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB1_ONLL0_PGR2_PLR1_PKA0_SIA2_SS1_SPO0_SRVW0_SSO0_SVW4_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO1_USL1_UIOFGRO0_USFGROn1_VSn1_VWA4_VWB4_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.07531129768603907,
+        "p95": 0.07661729181153977,
+        "run1": 0.07513492747380617,
+        "run2": 0.07548766789827198
+      },
+      "rocblas_trans": [
+        "N",
+        "T",
+        1365,
+        512,
+        4088
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          512,
+          1365
+        ],
+        "strides": [
+          1365,
+          1
+        ]
+      },
+      "calls_per_update": 16,
+      "case": 21,
+      "delta_ms_per_update": -0.0036395176491617054,
+      "fp32_reference": {
+        "max_abs": 0.24999237060546875,
+        "mean_abs": 0.02538294531404972,
+        "relative_l2": 0.001656108652241528
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM32_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.08869253258784138,
+        "p95": 0.0885688603861155,
+        "run1": 0.08838241535633475,
+        "run2": 0.08900264981934802
+      },
+      "hipblaslt_trans": [
+        "OP_N",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 1109,
+      "name": "nn_4088_1365",
+      "output_dims": [
+        4088,
+        1365
+      ],
+      "perf1_ms_per_update": 0.7,
+      "ratio_hip_over_roc": 0.9974418595723301,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM32_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.08892000244091398,
+        "p95": 0.08880812264053022,
+        "run1": 0.08873339540663538,
+        "run2": 0.08910660947519258
+      },
+      "rocblas_trans": [
+        "N",
+        "N",
+        1365,
+        4088,
+        512
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          512
+        ],
+        "strides": [
+          512,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          512,
+          8
+        ],
+        "strides": [
+          1,
+          512
+        ]
+      },
+      "calls_per_update": 56,
+      "case": 22,
+      "delta_ms_per_update": 0.01322757979655484,
+      "fp32_reference": {
+        "max_abs": 0.248992919921875,
+        "mean_abs": 0.025329865515232086,
+        "relative_l2": 0.001655568485148251
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT16x16x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT1_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR1_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG16_2_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.017037530546407546,
+        "p95": 0.017964090508341052,
+        "run1": 0.017494848515436787,
+        "run2": 0.016580212577378302
+      },
+      "hipblaslt_trans": [
+        "OP_T",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 5212,
+      "name": "nt_8",
+      "output_dims": [
+        4088,
+        8
+      ],
+      "perf1_ms_per_update": 0.6,
+      "ratio_hip_over_roc": 1.014058819733173,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT16x16x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT1_1_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR1_PLR1_PKA0_SIA3_SS1_SPO0_SRVW0_SSO0_SVW1_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG16_2_1.kd",
+      "rocblas_ms": {
+        "median": 0.01680132376432621,
+        "p95": 0.017199214313098666,
+        "run1": 0.016397454241078586,
+        "run2": 0.017205193287573833
+      },
+      "rocblas_trans": [
+        "T",
+        "N",
+        8,
+        4088,
+        512
+      ]
+    },
+    {
+      "A": {
+        "dims": [
+          4088,
+          1365
+        ],
+        "strides": [
+          1365,
+          1
+        ]
+      },
+      "B": {
+        "dims": [
+          1365,
+          512
+        ],
+        "strides": [
+          1,
+          1365
+        ]
+      },
+      "calls_per_update": 8,
+      "case": 23,
+      "delta_ms_per_update": -0.0007833125087777226,
+      "fp32_reference": {
+        "max_abs": 0.4998016357421875,
+        "mean_abs": 0.041636109352111816,
+        "relative_l2": 0.0016619842499494553
+      },
+      "hipblaslt_allocating_ms": null,
+      "hipblaslt_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "hipblaslt_ms": {
+        "median": 0.06921637834081579,
+        "p95": 0.06940304778143505,
+        "run1": 0.06912892659227338,
+        "run2": 0.06930383008935821
+      },
+      "hipblaslt_trans": [
+        "OP_T",
+        "OP_N"
+      ],
+      "hipblaslt_workspace_bytes": 79691776,
+      "iterations": 1380,
+      "name": "nt_1365",
+      "output_dims": [
+        4088,
+        512
+      ],
+      "perf1_ms_per_update": 0.54,
+      "ratio_hip_over_roc": 0.9985873899855179,
+      "rocblas_allocating_ms": null,
+      "rocblas_kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA128_LBSPPB0_LBSPPM0_LPA16_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT4_4_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL1_PGR2_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS1_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA1_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+      "rocblas_ms": {
+        "median": 0.069314292404413,
+        "p95": 0.06947521159536732,
+        "run1": 0.06912187427983356,
+        "run2": 0.06950671052899243
+      },
+      "rocblas_trans": [
+        "T",
+        "N",
+        512,
+        4088,
+        1365
+      ]
+    }
+  ],
+  "environment": {
+    "gcn_arch": "gfx1201",
+    "gpu": "AMD Radeon Graphics",
+    "hip": "7.2.53211",
+    "torch": "2.14.1+rocm7.2",
+    "triton": "3.8.0"
+  },
+  "memory": {
+    "hipblaslt_workspace_bytes": {
+      "max": 79691776,
+      "min": 79691776,
+      "per_case": [
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776,
+        79691776
+      ]
+    },
+    "peak_allocated_gb": {
+      "cublaslt": 0.562028544,
+      "rocblas": 0.5158912
+    },
+    "peak_reserved_gb": {
+      "cublaslt": 0.589299712,
+      "rocblas": 0.543162368
+    },
+    "rocblas_workspace": "not exposed by the rocBLAS log"
+  },
+  "meta": {
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-2 actual-shape BF16 GEMM benchmark",
+    "git_head_before": "b298798",
+    "mode": "benchmark only; no model, optimizer or backward path",
+    "scratch": "~/veylith-perf2-20261027"
+  },
+  "numerics": {
+    "all_bitwise_equal": true,
+    "cases_compared": 24,
+    "details": [
+      {
+        "case": 0,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 1,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 2,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 3,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 4,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 5,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 6,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 7,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 8,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 9,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 10,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 11,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 12,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 13,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 14,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 15,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 16,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 17,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 18,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 19,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 20,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 21,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 22,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      },
+      {
+        "case": 23,
+        "max_abs": 0.0,
+        "mean_abs": 0.0
+      }
+    ],
+    "max_abs_difference": 0.0
+  },
+  "power": {
+    "cublaslt": {
+      "max_power_w": 399.0,
+      "mean_busy_pct": 94.29209621993127,
+      "mean_power_w": 282.49828178694156,
+      "mean_sclk_ghz": 2.703620274914089,
+      "samples": 582
+    },
+    "rocblas": {
+      "max_power_w": 405.0,
+      "mean_busy_pct": 94.50344827586207,
+      "mean_power_w": 283.83448275862065,
+      "mean_sclk_ghz": 2.6972689655172415,
+      "samples": 580
+    }
+  },
+  "power_scope": "GPU package PPT only; whole-system wall power not measured",
+  "run_variability": {
+    "cublaslt": {
+      "max_rel_pct": 5.368359784108157,
+      "median_rel_pct": 0.9388212398042475
+    },
+    "rocblas": {
+      "max_rel_pct": 7.131007286117599,
+      "median_rel_pct": 0.7754313523635363
+    }
+  },
+  "totals": {
+    "cases": 24,
+    "hipblaslt_minus_rocblas_ms_per_update": -3.9557243140333425,
+    "pct_of_245ms_budget": -1.6145813526666706,
+    "pct_of_measured_update": -0.5068842022082705,
+    "pct_of_perf1_gemm": -1.58915487467192,
+    "perf1_gemm_ms_per_update": 248.91999999999996
+  }
+}
