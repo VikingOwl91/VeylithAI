@@ -327,3 +327,15 @@ v3.1-K limit sat just below the allocator's steady state. Validation macro CE
 fell from 9.1168 to 5.4001, seven step-suffixed states were written and
 structurally restored, and no GPU fault occurred. Router balance is healthy
 but close to uniform. See `docs/V3.1-L-DENSE-RUN.md`.
+
+The v3.1-M analysis (CPU-only) then showed that expert outputs converged rather
+than diverged and that routing was balanced but confident per token. See
+`docs/V3.1-M-POST-TRAINING-ANALYSIS.md`. The v3.1-N profiling pass resolved the
+apparent contradiction: the router partitions tokens by surface form. EOS,
+numeric, sentence-final and punctuation tokens go almost deterministically to
+specific experts in each layer while global load stays balanced. Preferences
+are absent at initialization, emerge by update 100 and are stable between
+updates 250 and 500. Position has no measurable effect and data-source
+conditioning is about 1 percent of the divergence ceiling. Functional expert
+specialization and predictive benefit remain untested. See
+`docs/V3.1-N-EXPERT-BEHAVIOR.md`.
