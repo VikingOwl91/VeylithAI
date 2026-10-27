@@ -1,0 +1,87 @@
+{
+  "decision": {
+    "choice": "Reject P1 due to numerical or semantic mismatch",
+    "magnitude": "grad_norm 5.6e-5 relative at update 1; 0.67 percent relative L2 at the norm-output gradient on one microbatch; update-2 CE 9.0e-6 relative.",
+    "rationale": "The forward is bitwise identical, but the shared BF16 norm output changes gradient accumulation from FP32 to BF16. Gradients, updated weights, optimizer state and later router assignments diverge. The mission requires bitwise identity and forbids relaxing tolerances, so the optimization cannot proceed to paired A/B training.",
+    "salvage": "A semantically exact variant would need per-consumer FP32 gradient accumulation, which reintroduces the casts, or a fused kernel that accumulates consumer gradients in FP32 (a different design, not the single-cast P1)."
+  },
+  "deviations": [
+    "One harness bug (missing sys.path) failed before any GPU work and was fixed; no updates were consumed.",
+    "The first CPU-only copy check differed because dropout consumed RNG between calls; it passed in eval mode and against the class method.",
+    "No profiling was run because the correctness gate failed."
+  ],
+  "gate": {
+    "baseline_a_equals_baseline_b": true,
+    "baseline_determinism": true,
+    "diagnostic": {
+      "baseline_grad_dtype": "float32",
+      "baseline_grad_norm": 0.00019537017215043306,
+      "explanation": "The single BF16 cast creates one shared tensor with 17 consumers. Autograd accumulates the consumer gradients in the tensor dtype, so the sum is BF16 instead of the baseline's per-consumer FP32 accumulation. The cast backward then widens the BF16 sum.",
+      "max_abs_diff": 2.2526364773511887e-08,
+      "method": "retained gradient of block-1 ln2 output on one microbatch",
+      "relative_l2": 0.006650149822235107,
+      "variant_grad_dtype": "bfloat16",
+      "variant_grad_norm": 0.00019537282059900463
+    },
+    "result": "fail",
+    "update1": {
+      "aux_baseline": 7.554577529430389,
+      "aux_variant": 7.554577529430389,
+      "forward_logits_bitwise_equal": true,
+      "grad_norm_abs_diff": 8.33272933959961e-05,
+      "grad_norm_baseline": 1.484588623046875,
+      "grad_norm_rel_diff": 5.61282042058092e-05,
+      "grad_norm_variant": 1.484505295753479,
+      "gradients_equal_after_step": false,
+      "loss_baseline": 9.197408735482659,
+      "loss_variant": 9.197408735482659,
+      "main_ce_baseline": 9.121862960188356,
+      "main_ce_variant": 9.121862960188356,
+      "model_weights_equal_after_step": false,
+      "optimizer_state_equal_after_step": false,
+      "router_assignments_equal": true
+    },
+    "update2": {
+      "aux_baseline": 7.563181102275848,
+      "aux_variant": 7.563266575336456,
+      "grad_norm_baseline": 1.5635069608688354,
+      "grad_norm_rel_diff": 0.0006034776629776633,
+      "grad_norm_variant": 1.5644505023956299,
+      "loss_baseline": 9.16673400800172,
+      "loss_variant": 9.1668170392245,
+      "main_ce_abs_diff": 8.217649217279188e-05,
+      "main_ce_baseline": 9.091102196978962,
+      "main_ce_rel_diff": 9.039222130854464e-06,
+      "main_ce_variant": 9.091184373471135,
+      "router_assignments_equal": false
+    }
+  },
+  "implementation": {
+    "moe_accumulator": "explicit FP32 zeros in the dense combine",
+    "non_linear_consumers": "only flat.new_zeros in the MoE combine used the norm output outside a Linear; forced to FP32",
+    "patched": {
+      "moe": 7,
+      "rmsnorm": 17
+    },
+    "production_files_changed": false,
+    "rmsnorm": "same FP32 normalization, one .to(torch.bfloat16) on the final result"
+  },
+  "integrity": {
+    "drift_guard": "OK",
+    "gpu_work": "6 optimizer updates for the correctness gate only",
+    "historical_artifacts": "untouched",
+    "kfd": "idle",
+    "production_code": "unchanged"
+  },
+  "meta": {
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-3B single-cast RMSNorm prototype",
+    "git_head_before": "9c483fb",
+    "mode": "bounded experimental prototype; production unchanged",
+    "scratch": "~/veylith-perf3b-20261027"
+  },
+  "profiling": {
+    "executed": false,
+    "reason": "correctness gate failed; no performance claims made"
+  }
+}
