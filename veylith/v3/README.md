@@ -314,3 +314,8 @@ separate authorization. The isolated Sparse-MoE reproducer (v3.1-J) then
 reproduced the historical GPU memory access fault with the same 2 MiB-aligned
 signature and exit 134; Python and ROCm user-space isolation did not remove
 it. See `docs/V3.1-J-SPARSE-REPRODUCER.md`.
+
+The first isolated Dense-Combined training attempt (v3.1-K) stopped after 3
+optimizer updates on the 6 GiB peak-reserved-VRAM guard at 6.105 GiB. It was
+not a GPU fault or OOM, but it produced no checkpoint, no final validation and
+no stability result. See `docs/V3.1-K-DENSE-RUN.md`.

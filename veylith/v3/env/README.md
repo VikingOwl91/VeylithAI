@@ -283,4 +283,7 @@ and backward, and a checkpoint forward. Peak allocation was 0.7445 GB, no
 `/opt/rocm` library was loaded, and no HIP error or GPU reset occurred. See
 `../docs/V3.1-I-ISOLATED-GPU-SMOKE.md`. Training remains pending separate
 authorization. The v3.1-J isolated reproducer then reproduced the known
-Sparse-MoE fault; see `../docs/V3.1-J-SPARSE-REPRODUCER.md`.
+Sparse-MoE fault; see `../docs/V3.1-J-SPARSE-REPRODUCER.md`. The first dense
+training attempt (v3.1-K) stopped after 3 updates on the 6 GiB peak-reserved
+VRAM guard at 6.105 GiB; no GPU fault, OOM or checkpoint. See
+`../docs/V3.1-K-DENSE-RUN.md`.

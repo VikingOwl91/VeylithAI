@@ -1,0 +1,8 @@
+(null): No such file or directory
+(null): No such file or directory
+OK: isolated environment matches the accepted baseline
+(null): No such file or directory
+(null): No such file or directory
+error: peak VRAM 6.105 GiB exceeds the 6.000 GiB target at update 3
+model v3.1-a-primary: 98.34M total; device cuda; seq 512; microbatch 8 x accum 8; fingerprint 1212c3d134911dee
+initial validation: macro 9.1168 token 9.1158
