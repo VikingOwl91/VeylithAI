@@ -1,0 +1,155 @@
+{
+  "answer": "Yes. The isolated wheel reproduced the same GPU memory access fault.",
+  "classification": "A_reproduced_fault",
+  "command": "timeout 120 ~/veylith-v31-isolated/bin/veylith-python veylith/debug/reproducer.py --no_optimizer --grad_filter experts --iters 100",
+  "comparison": {
+    "historical_pip_testB": "torch 2.14.1+rocm7.2 pip, 0 system ROCm libs, 4/4 faults",
+    "historical_system": "Arch python-pytorch-rocm 2.14.1, /opt/rocm 7.2.4, 4/4 faults",
+    "isolated_managed": "torch 2.14.1+rocm7.2, managed Python, 1/1 fault"
+  },
+  "environment": {
+    "base_prefix": "~/.local/share/uv/python/cpython-3.14.8-linux-x86_64-gnu",
+    "executable": "~/veylith-v31-isolated/bin/python",
+    "gpu": {
+      "arch_list": [
+        "gfx900",
+        "gfx906",
+        "gfx908",
+        "gfx90a",
+        "gfx942",
+        "gfx950",
+        "gfx1030",
+        "gfx1100",
+        "gfx1101",
+        "gfx1102",
+        "gfx1103",
+        "gfx1200",
+        "gfx1201",
+        "gfx1150",
+        "gfx1151"
+      ],
+      "base_prefix": "~/.local/share/uv/python/cpython-3.14.8-linux-x86_64-gnu",
+      "capability": [
+        12,
+        0
+      ],
+      "device_count": 1,
+      "executable": "~/veylith-v31-isolated/bin/python",
+      "gcn_arch_name": "gfx1201",
+      "hip": "7.2.53211",
+      "memory": {
+        "allocated_gb": 0.0,
+        "free_gb": 16.9702,
+        "peak_allocated_gb": 0.0,
+        "peak_reserved_gb": 0.0,
+        "reserved_gb": 0.0,
+        "total_gb": 17.096
+      },
+      "name": "AMD Radeon Graphics",
+      "python": "3.14.8",
+      "sys_prefix": "~/veylith-v31-isolated",
+      "torch": "2.14.1+rocm7.2",
+      "torch_file": "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/__init__.py",
+      "total_memory_gb": 17.096,
+      "user_site": false
+    },
+    "hip": "7.2.53211",
+    "pci": [
+      {
+        "card": "card1",
+        "device": "0x7550",
+        "driver": "amdgpu",
+        "pci_class": "30000",
+        "pci_id": "1002:7550",
+        "pci_subsys_id": "1458:2424",
+        "vendor": "0x1002"
+      }
+    ],
+    "prefix": "~/veylith-v31-isolated",
+    "python": "3.14.8",
+    "rocm_opt_from_v31i": 0,
+    "torch": "2.14.1+rocm7.2",
+    "torch_file": "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/__init__.py",
+    "user_site": false
+  },
+  "limitations": [
+    "The exact faulting iteration is not known; iteration 25 completed and the fault occurred before iteration 50.",
+    "Peak GPU memory and the faulting process's /proc/self/maps were not captured after the abort; the last printed allocation was 0.38 GB.",
+    "Library provenance is inferred from the same unchanged environment's v3.1-I smoke (0 /opt/rocm) and the post-fault drift guard, not from the dying process maps.",
+    "GPU compute responsiveness after the fault was not tested; only a read-only management query was run.",
+    "One isolated execution only; no retry."
+  ],
+  "limits": {
+    "elapsed_seconds": 18,
+    "gpu_seconds": 120,
+    "last_allocated_gb": 0.38,
+    "memory_target_gib": 6.0,
+    "retries": 0
+  },
+  "post_fault": {
+    "checkpoints_unchanged": true,
+    "drift_guard": "OK, exit 0",
+    "gpu_management": "responsive to rocm-smi; low-power state; VRAM used 2.068 GB of 17.096 GB",
+    "kernel_log": "no amdgpu error or GPU reset in the run window; only unrelated Bluetooth entries",
+    "kfd_processes": "No KFD PIDs currently running",
+    "pip_check": "all 18 packages compatible",
+    "system_rocm": "7.2.4 unchanged"
+  },
+  "question": "Does the historical BF16 Sparse-MoE fault reproduce with the isolated PyTorch 2.14.1+rocm7.2 wheel on the same RX 9070 XT?",
+  "reproducer": {
+    "batch_size": 64,
+    "block_size": 256,
+    "dataset_tokens": 200000,
+    "device": "cuda",
+    "dtype": "bf16",
+    "eval_interval": 125,
+    "first_k_dense": 1,
+    "full_attn_every": 4,
+    "grad_filter": "experts",
+    "impl": "sparse",
+    "iters": 100,
+    "n_embd": 256,
+    "n_experts": 8,
+    "n_experts_per_tok": 2,
+    "n_head": 8,
+    "n_kv_head": 2,
+    "n_layer": 6,
+    "n_mtp": 1,
+    "no_optimizer": true,
+    "sliding_window": 128,
+    "vocab_size": 1000
+  },
+  "result": {
+    "completed_iterations": 26,
+    "ended_utc": "2026-10-27T08:12:28Z",
+    "exit_code": 134,
+    "fault_address": "0x7f9b2ba00000",
+    "fault_address_2m_aligned": true,
+    "fault_message": "Memory access fault by GPU node-1 (Agent handle: 0x52ddc9a0) on address 0x7f9b2ba00000. Reason: Page not present or supervisor privilege.",
+    "last_allocated_gb": 0.38,
+    "last_eval_loss": 10.4923,
+    "last_loss": 10.4898,
+    "last_printed_iter": 25,
+    "signal": "SIGABRT",
+    "started_utc": "2026-10-27T08:12:10Z",
+    "stderr": [
+      "(null): No such file or directory",
+      "(null): No such file or directory",
+      "Memory access fault by GPU node-1 (Agent handle: 0x52ddc9a0) on address 0x7f9b2ba00000. Reason: Page not present or supervisor privilege.",
+      "Failed to write segment data to pipe: Bad address",
+      "GPU coredump: handler exited with error (status: 1)",
+      "GPU core dump failed",
+      "timeout: the monitored command dumped core"
+    ],
+    "stdout": [
+      "impl=sparse device=cuda dtype=bf16 layers=6 embd=256 experts=8 topk=2 batch=64 block=256 params=25.60M",
+      "grad_filter=experts: 120 trainable params",
+      "iter     0 | loss 10.4816 mem=0.38GB",
+      "  eval | val loss 10.4923",
+      "iter    25 | loss 10.4898 mem=0.38GB"
+    ],
+    "wall_seconds": 18
+  },
+  "run": "v3.1-j",
+  "schema_version": 1
+}

@@ -310,4 +310,7 @@ read-only drift guard are under `env/`; CPU validation passes 90 tests with
 causal and sliding-window attention, Dense-Combined MoE, and a checkpoint
 forward, with 0 `/opt/rocm` libraries, peak allocation 0.7445 GB and 6.7 s
 total. See `docs/V3.1-I-ISOLATED-GPU-SMOKE.md`. Training remains pending
-separate authorization.
+separate authorization. The isolated Sparse-MoE reproducer (v3.1-J) then
+reproduced the historical GPU memory access fault with the same 2 MiB-aligned
+signature and exit 134; Python and ROCm user-space isolation did not remove
+it. See `docs/V3.1-J-SPARSE-REPRODUCER.md`.

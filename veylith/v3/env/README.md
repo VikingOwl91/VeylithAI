@@ -282,5 +282,5 @@ backward, SDPA causal and sliding-window attention, Dense-Combined MoE forward
 and backward, and a checkpoint forward. Peak allocation was 0.7445 GB, no
 `/opt/rocm` library was loaded, and no HIP error or GPU reset occurred. See
 `../docs/V3.1-I-ISOLATED-GPU-SMOKE.md`. Training remains pending separate
-authorization. Sparse-MoE GPU execution remains the known unresolved fault
-and was not run.
+authorization. The v3.1-J isolated reproducer then reproduced the known
+Sparse-MoE fault; see `../docs/V3.1-J-SPARSE-REPRODUCER.md`.
