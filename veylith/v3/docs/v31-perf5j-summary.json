@@ -1,0 +1,200 @@
+{
+  "confounders": [
+    "single clean run; the fault has been intermittent",
+    "the product gradient stays stock and is read at tail 4 without faulting, so the clean result could also reflect a layout change rather than the operand",
+    "address reuse makes pointer matching unsafe alone; byte count is required too",
+    "post-loop checks ran after COMPLETED and are excluded by timestamp",
+    "kernel identity and the over-reading instruction are unobserved"
+  ],
+  "cpu_gates": {
+    "all_gradients_bitwise": true,
+    "all_w3_still_linear": true,
+    "drift_guard": "OK",
+    "dropout_returns_same_tensor": true,
+    "every_w3_call_receives_padded_pointer_cpu_probe": "38 of 38, 0 stock",
+    "logits_bitwise": true,
+    "loss_bitwise": true,
+    "model_state_182_tensors_bitwise": true,
+    "padded_mul_both_dtypes": [
+      "torch.float32",
+      "torch.bfloat16"
+    ],
+    "padded_mul_forward_bitwise_2d": true,
+    "padded_mul_forward_bitwise_3d": true,
+    "padded_mul_geometry": {
+      "contiguous": true,
+      "no_resize": true,
+      "offset": 0,
+      "slack_after_tensor": 65536
+    },
+    "padded_mul_grad_a_bitwise": true,
+    "padded_mul_grad_b_bitwise": true,
+    "tests": "122 passed, 2 skipped",
+    "w3_modules_patched": 46
+  },
+  "execution": {
+    "command": "v31p5j_plan.py --execute, mode 2",
+    "completed": true,
+    "core_limit": "0",
+    "distinct_product_shapes": 2775,
+    "exit_code": 0,
+    "faulted": false,
+    "fresh_process": true,
+    "gemm_calls_logged": 49806,
+    "gpu_idle_after": true,
+    "iterations": 100,
+    "kernel_fault_records": 0,
+    "kernel_window": "No entries",
+    "product_allocations": 5566,
+    "product_allocations_2d": 5445,
+    "product_allocations_3d": 121,
+    "reset_lines": [],
+    "retries": 0,
+    "serialization": null,
+    "signal": null,
+    "timeout_s": 120
+  },
+  "gate_a_numerics": {
+    "display_identity": true,
+    "display_values_compared": 2,
+    "expert_grad_norm": 0.10111919573910567,
+    "first_loss_against_reference_4dp": true,
+    "first_loss_full_precision": "10.481635093688965",
+    "grad_norm_equal": true,
+    "grads_bitwise_equal": true,
+    "grads_compared": 120,
+    "model_state_unchanged_after_loop": true,
+    "optimizer_state": "AdamW is constructed but --no_optimizer never steps",
+    "padded_display": {
+      "0": "10.4816",
+      "25": "10.4898",
+      "50": "10.4882",
+      "75": "10.4925",
+      "99": "10.4941"
+    },
+    "padded_recompute_full_precision": 10.481635093688965,
+    "reference_display": {
+      "0": "10.4816",
+      "25": "10.4898"
+    },
+    "scope": "iteration 0 recomputed in both layouts; whole-trajectory bitwise identity is not claimed",
+    "stock_recompute_full_precision": 10.481635093688965,
+    "stock_vs_padded_loss_bitwise": true
+  },
+  "gate_b_operand_storage": {
+    "all_contiguous": true,
+    "all_offset_zero": true,
+    "all_pointer_preserved": true,
+    "any_resized": false,
+    "both_consumers_see_padded_product": true,
+    "mapping_note": "allocation slack is recorded; GPU mapping accessibility is inferred, not directly observed",
+    "matching": "pointer plus byte count, so the flattened 3-D product is included",
+    "page_distance_range": [
+      65536,
+      69628
+    ],
+    "product_allocations": 5566,
+    "product_operand_by_consumer": {
+      "w3_forward": 4897,
+      "w3_weight_grad": 522
+    },
+    "product_operand_dispatches": 5419,
+    "slack_bytes": 65536,
+    "slack_ok": true
+  },
+  "gate_c_descriptors": {
+    "compute_scale_epilogue": "COMPUTE_32F, R_32F, EPILOGUE_DEFAULT, alpha 1, beta 0",
+    "kernel_identity": "unknown; this build logs no solution id",
+    "output_shape_groups_only_in_one_side": 0,
+    "w3_forward": "Adesc R_16BF 256 682 256, OP_T/OP_N, Cdesc R_16BF 256 3075 256",
+    "w3_group_equal": true,
+    "w3_weight_grad": "Adesc R_16BF 256 3075 256, OP_N/OP_T, Cdesc R_16BF 256 682 256"
+  },
+  "gate_d_fault_attribution": {
+    "boundary_proximity_observed": {
+      "padded_product_tail_4": 1,
+      "padded_product_tail_8": 1,
+      "stock_tail_0": 4038,
+      "stock_tail_4": 1
+    },
+    "consequence": "no fault page to attribute",
+    "fault_pages": [],
+    "faulted": false,
+    "padded_product_tail_4_detail": "w3 forward dispatch at 0x7fdf54800000 with 65,536 bytes of allocated slack, no fault",
+    "stock_tail_4_detail": "the product gradient, read by a w1/w2 backward GEMM; mode 2 pads the product, not its gradient"
+  },
+  "implementation": {
+    "backward": "grad_output * b and grad_output * a, the same elementwise products as MulBackward",
+    "graph_change": "MulBackward replaced by PaddedMulBackward; product storage allocated by the harness",
+    "mechanism": "custom autograd Function PaddedMul writing torch.mul(a, b, out=padded_view)",
+    "post_multiply_copy": "none, the multiplication writes into the padded view",
+    "w3_linear": "stock; the PERF-5I intervention is not applied in this arm",
+    "why_function": "torch.mul(out=) rejects differentiable inputs; confirmed on CPU (direct_out_rejected_outside_function: true)"
+  },
+  "integrity": {
+    "backend_switch": "none",
+    "checkpoint_change": "none",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "kernel_serialization": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none",
+    "tests": "122 passed, 2 skipped"
+  },
+  "interpretation": {
+    "not_established": [
+      "stability, because it is one clean run of an intermittent fault",
+      "kernel identity, unavailable in this build",
+      "that a 4-byte tail is sufficient, since a stock tail-4 read occurred without faulting",
+      "that alignment alone is a trigger, since 4,038 stock reads ended exactly on a 2 MiB boundary without faulting"
+    ],
+    "prior_runs_faulted": [
+      "PERF-5F A",
+      "PERF-5G A",
+      "PERF-5I"
+    ],
+    "supports": "the fault in this configuration is associated with the SwiGLU product's storage boundary"
+  },
+  "meta": {
+    "budget": {
+      "max_executions": 1,
+      "retries": 0,
+      "used": 1
+    },
+    "classification": 1,
+    "classification_text": "valid padded operand execution, clean",
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5J SwiGLU operand boundary",
+    "git_head_at_preflight": "611cd36",
+    "mode": "single execution with the SwiGLU product in padded storage"
+  },
+  "next_experiment": {
+    "candidates": [
+      "repeat this arm once to test stability",
+      "pad only the product's gradient and leave the product stock, to test whether the fault follows the remaining tail-4 reader"
+    ],
+    "gates": [
+      "whole-model CPU bitwise gate",
+      "descriptor equality for both consumers",
+      "verified padding on the targeted operand with a matched dispatch",
+      "full-precision first loss printed at capture time"
+    ],
+    "limit": "one clean run is preliminary and identifies no kernel"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle, no foreign KFD process, before and after",
+    "head": "611cd36",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean before the stage"
+  }
+}

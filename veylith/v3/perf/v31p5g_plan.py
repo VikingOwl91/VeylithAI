@@ -55,7 +55,7 @@ def run(case, pad):
     env["HIPBLASLT_LOG_MASK"] = "10"
     env["HIPBLASLT_LOG_FILE"] = os.path.join(case_dir, "hipblaslt-%i.log")
     env["V31P5G_PRINT_ALLOC"] = "1" if pad else "0"
-    argv = [PYTHON, PAD, "--mode", "repro", "--pad", "1" if pad else "0",
+    argv = [PYTHON, PAD, "--mode", "repro", "--pad", str(int(pad)),
             "--out", os.path.join(case_dir, "geometry.json"), "--repro-args"] + REPRO_ARGS
     started = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     try:
@@ -98,7 +98,8 @@ def run(case, pad):
                              "gap_to_next_page": (((c + extent + MIB - 1) // MIB) * MIB)
                              - (c + extent)})
     record = {
-        "case": case, "pad": bool(pad), "faulted": mode is not None, "fault_mode": mode,
+        "case": case, "pad": bool(pad), "pad_mode": int(pad),
+        "faulted": mode is not None, "fault_mode": mode,
         "fault_address": fault.group(1) if fault else None, "exit_code": code,
         "signal": signum, "kernel_fault_addresses": pages,
         "kernel_fault_records": len(re.findall(r"page fault", window)),

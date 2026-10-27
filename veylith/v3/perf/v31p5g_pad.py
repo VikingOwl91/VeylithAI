@@ -39,19 +39,14 @@ SLACK_BYTES = 64 * 1024
 GEOMETRY = []
 
 
-def padded_buffer(rows: int, cols: int, dtype, device, slack: int = SLACK_BYTES):
-    """Allocate one storage and return a (rows, cols) view with trailing slack."""
-    itemsize = torch.tensor([], dtype=dtype).element_size()
-    tensor_bytes = rows * cols * itemsize
-    total = tensor_bytes + slack
-    raw = torch.empty(total, dtype=torch.uint8, device=device)
-    view = raw[:tensor_bytes].view(dtype).view(rows, cols)
+def _record_view(kind: str, view, tensor_bytes: int) -> dict:
+    """Record one padded view: pointer, storage, strides and page geometry."""
     storage = view.untyped_storage()
     tensor_end = view.data_ptr() + tensor_bytes
     storage_end = storage.data_ptr() + storage.nbytes()
     page_end = ((storage_end + 4095) // 4096) * 4096
     row = {
-        "shape": [rows, cols], "dtype": str(dtype),
+        "kind": kind, "shape": list(view.shape), "dtype": str(view.dtype),
         "data_ptr": hex(view.data_ptr()), "storage_ptr": hex(storage.data_ptr()),
         "storage_bytes": storage.nbytes(), "tensor_bytes": tensor_bytes,
         "storage_offset": view.storage_offset(),
@@ -64,7 +59,65 @@ def padded_buffer(rows: int, cols: int, dtype, device, slack: int = SLACK_BYTES)
     GEOMETRY.append(row)
     if os.environ.get("V31P5G_PRINT_ALLOC") == "1":
         print("PADALLOC " + json.dumps(row, sort_keys=True), flush=True)
+    return row
+
+
+def _padded_empty(tensor_bytes: int, dtype, device, slack: int):
+    total = tensor_bytes + slack
+    return torch.empty(total, dtype=torch.uint8, device=device)
+
+
+def padded_buffer(rows: int, cols: int, dtype, device, slack: int = SLACK_BYTES):
+    """Allocate one storage and return a (rows, cols) view with trailing slack."""
+    itemsize = torch.tensor([], dtype=dtype).element_size()
+    tensor_bytes = rows * cols * itemsize
+    raw = _padded_empty(tensor_bytes, dtype, device, slack)
+    view = raw[:tensor_bytes].view(dtype).view(rows, cols)
+    _record_view("w3_grad", view, tensor_bytes)
     return view
+
+
+def padded_like(tensor, kind: str = "swiglu_product", slack: int = SLACK_BYTES):
+    """Storage with ``tensor``'s shape and dtype plus trailing slack.
+
+    Rank and contiguous strides are preserved, so a 3-D product stays 3-D.
+    """
+    itemsize = tensor.element_size()
+    tensor_bytes = tensor.numel() * itemsize
+    raw = _padded_empty(tensor_bytes, tensor.dtype, tensor.device, slack)
+    view = raw[:tensor_bytes].view(tensor.dtype).view(tensor.shape)
+    _record_view(kind, view, tensor_bytes)
+    return view
+
+
+class PaddedMul(torch.autograd.Function):
+    """``a * b`` whose output storage carries trailing slack.
+
+    ``torch.mul(..., out=)`` cannot be used from outside an autograd Function:
+    it refuses differentiable inputs. Inside ``forward`` the inner ops run with
+    autograd recording off, so the multiplication can write straight into the
+    padded view. The backward is the same pair of elementwise products ATen's
+    mul backward computes, so both operands keep their gradient path.
+    """
+
+    @staticmethod
+    def forward(ctx, a, b):
+        ctx.save_for_backward(a, b)
+        out = padded_like(a)
+        expected_ptr = out.data_ptr()
+        expected_bytes = out.untyped_storage().nbytes()
+        shape_before = tuple(out.shape)
+        torch.mul(a, b, out=out)
+        row = GEOMETRY[-1]
+        row["pointer_preserved"] = out.data_ptr() == expected_ptr
+        row["storage_preserved"] = out.untyped_storage().nbytes() == expected_bytes
+        row["resized_by_out"] = tuple(out.shape) != shape_before
+        return out
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        a, b = ctx.saved_tensors
+        return grad_output * b, grad_output * a
 
 
 class PaddedW3(torch.autograd.Function):
@@ -139,10 +192,56 @@ def unapply_padding(model) -> int:
     removed = 0
     for module in model.modules():
         w3 = getattr(module, "w3", None)
-        if isinstance(w3, torch.nn.Linear) and "forward" in w3.__dict__:
+        if (isinstance(w3, torch.nn.Linear) and "forward" in w3.__dict__
+                and w3.__dict__["forward"].__func__ is _padded_forward):
             del w3.__dict__["forward"]
             removed += 1
     return removed
+
+
+def _padded_product_forward(self, x):
+    """SwiGLU with the product written directly into padded storage."""
+    return self.drop(self.w3(PaddedMul.apply(F.silu(self.w1(x)), self.w2(x))))
+
+
+def _is_swiglu(module) -> bool:
+    return hasattr(module, "w1") and hasattr(module, "w2") and hasattr(module, "w3")
+
+
+def apply_product_padding(model) -> int:
+    """Patch only the SwiGLU product, leaving the ``w3`` linear stock."""
+    patched = 0
+    for module in model.modules():
+        if _is_swiglu(module) and "forward" not in module.__dict__:
+            module.forward = types.MethodType(_padded_product_forward, module)
+            patched += 1
+    return patched
+
+
+def unapply_product_padding(model) -> int:
+    removed = 0
+    for module in model.modules():
+        if (_is_swiglu(module) and "forward" in module.__dict__
+                and module.__dict__["forward"].__func__ is _padded_product_forward):
+            del module.__dict__["forward"]
+            removed += 1
+    return removed
+
+
+def apply_mode(model, mode: int) -> int:
+    if mode == 1:
+        return apply_padding(model)
+    if mode == 2:
+        return apply_product_padding(model)
+    return 0
+
+
+def unapply_mode(model, mode: int) -> int:
+    if mode == 1:
+        return unapply_padding(model)
+    if mode == 2:
+        return unapply_product_padding(model)
+    return 0
 
 
 def capture_first_forward(impl, store):
@@ -177,7 +276,7 @@ def capture_first_forward(impl, store):
     return original
 
 
-def post_check(impl, store) -> dict:
+def post_check(impl, store, mode: int = 1) -> dict:
     """Recompute iteration 0 after the loop, stock and padded, at full precision.
 
     Runs after ``COMPLETED`` so it cannot change the fault conditions of the
@@ -199,14 +298,11 @@ def post_check(impl, store) -> dict:
 
     def run(patched: bool):
         if patched:
-            apply_padding(model)
+            apply_mode(model, mode)
         else:
-            unapply_padding(model)
-        report["w3_modules_padded_at_pass" if patched else
-               "w3_modules_stock_at_pass"] = sum(
-            1 for m in model.modules()
-            if isinstance(getattr(m, "w3", None), torch.nn.Linear)
-            and "forward" in m.w3.__dict__)
+            unapply_mode(model, mode)
+        report["modules_padded_at_pass" if patched else "modules_stock_at_pass"] = sum(
+            1 for m in model.modules() if "forward" in m.__dict__)
         model.zero_grad(set_to_none=True)
         autocast = (torch.autocast(device_type="cuda", dtype=torch.bfloat16)
                     if idx.is_cuda else contextlib.nullcontext())
@@ -256,7 +352,7 @@ def _debug_config():
                        vocab_size=1000)
 
 
-def full_model_gate():
+def full_model_gate(mode: int = 1):
     """Stock versus patched model: bitwise state, forward and backward on CPU.
 
     This is the gate that PERF-5H needed: it compares the *whole model state*
@@ -271,7 +367,7 @@ def full_model_gate():
 
     def patched_init(self, *args, **kwargs):
         original_init(self, *args, **kwargs)
-        apply_padding(self)
+        apply_mode(self, mode)
 
     impl.GPT.__init__ = patched_init
     try:
@@ -305,18 +401,69 @@ def full_model_gate():
         "loss_bitwise": bool(torch.equal(loss_a, loss_b)),
         "grads_bitwise": bool(grads_bitwise),
         "loss": float(loss_a.detach()),
-        "w3_forwards_patched": patched_modules,
+        "modules_patched": patched_modules,
         "all_w3_still_linear": bool(linear_kept),
+        "mode": mode,
     }
 
 
-def post_check_gate():
+def padded_mul_gate():
+    """PaddedMul against stock mul: forward, both gradients, 2-D and 3-D, both dtypes."""
+    torch.manual_seed(3)
+    cases = []
+    direct_out_rejected = None
+    for dtype in (torch.float32, torch.bfloat16):
+        for shape in ((37, 16), (2, 5, 16)):
+            a = torch.randn(*shape, dtype=dtype)
+            b = torch.randn(*shape, dtype=dtype)
+            a1, b1 = a.clone().requires_grad_(True), b.clone().requires_grad_(True)
+            y = a1 * b1
+            y.sum().backward()
+            if direct_out_rejected is None:
+                try:
+                    torch.mul(a1, b1, out=torch.empty_like(a1))
+                    direct_out_rejected = False
+                except RuntimeError:
+                    direct_out_rejected = True
+            a2, b2 = a.clone().requires_grad_(True), b.clone().requires_grad_(True)
+            z = PaddedMul.apply(a2, b2)
+            z.sum().backward()
+            row = GEOMETRY[-1]
+            cases.append({
+                "dtype": str(dtype), "shape": list(shape),
+                "forward_bitwise": bool(torch.equal(y.detach(), z.detach())),
+                "grad_a_bitwise": bool(torch.equal(a1.grad, a2.grad)),
+                "grad_b_bitwise": bool(torch.equal(b1.grad, b2.grad)),
+                "no_resize": row.get("resized_by_out") is False,
+                "pointer_preserved": row.get("pointer_preserved") is True,
+                "slack_after_tensor": row["slack_after_tensor"],
+                "storage_offset": row["storage_offset"],
+                "contiguous": row["contiguous"],
+                "kind": row.get("kind"),
+            })
+    out = {
+        "cases": cases,
+        "direct_out_rejected_outside_function": direct_out_rejected,
+        "forward_bitwise_2d": all(c["forward_bitwise"] for c in cases
+                                  if len(c["shape"]) == 2),
+        "forward_bitwise_3d": all(c["forward_bitwise"] for c in cases
+                                  if len(c["shape"]) == 3),
+        "grad_a_bitwise": all(c["grad_a_bitwise"] for c in cases),
+        "grad_b_bitwise": all(c["grad_b_bitwise"] for c in cases),
+        "no_resize": all(c["no_resize"] and c["pointer_preserved"] for c in cases),
+        "geometry_ok": all(c["slack_after_tensor"] >= SLACK_BYTES and c["contiguous"]
+                           and c["storage_offset"] == 0 for c in cases),
+    }
+    return out
+
+
+def post_check_gate(mode: int = 2):
     """Exercise the post-loop comparison logic on CPU before any GPU use."""
     import sparse_moe_v2_train as impl
 
     torch.manual_seed(11)
     model = impl.GPT(_debug_config())
-    apply_padding(model)
+    apply_mode(model, mode)
     gen = torch.Generator().manual_seed(13)
     idx = torch.randint(0, 1000, (2, 32), generator=gen)
     tgt = torch.randint(0, 1000, (2, 32), generator=gen)
@@ -325,7 +472,7 @@ def post_check_gate():
     store = {"model": model, "idx": idx, "targets": tgt,
              "loss": float(loss.detach()),
              "params": {n: p.detach().clone() for n, p in model.named_parameters()}}
-    res = post_check(impl, store)
+    res = post_check(impl, store, mode)
     keys = ("model_state_unchanged_after_loop", "padded_loss_equals_loop_loss",
             "stock_vs_padded_loss_bitwise", "grads_bitwise_equal",
             "grad_norm_equal", "padded_grads_captured", "stock_grads_captured")
@@ -414,7 +561,14 @@ def selftest() -> int:
     report["storage_preserved"] = out_storage_preserved
     report["out_wrote_into_view"] = out_wrote_into_view
     report["out_returned_same_object"] = out_returned_same_object
-    post = post_check_gate()
+    mul_gate = padded_mul_gate()
+    report["padded_mul"] = mul_gate
+    mul_ok = all(mul_gate[k] for k in ("forward_bitwise_2d", "forward_bitwise_3d",
+                                       "grad_a_bitwise", "grad_b_bitwise",
+                                       "geometry_ok", "no_resize"))
+    report["padded_mul_ok"] = mul_ok
+
+    post = post_check_gate(mode=2)
     report["post_check"] = post
     post_ok = (post["model_state_unchanged_after_loop"] is True
                and post["padded_loss_equals_loop_loss"] is True
@@ -426,13 +580,22 @@ def selftest() -> int:
                and not post["errors"])
     report["post_check_ok"] = post_ok
 
-    model = full_model_gate()
+    model = full_model_gate(mode=1)
     report["full_model"] = model
     model_ok = (model["names_equal"] and model["state_bitwise_identical"]
                 and model["logits_bitwise"] and model["loss_bitwise"]
                 and model["grads_bitwise"] and model["all_w3_still_linear"]
-                and model["w3_forwards_patched"] > 0)
+                and model["modules_patched"] > 0)
     report["full_model_ok"] = model_ok
+
+    product_model = full_model_gate(mode=2)
+    report["full_model_product"] = product_model
+    product_ok = (product_model["names_equal"] and product_model["state_bitwise_identical"]
+                  and product_model["logits_bitwise"] and product_model["loss_bitwise"]
+                  and product_model["grads_bitwise"]
+                  and product_model["all_w3_still_linear"]
+                  and product_model["modules_patched"] > 0)
+    report["full_model_product_ok"] = product_ok
     mixed_ok = (report["mixed_dtype"]["grad_input_bitwise"]
                 and report["mixed_dtype"]["grad_weight_bitwise"]
                 and report["mixed_dtype"]["weight_cast_used"] == "torch.bfloat16"
@@ -447,13 +610,16 @@ def selftest() -> int:
                                     ("all_bitwise", "geometry_ok", "pointer_preserved",
                                      "storage_preserved", "out_wrote_into_view",
                                      "out_returned_same_object", "mixed_dtype_ok",
-                                     "full_model_ok", "post_check_ok")})
+                                     "full_model_ok", "full_model_product_ok",
+                                     "padded_mul_ok", "post_check_ok")})
           + " " + json.dumps(report["cases"]))
     print("MIXED " + json.dumps(report["mixed_dtype"], sort_keys=True))
     print("MODEL " + json.dumps(model, sort_keys=True))
+    print("MUL " + json.dumps(mul_gate, sort_keys=True))
+    print("MODEL-PRODUCT " + json.dumps(product_model, sort_keys=True))
     print("POST " + json.dumps(post, sort_keys=True))
     ok = (report["all_bitwise"] and report["geometry_ok"] and mixed_ok and model_ok
-          and post_ok
+          and product_ok and mul_ok and post_ok
           and report["pointer_preserved"] and report["storage_preserved"]
           and report["out_wrote_into_view"] and report["out_returned_same_object"])
     return 0 if ok else 1
@@ -490,18 +656,19 @@ def repro(pad: int, out_path: str, repro_args) -> int:
 
     GEOMETRY.clear()
     if pad:
-        # Patch after construction: the module must stay an nn.Linear so that
-        # _init_weights still initializes w3 inside GPT.__init__.
+        # Patch after construction so initialization is untouched, whichever
+        # storage is padded: mode 1 the w3 input gradient, mode 2 the SwiGLU
+        # product. Mode 1 also keeps the module an nn.Linear for _init_weights.
         original_init = sparse_impl.GPT.__init__
 
         def patched_init(self, *args, **kwargs):
             original_init(self, *args, **kwargs)
-            apply_padding(self)
+            apply_mode(self, pad)
 
         sparse_impl.GPT.__init__ = patched_init
     sys.argv = [os.path.join(DEBUG, "reproducer.py")] + list(repro_args)
     exit_code = 0
-    payload = {"pad": bool(pad), "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ",
+    payload = {"pad": int(pad), "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                                              time.gmtime())}
     store = {}
     original_forward = capture_first_forward(sparse_impl, store)
@@ -511,7 +678,7 @@ def repro(pad: int, out_path: str, repro_args) -> int:
         dump_payload(payload, out_path)
         print("POSTCHECK-BEGIN", flush=True)
         try:
-            payload["post_check"] = post_check(sparse_impl, store)
+            payload["post_check"] = post_check(sparse_impl, store, pad)
         except BaseException as exc:  # noqa: BLE001
             payload["post_check"] = {"error": f"{type(exc).__name__}: {exc}"}
     except BaseException as exc:  # noqa: BLE001
@@ -522,7 +689,7 @@ def repro(pad: int, out_path: str, repro_args) -> int:
         sparse_impl.GPT.forward = original_forward
         dump_payload(payload, out_path)
     pc = payload.get("post_check") or {}
-    print("REPRO " + json.dumps({"pad": bool(pad), "buffers": len(GEOMETRY),
+    print("REPRO " + json.dumps({"pad": int(pad), "buffers": len(GEOMETRY),
                                  "slack_min": payload.get("slack_min"),
                                  "exception": payload.get("exception"),
                                  "post_check": {k: pc.get(k) for k in
@@ -538,7 +705,8 @@ def repro(pad: int, out_path: str, repro_args) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("selftest", "repro"), required=True)
-    parser.add_argument("--pad", type=int, choices=(0, 1), default=0)
+    parser.add_argument("--pad", type=int, choices=(0, 1, 2), default=0,
+                        help="0 none, 1 w3 input gradient, 2 SwiGLU product")
     parser.add_argument("--out", default="geometry.json")
     parser.add_argument("--repro-args", nargs=argparse.REMAINDER, default=[])
     args = parser.parse_args()
