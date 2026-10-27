@@ -1,0 +1,259 @@
+{
+  "attribution": {
+    "attribution_reached": "TCP-client global load at a 2 MiB-aligned unmapped page inside the faulting process; no kernel name, no solution",
+    "case5_kernel_fault": {
+      "address_2mib_aligned": true,
+      "addresses": [
+        "0x00007f5b88000000"
+      ],
+      "page_fault_records": 4,
+      "permission_flags": "0x3",
+      "reset_lines": [],
+      "rw_flag": "0x0",
+      "utcl2_client": [
+        "TCP",
+        "0x8"
+      ]
+    },
+    "case5_solution_id": "unavailable",
+    "case6_boundary_operand_is_kernel_B": true,
+    "case6_descriptors_match_archive": true,
+    "case6_fault_address": null,
+    "case6_kernel_K_mod_64": 12,
+    "case6_kernel_N_mod_64": 42,
+    "case6_predicted_overread_bytes": 44,
+    "case6_solution_id": "unavailable"
+  },
+  "decision": {
+    "option": 2,
+    "why": "the historical fault reproduces in the model reproducer with the same kernel-log signature (2 MiB-aligned page, TCP client, permission fault, no reset), but the faulting kernel and hipBLASLt solution stay unresolved. The single-GEMM form of the hypothesis is not supported on this build: the call whose descriptors match the archived 16E capture exactly is clean at 16-byte slack, and the faulting 8E run never dispatches that geometry. The rocBLAS arm is not a clean control because rocBLAS delegated its calls back to hipBLASLt kernels. The mechanism is not confirmed and no mitigation should be designed from this evidence."
+  },
+  "deviations": [
+    "classifier extended to treat HIP illegal-address errors as faults; stored records re-derived from stderr, the faulting case was not re-run",
+    "rocBLAS backend name corrected from 'rocblas' to 'hipblas' after the enum rejection",
+    "case 4 recorded as uninformative rather than dropped"
+  ],
+  "executions": [
+    {
+      "exit_code": 0,
+      "expected": "clean",
+      "fault_mode": null,
+      "faulted": false,
+      "informative": false,
+      "name": "fp32_tight",
+      "note": "shape or dtype control",
+      "orientation": null,
+      "predicted_overread_bytes": 44,
+      "slack_bytes": 32
+    },
+    {
+      "exit_code": 0,
+      "expected": "clean",
+      "fault_mode": null,
+      "faulted": false,
+      "informative": false,
+      "name": "bf16_n640_tight",
+      "note": "shape or dtype control",
+      "orientation": null,
+      "predicted_overread_bytes": 0,
+      "slack_bytes": 512
+    },
+    {
+      "exit_code": 0,
+      "expected": "clean",
+      "fault_mode": null,
+      "faulted": false,
+      "informative": false,
+      "name": "bf16_k4160_tight",
+      "note": "shape or dtype control",
+      "orientation": null,
+      "predicted_overread_bytes": 0,
+      "slack_bytes": 256
+    },
+    {
+      "exit_code": 0,
+      "expected": "fault-or-clean",
+      "fault_mode": null,
+      "faulted": false,
+      "informative": false,
+      "name": "bf16_target_tight",
+      "note": "kernel saw N=256, controlled buffer was operand A",
+      "orientation": null,
+      "predicted_overread_bytes": 44,
+      "slack_bytes": 16
+    },
+    {
+      "exit_code": 1,
+      "expected": "fault",
+      "fault_mode": "hip-illegal-address",
+      "faulted": true,
+      "informative": true,
+      "name": "positive_control",
+      "note": "known-positive historical model reproducer",
+      "orientation": null,
+      "predicted_overread_bytes": null,
+      "slack_bytes": null
+    },
+    {
+      "exit_code": 0,
+      "expected": "fault-or-clean",
+      "fault_mode": null,
+      "faulted": false,
+      "informative": true,
+      "name": "bf16_boundary_first_tight",
+      "note": "descriptors match the archived capture",
+      "orientation": "boundary-first",
+      "predicted_overread_bytes": 44,
+      "slack_bytes": 16
+    },
+    {
+      "exit_code": 1,
+      "expected": "clean",
+      "fault_mode": "hip-illegal-address",
+      "faulted": true,
+      "informative": false,
+      "name": "positive_control_rocblas",
+      "note": "same reproducer with rocBLAS instead of hipBLASLt",
+      "orientation": null,
+      "predicted_overread_bytes": null,
+      "slack_bytes": null
+    },
+    {
+      "exit_code": 1,
+      "expected": "clean",
+      "fault_mode": "hip-illegal-address",
+      "faulted": true,
+      "informative": false,
+      "name": "positive_control_rocblas",
+      "note": "same reproducer with rocBLAS instead of hipBLASLt",
+      "orientation": null,
+      "predicted_overread_bytes": null,
+      "slack_bytes": null
+    }
+  ],
+  "faulting_configuration_dispatch": {
+    "calls": 23091,
+    "distinct": 6430,
+    "k_values": {
+      "1000": 47,
+      "256": 10304,
+      "32": 530,
+      "64": 376,
+      "682": 6006,
+      "8": 188
+    },
+    "n_values": {
+      "16384": 4287,
+      "256": 3128,
+      "32": 188,
+      "4233": 27,
+      "4790": 30,
+      "682": 3760
+    },
+    "partial_n_and_k": 8914,
+    "sixteen_e_geometry": 0
+  },
+  "integrity": {
+    "checkpoint_change": "none",
+    "cpu_tests": "122 passed, 2 skipped",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none"
+  },
+  "interpretation": {
+    "backend_discriminator": "not available: rocBLAS routes calls to rocblas_gemm_hipblaslt_backend",
+    "boundary_sensitive_overread_confirmed": false,
+    "clean_synthetic_with_positive_control": true,
+    "environment_drift": false,
+    "fault_reproduced_without_attribution": true,
+    "why_case6_does_not_refute": [
+      "solution selection unknown and unverifiable in this build",
+      "whether the page after the controlled buffer was unmapped is not observable from user space"
+    ]
+  },
+  "limits": [
+    "solution attribution unavailable in this build",
+    "synthetic buffer base was not 2 MiB-aligned, so its mapping end is not a 2 MiB boundary; the reproduced fault was exactly 2 MiB-aligned",
+    "case 4 was spent on the wrong orientation and is recorded as uninformative",
+    "a single GEMM in a fresh process lacks the failing run's allocation history",
+    "attempt 7 burned an execution on an invalid backend name before any kernel ran",
+    "the rocBLAS arm does not separate the library because rocBLAS delegates to hipBLASLt"
+  ],
+  "meta": {
+    "budget": {
+      "includes": "one failed attempt that ran no kernels, one rocBLAS arm",
+      "max_executions": 8,
+      "used": 8
+    },
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5B hipBLASLt K-tail isolation",
+    "git_head": "f3a0291",
+    "mode": "bounded GPU diagnostic; no production change, no sparse rollout",
+    "reports_read": [
+      "V3.1-PERF-5A-SPARSE-FORENSICS.md"
+    ]
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle before every execution",
+    "head": "f3a0291",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean"
+  },
+  "preparation": {
+    "archived_descriptors": {
+      "A": {
+        "cols": 4108,
+        "ld": 256,
+        "rows": 256
+      },
+      "B": {
+        "cols": 4108,
+        "ld": 682,
+        "rows": 682
+      },
+      "C": {
+        "cols": 682,
+        "ld": 256,
+        "rows": 256
+      },
+      "compute": "COMPUTE_32F",
+      "dtype": "bf16",
+      "transA": "N",
+      "transB": "T",
+      "workspace_bytes": 79691776
+    },
+    "attribution_feasibility": "HIPBLASLT_LOG_MASK=10 yields Trace lines but no sol-idx lines in this build",
+    "boundary_arithmetic": {
+      "b_bytes": 5603312,
+      "b_offset": 688128,
+      "generous_slack_bytes": 688144,
+      "predicted_overread_bytes": 44,
+      "segment_bytes": 6291456,
+      "tight_slack_bytes": 16
+    },
+    "construction": "torch.mm(b_operand_682x4108, a_operand_mk.t())",
+    "m_first_mismatch": "mm(a_operand, b_operand.t()) gives kernel N=256 and makes the controlled buffer operand A",
+    "verified_from_live_log": true
+  },
+  "rocblas_arm": {
+    "backend_mix": {
+      "hipblaslt": 23091,
+      "rocblas_gemm_ex": 21655,
+      "tensile": 0
+    },
+    "clean_control": false,
+    "faulted": true,
+    "why_not_clean": "rocBLAS delegated calls to rocblas_gemm_hipblaslt_backend, so the arm still exercised hipBLASLt kernels and cannot separate the library from the fault"
+  }
+}
