@@ -37,6 +37,7 @@ class ModelConfig:
     tie_embeddings: bool = False
     moe_aux_weight: float = 0.01
     moe_impl: str = "sparse"  # sparse | dense
+    attention_impl: str = "manual"  # manual | sdpa
 
     def validate(self) -> None:
         problems = []
@@ -69,6 +70,8 @@ class ModelConfig:
             problems.append("dropout must be in [0, 1)")
         if self.moe_impl not in ("sparse", "dense"):
             problems.append("moe_impl must be sparse or dense")
+        if self.attention_impl not in ("manual", "sdpa"):
+            problems.append("attention_impl must be manual or sdpa")
         if self.block_size > 4096:
             problems.append("block_size above 4096 is not supported")
         if problems:

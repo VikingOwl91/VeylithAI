@@ -153,6 +153,7 @@ def tokenize_corpus(root: str, *, vocab_size: int = 8192, log=print) -> dict:
                     "start": start,
                     "end": len(ids),
                     "tokens": len(ids) - start,
+                    "chars": len(record["text"]),
                     "text_sha256": ds.sha256_text(record["text"]),
                 })
                 if record.get("source") is not None:

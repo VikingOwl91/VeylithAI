@@ -224,17 +224,28 @@ exclusion and the evaluation protocol are in
 `docs/V3.1-ARCHITECTURE.md`, `docs/V3.1-MEMORY-COMPUTE.md` and
 `docs/V3.1-EVALUATION.md`.
 
+## v3.1-B training infrastructure
+
+CPU reference trainer for architecture A: next-token CE with optional router
+aux (no MTP), AdamW and cosine warmup, gradient accumulation and clipping,
+deterministic seeds, JSONL metrics, per-source evaluation (CE, bits/char,
+router, train/val gap) and atomic checkpoints with model/optimizer/schedule/
+RNG/loader state and validation-only selection. SDPA and manual attention,
+sparse and dense-combined MoE paths are parity-tested. A guard refuses any
+CPU run above 5M parameters; no 0.1B CPU run and no GPU run happened.
+Docs: `docs/V3.1-TRAINING.md`, `docs/V3.1-CHECKPOINTS.md`,
+`docs/V3.1-GPU-SMOKE-PLAN.md` (proposal only).
+
 ## Tests
 
 ```bash
 python3 -m pytest veylith/v3/tests -q
 ```
 
-The suite is CPU-only and offline. On the system Python: 62 passed,
-1 skipped (network smoke); in the project environment (`datasets` present,
-no torch): 43 passed, 3 skipped (network, missing-`datasets` path and the
-architecture module). The v2 suite is 89 passed. Combined system run:
-151 passed, 1 skipped. Covered: normalization and filters, split determinism and
+The suite is CPU-only and offline. On the system Python: 71 passed,
+1 skipped (network smoke); in the project environment: 70 passed,
+2 skipped (network and the missing-`datasets` path). The v2 suite is
+89 passed. Combined system run: 160 passed, 1 skipped. Covered: normalization and filters, split determinism and
 isolation, exact and near deduplication (including across sources), quotas
 and shortfall, shard and manifest integrity, resume, tokenizer
 reproducibility and train-only training, tokenizer comparison, token

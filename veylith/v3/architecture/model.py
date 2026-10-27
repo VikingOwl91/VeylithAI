@@ -71,16 +71,30 @@ class Attention(nn.Module):
         k = apply_rope(k, self.rope_cos[:T], self.rope_sin[:T])
         k = k.repeat_interleave(self.n_rep, dim=1)
         v = v.repeat_interleave(self.n_rep, dim=1)
-        att = (q @ k.transpose(-2, -1)) / math.sqrt(self.head_dim)
         i = torch.arange(T, device=x.device)[:, None]
         j = torch.arange(T, device=x.device)[None, :]
         allowed = j <= i
         if not self.full:
             allowed = allowed & (i - j < self.cfg.sliding_window)
-        att = att.masked_fill(~allowed[None, None, :, :], torch.finfo(att.dtype).min)
-        att = F.softmax(att, dim=-1)
-        att = self.attn_drop(att)
-        out = (att @ v).transpose(1, 2).reshape(B, T, self.cfg.n_head * self.head_dim)
+        if self.cfg.attention_impl == "sdpa":
+            # bool mask: True means the key participates. The same allowed
+            # matrix as the manual path, so the semantics cannot drift.
+            try:
+                attended = F.scaled_dot_product_attention(
+                    q, k, v, attn_mask=allowed[None, None, :, :],
+                    dropout_p=self.cfg.dropout if self.training else 0.0,
+                    is_causal=False)
+            except RuntimeError as exc:
+                raise RuntimeError(
+                    "SDPA does not support this mask/backend combination; "
+                    "use attention_impl='manual' or change the backend") from exc
+        else:
+            att = (q @ k.transpose(-2, -1)) / math.sqrt(self.head_dim)
+            att = att.masked_fill(~allowed[None, None, :, :],
+                                  torch.finfo(att.dtype).min)
+            att = self.attn_drop(F.softmax(att, dim=-1))
+            attended = att @ v
+        out = attended.transpose(1, 2).reshape(B, T, self.cfg.n_head * self.head_dim)
         return self.resid_drop(self.o_proj(out))
 
 
@@ -212,6 +226,9 @@ class GPT(nn.Module):
             loss = main_ce + self.cfg.moe_aux_weight * aux_total
             metrics = {"main_ce": main_ce, "aux_loss": aux_total,
                        "composite_loss": loss}
+        elif return_metrics:
+            metrics = {"main_ce": None, "aux_loss": aux_total,
+                       "composite_loss": None}
         if return_metrics and return_router:
             return logits, loss, metrics, router
         if return_metrics:
