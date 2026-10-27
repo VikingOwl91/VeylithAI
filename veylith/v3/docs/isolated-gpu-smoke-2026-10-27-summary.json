@@ -1,0 +1,249 @@
+{
+  "elapsed_s": 6.698,
+  "memory": {
+    "allocated_gb": 0.1594,
+    "free_gb": 16.3211,
+    "peak_allocated_gb": 0.7445,
+    "peak_reserved_gb": 0.7843,
+    "reserved_gb": 0.1594,
+    "total_gb": 17.096
+  },
+  "phases": {
+    "bf16_matmul": {
+      "backward_s": 0.69826,
+      "finite": true,
+      "forward_s": 0.313476,
+      "grad_abs_max": 0.028076,
+      "memory": {
+        "allocated_gb": 0.1615,
+        "free_gb": 16.4333,
+        "peak_allocated_gb": 0.1628,
+        "peak_reserved_gb": 0.1678,
+        "reserved_gb": 0.1678,
+        "total_gb": 17.096
+      },
+      "shape": [
+        512,
+        512
+      ]
+    },
+    "bf16_mlp": {
+      "backward_s": 0.162092,
+      "finite": true,
+      "forward_s": 0.017829,
+      "memory": {
+        "allocated_gb": 0.1605,
+        "free_gb": 16.4333,
+        "peak_allocated_gb": 0.1628,
+        "peak_reserved_gb": 0.1678,
+        "reserved_gb": 0.1615,
+        "total_gb": 17.096
+      },
+      "param_grad_count": 4,
+      "shape": [
+        32,
+        256
+      ]
+    },
+    "checkpoint": {
+      "artifact_step": 100,
+      "checkpoint": "~/veylith-v31-d-20261027/ckpt_best.pt",
+      "effective_attention_impl": "sdpa",
+      "effective_moe_impl": "dense",
+      "finite": true,
+      "forward_s": 0.114264,
+      "logits_shape": [
+        1,
+        64,
+        8192
+      ],
+      "memory": {
+        "allocated_gb": 0.5559,
+        "free_gb": 15.6961,
+        "peak_allocated_gb": 0.7445,
+        "peak_reserved_gb": 0.7843,
+        "reserved_gb": 0.7843,
+        "total_gb": 17.096
+      },
+      "original_moe_impl": "sparse",
+      "selection": {
+        "metric": "macro_main_ce",
+        "split": "validation",
+        "step": 100,
+        "value": 7.432459604489485
+      },
+      "sha256_after": "08f1eb13408a5fcb7c3b7b7f385fbf69e056a6bd8aa88053170f795d51de6634",
+      "sha256_before": "08f1eb13408a5fcb7c3b7b7f385fbf69e056a6bd8aa88053170f795d51de6634",
+      "unchanged": true
+    },
+    "dense_moe": {
+      "aux": 1.009481,
+      "backward_s": 0.004426,
+      "experts": 8,
+      "finite": true,
+      "forward_s": 0.32764,
+      "memory": {
+        "allocated_gb": 0.2068,
+        "free_gb": 16.2183,
+        "peak_allocated_gb": 0.2092,
+        "peak_reserved_gb": 0.2768,
+        "reserved_gb": 0.2768,
+        "total_gb": 17.096
+      },
+      "moe_impl": "dense",
+      "router_entropy_norm": 0.9915,
+      "router_shape": [
+        64,
+        2
+      ],
+      "top_k": 2
+    },
+    "device": {
+      "arch_list": [
+        "gfx900",
+        "gfx906",
+        "gfx908",
+        "gfx90a",
+        "gfx942",
+        "gfx950",
+        "gfx1030",
+        "gfx1100",
+        "gfx1101",
+        "gfx1102",
+        "gfx1103",
+        "gfx1200",
+        "gfx1201",
+        "gfx1150",
+        "gfx1151"
+      ],
+      "base_prefix": "~/.local/share/uv/python/cpython-3.14.8-linux-x86_64-gnu",
+      "capability": [
+        12,
+        0
+      ],
+      "device_count": 1,
+      "executable": "~/veylith-v31-isolated/bin/python",
+      "gcn_arch_name": "gfx1201",
+      "hip": "7.2.53211",
+      "memory": {
+        "allocated_gb": 0.0,
+        "free_gb": 16.9702,
+        "peak_allocated_gb": 0.0,
+        "peak_reserved_gb": 0.0,
+        "reserved_gb": 0.0,
+        "total_gb": 17.096
+      },
+      "name": "AMD Radeon Graphics",
+      "python": "3.14.8",
+      "sys_prefix": "~/veylith-v31-isolated",
+      "torch": "2.14.1+rocm7.2",
+      "torch_file": "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/__init__.py",
+      "total_memory_gb": 17.096,
+      "user_site": false
+    },
+    "import_diagnostic": {
+      "returncode": 0,
+      "stderr_has_null": true,
+      "stderr_lines": [
+        "(null): No such file or directory"
+      ],
+      "strace_null_writes": 1,
+      "strace_path": "~/veylith-v31i-gpu-smoke-20261027/import-null.strace",
+      "torch_version": "2.14.1+rocm7.2"
+    },
+    "libraries": {
+      "opt_rocm": [],
+      "opt_rocm_count": 0,
+      "relevant": [
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/hipblaslt/library/Kernels.so-000-gfx1201.hsaco",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/hipblaslt/library/TensileLibrary_BB_BB_HA_Bias_SAV_UA_Type_BB_HPA_Contraction_l_Ailk_Bjlk_Cijk_Dijk_gfx1201.co",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/hipblaslt/library/TensileLibrary_BB_BB_HA_Bias_SAV_UA_Type_BB_HPA_Contraction_l_Ailk_Bljk_Cijk_Dijk_gfx1201.co",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/hipblaslt/library/TensileLibrary_BB_BB_HA_Bias_SAV_UA_Type_BB_HPA_Contraction_l_Alik_Bljk_Cijk_Dijk_gfx1201.co",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libMIOpen.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libamd_comgr.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libamdhip64.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libaotriton_v2.so.0.13.0",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libc10.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libc10_hip.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libcaffe2_nvrtc.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libdrm.so.2",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libdrm_amdgpu.so.1",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libdw.so.1",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libelf.so.1",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libgomp.so.1",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libhipblas.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libhipblaslt.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libhipfft.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libhiprand.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libhiprtc.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libhipsolver.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libhipsparse.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libhipsparselt.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libhsa-amd-aqlprofile64.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libhsa-runtime64.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libmagma.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libnuma.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libnuma.so.1",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librccl.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librocblas.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librocfft.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librocm-core.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librocm_smi64.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librocprofiler-register.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librocprofiler-sdk.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librocrand.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librocroller.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librocsolver.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/librocsparse.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libroctx64.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libshm.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libtorch.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libtorch_cpu.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libtorch_global_deps.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libtorch_hip.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libtorch_python.so",
+        "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/lib/libtorch_rocshmem.so"
+      ],
+      "relevant_count": 48
+    },
+    "sdpa_causal": {
+      "backward_s": 0.076064,
+      "finite": true,
+      "forward_s": 0.214212,
+      "full_attention": true,
+      "layer": 3,
+      "mask_changed_max_abs_diff": 0.002121,
+      "mask_unchanged_max_abs_diff": 0.0,
+      "memory": {
+        "allocated_gb": 0.1647,
+        "free_gb": 16.3882,
+        "peak_allocated_gb": 0.1697,
+        "peak_reserved_gb": 0.172,
+        "reserved_gb": 0.172,
+        "total_gb": 17.096
+      },
+      "sliding_window": 256
+    },
+    "sdpa_sliding": {
+      "backward_s": 0.001306,
+      "finite": true,
+      "forward_s": 0.029342,
+      "full_attention": false,
+      "layer": 0,
+      "mask_changed_max_abs_diff": 0.104004,
+      "mask_unchanged_max_abs_diff": 0.0,
+      "memory": {
+        "allocated_gb": 0.1647,
+        "free_gb": 16.3609,
+        "peak_allocated_gb": 0.1697,
+        "peak_reserved_gb": 0.1929,
+        "reserved_gb": 0.1929,
+        "total_gb": 17.096
+      },
+      "sliding_window": 256
+    }
+  },
+  "schema_version": 1,
+  "started_utc": "2026-10-27T08:05:10Z",
+  "status": "ok"
+}

@@ -1,7 +1,7 @@
 # Veylith v3.1-H isolated ROCm environment
 
-Status 2026-10-27. Installed and CPU-validated. No GPU workload, training or
-sparse-MoE reproduction has been run.
+Status 2026-10-27. Installed, CPU-validated and GPU-smoke-validated. No
+training or sparse-MoE reproduction has been run.
 
 The environment is at `~/veylith-v31-isolated`. It uses a uv-managed CPython
 3.14.8 and a hash-locked PyTorch ROCm 7.2 wheel. Arch's system Python, system
@@ -277,10 +277,10 @@ outside the environment. `pacman -Syu` can change them even though it cannot
 change the venv's Python packages. The drift guard detects and reports the
 change; it cannot prevent it or reproduce the old host.
 
-The environment is ready for a separately authorized GPU smoke test. That
-smoke must verify `torch.cuda.is_available`, gfx1201 identity, bf16 forward and
+The v3.1-I GPU smoke passed on 2026-10-27: gfx1201 identity, BF16 forward and
 backward, SDPA causal and sliding-window attention, Dense-Combined MoE forward
-and backward, VRAM, and checkpoint loading. It must also confirm that the
-`(null)` import diagnostic is benign. Sparse-MoE GPU execution is not part of
-the smoke: it is the known unresolved fault and needs its own authorization.
-No GPU workload is authorized in this phase.
+and backward, and a checkpoint forward. Peak allocation was 0.7445 GB, no
+`/opt/rocm` library was loaded, and no HIP error or GPU reset occurred. See
+`../docs/V3.1-I-ISOLATED-GPU-SMOKE.md`. Training remains pending separate
+authorization. Sparse-MoE GPU execution remains the known unresolved fault
+and was not run.

@@ -306,5 +306,8 @@ further training. See `docs/V3.1-E-PARTIAL-RUN-RESULTS.md` and
 The isolated GPU training environment (v3.1-H) is at
 `~/veylith-v31-isolated`. Its pinned lock, launcher, fingerprint baseline and
 read-only drift guard are under `env/`; CPU validation passes 90 tests with
-1 skip. GPU smoke and training remain pending separate authorization. See
-`env/README.md`.
+1 skip. The isolated GPU smoke (v3.1-I) then passed on gfx1201: BF16, SDPA
+causal and sliding-window attention, Dense-Combined MoE, and a checkpoint
+forward, with 0 `/opt/rocm` libraries, peak allocation 0.7445 GB and 6.7 s
+total. See `docs/V3.1-I-ISOLATED-GPU-SMOKE.md`. Training remains pending
+separate authorization.
