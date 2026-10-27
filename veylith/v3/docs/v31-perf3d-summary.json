@@ -1,0 +1,374 @@
+{
+  "decision": {
+    "device_saving_ms": 5.26,
+    "device_saving_pct_of_update": 0.74,
+    "net_effect_ms": 6.63,
+    "net_effect_pct": 0.87,
+    "numerics": "bitwise identical at operator and two-update training level",
+    "option": 3,
+    "rationale": "0.7 percent device saving does not survive the host-side cost it introduces; carrying a Triton kernel, a runtime model patch and a determinism-flag workaround for a measured net loss is not justified",
+    "recommend_followup_ab_training": false,
+    "remaining_larger_targets_ms": {
+      "add_fp32": 72.5,
+      "copy_bf16": 34.5,
+      "dtype_cast": 26.8,
+      "fill_bf16": 18.0
+    },
+    "verdict": "reject due to insufficient performance benefit"
+  },
+  "defects_fixed_before_measurement": [
+    {
+      "evidence": "empty_like under use_deterministic_algorithms(True) emits aten::fill_; 912 extra [4088,960] fills per update; 6.67 ms GPU",
+      "fix": "scoped save/restore of fill_uninitialized_memory around the two allocations",
+      "name": "deterministic NaN prefill",
+      "probe": "deterministic off=0 fills, on=2 per call, flag False=0 fills",
+      "safety": "kernel writes every element; gate1 asserts the flag is restored"
+    },
+    {
+      "evidence": "88 queue drains per update; profiled wall 1.28 s against 0.72 s device time",
+      "fix": "batched checks and router digest, one synchronization per update",
+      "name": "harness sync storm",
+      "result": "non-profiled update 759 ms, consistent with PERF-1 780 ms"
+    }
+  ],
+  "gate1_operator": {
+    "backward": {
+      "ga_bitwise": true,
+      "ga_max_abs": 0.0,
+      "gb_bitwise": true,
+      "gb_max_abs": 0.0,
+      "y_bitwise": true
+    },
+    "cases": [
+      {
+        "max_abs": 0.0,
+        "name": "production (4088,960)",
+        "t_bitwise": true,
+        "y_bitwise": true
+      },
+      {
+        "max_abs": 0.0,
+        "name": "(1,960)",
+        "t_bitwise": true,
+        "y_bitwise": true
+      },
+      {
+        "max_abs": 0.0,
+        "name": "(17,960)",
+        "t_bitwise": true,
+        "y_bitwise": true
+      },
+      {
+        "max_abs": 0.0,
+        "name": "(4097,961)",
+        "t_bitwise": true,
+        "y_bitwise": true
+      },
+      {
+        "max_abs": 0.0,
+        "name": "zeros",
+        "t_bitwise": true,
+        "y_bitwise": true
+      },
+      {
+        "max_abs": 0.0,
+        "name": "+50",
+        "t_bitwise": true,
+        "y_bitwise": true
+      },
+      {
+        "max_abs": 0.0,
+        "name": "-50",
+        "t_bitwise": true,
+        "y_bitwise": true
+      },
+      {
+        "max_abs": 0.0,
+        "name": "1e-30",
+        "t_bitwise": true,
+        "y_bitwise": true
+      },
+      {
+        "max_abs": 0.0,
+        "name": "bf16 boundary",
+        "t_bitwise": true,
+        "y_bitwise": true
+      }
+    ],
+    "fill_flag_restored": true,
+    "note": "Triton tl.exp and tl.div_rn match ATen silu bitwise on gfx1201 for all cases",
+    "rejections": {
+      "cpu": "rejected",
+      "float32": "rejected",
+      "non_contiguous": "rejected"
+    },
+    "result": "pass"
+  },
+  "gate2_training": {
+    "arms": [
+      "baseline_a",
+      "baseline_b",
+      "variant"
+    ],
+    "baseline_a_vs_baseline_b_mismatches": [],
+    "baseline_deterministic": true,
+    "baseline_vs_variant_mismatches": [],
+    "fields_compared": [
+      "logits_digest",
+      "main_ce",
+      "aux_sum",
+      "loss",
+      "grad_norm",
+      "router_digest",
+      "grad_digest",
+      "model_digest",
+      "optimizer_digest",
+      "lr"
+    ],
+    "reference_values": {
+      "aux_step1": 7.554577529430389,
+      "aux_step2": 7.563181102275848,
+      "ce_step1": 9.121862960188356,
+      "ce_step2": 9.091102196978962,
+      "grad_norm_step1": 1.484588623046875,
+      "grad_norm_step2": 1.5635069608688354
+    },
+    "result": "pass",
+    "updates_per_arm": 2
+  },
+  "gate3_end_to_end": {
+    "baseline": {
+      "ce_targets_per_s": 43073,
+      "median_ms": 758.9,
+      "n": 40,
+      "trimmed_mean_ms": 759.3
+    },
+    "delta_pct": 0.87,
+    "delta_trimmed_mean_ms": 6.63,
+    "method": "non-profiled paired timing, 4 interleaved runs, 20 updates each, 5 warmup",
+    "runs": [
+      {
+        "mean_ms": 776.3,
+        "median_ms": 757.4,
+        "p10": 756.2,
+        "p90": 824.3,
+        "tag": "t0",
+        "variant": "base"
+      },
+      {
+        "mean_ms": 764.5,
+        "median_ms": 764.5,
+        "p10": 756.6,
+        "p90": 771.1,
+        "tag": "t1",
+        "variant": "fused"
+      },
+      {
+        "mean_ms": 771.9,
+        "median_ms": 765.1,
+        "p10": 762.2,
+        "p90": 815.7,
+        "tag": "t2",
+        "variant": "fused"
+      },
+      {
+        "mean_ms": 760.4,
+        "median_ms": 760.6,
+        "p10": 757.2,
+        "p90": 763.6,
+        "tag": "t3",
+        "variant": "base"
+      }
+    ],
+    "variant": {
+      "ce_targets_per_s": 42697,
+      "median_ms": 764.6,
+      "n": 40,
+      "trimmed_mean_ms": 766.0
+    },
+    "verdict": "regression"
+  },
+  "gate3_host_cost": {
+    "cpu_per_call_us_delta": 26.5,
+    "cpu_per_update_ms": {
+      "baseline": 1506.3,
+      "delta": 12.1,
+      "variant": 1518.4
+    },
+    "microbenchmark_us_per_call": {
+      "allocations_plus_launch": 29.48,
+      "baseline_silu_mul_two_atendispatches": 10.6,
+      "fills_enabled_untoggled": 38.85,
+      "flag_toggle_only": 0.6,
+      "plus_autograd_function": 43.43,
+      "triton_launch_only": 17.56
+    },
+    "note": "medians of 7 interleaved rounds; ordering effects of a few us remain"
+  },
+  "gate3_kernels": {
+    "bwd_mul_delta_ms": [
+      0.0,
+      0.0
+    ],
+    "cluster_delta_ms": [
+      -5.56,
+      -4.96
+    ],
+    "drift_ms_noncluster": [
+      0.86,
+      6.78
+    ],
+    "forward_per_call_us": {
+      "baseline": 36.8,
+      "fused": 25.9
+    },
+    "launch_delta_pct": -1.11,
+    "launch_delta_per_update": -456,
+    "method": "4 interleaved profiled runs a0(base), a1(fused), b1(fused), b0(base), 8 updates each after 5 warmup",
+    "runs": [
+      {
+        "bwd_mul": 26.72,
+        "cluster": 57.78,
+        "fused": null,
+        "fwd_mul": 9.78,
+        "gemm": 246.27,
+        "kernels": 40984,
+        "silu_bwd": 14.28,
+        "silu_fwd": 7.0,
+        "tag": "a0",
+        "total": 716.01,
+        "variant": "base"
+      },
+      {
+        "bwd_mul": 26.72,
+        "cluster": 52.22,
+        "fused": 11.83,
+        "fwd_mul": null,
+        "gemm": 245.87,
+        "kernels": 40528,
+        "silu_bwd": 13.66,
+        "silu_fwd": null,
+        "tag": "a1",
+        "total": 711.31,
+        "variant": "fused"
+      },
+      {
+        "bwd_mul": 26.74,
+        "cluster": 52.41,
+        "fused": 11.97,
+        "fwd_mul": null,
+        "gemm": 246.65,
+        "kernels": 40528,
+        "silu_bwd": 13.7,
+        "silu_fwd": null,
+        "tag": "b1",
+        "total": 715.26,
+        "variant": "fused"
+      },
+      {
+        "bwd_mul": 26.74,
+        "cluster": 57.37,
+        "fused": null,
+        "fwd_mul": 9.49,
+        "gemm": 244.35,
+        "kernels": 40984,
+        "silu_bwd": 14.25,
+        "silu_fwd": 6.89,
+        "tag": "b0",
+        "total": 713.44,
+        "variant": "base"
+      }
+    ],
+    "silu_bwd_delta_ms": [
+      -0.62,
+      -0.55
+    ],
+    "silu_bwd_note": "same op, shapes and dtypes; attributed to allocation layout, not claimed as fusion merit",
+    "total_delta_ms": [
+      -4.7,
+      1.82
+    ],
+    "total_delta_note": "sign differs between pairs because non-cluster families drift; total is not separable at this resolution",
+    "units": "ms per update, kernel events only, memcpy excluded"
+  },
+  "implementation": {
+    "backward": "aten mul (grad,b), aten mul (grad,t), aten silu_backward(g_t,a)",
+    "call_count_correction": "PERF-3A/3C used 448; the dense-width module was missed",
+    "calls_per_update": 456,
+    "harness": "veylith/v3/perf/v31p3d_prototype.py",
+    "kernel": "_silu_mul_kernel, BLOCK=1024, t=BF16(fp32 a/(1+exp(-a))) stored, y=BF16(t*b)",
+    "module": "veylith/v3/perf/v31p3d_swiglu.py",
+    "patch": "instance-level SwiGLU.forward replacement",
+    "swiglu_modules": 57,
+    "swiglu_modules_detail": "1 dense FFN at width 1365 plus 7 MoE layers x 8 experts at width 960"
+  },
+  "integrity": {
+    "checkpoint_change": "none",
+    "cpu_tests": "96 passed, 2 skipped",
+    "environment_change": "none",
+    "gpu_work": "bounded, supervised: gate1, 3 correctness arms, 4 profile runs, 4 timing runs, 3 diagnostics",
+    "production_change": "none",
+    "push": "none",
+    "training_updates_consumed": "3 arms x 2 updates (correctness) + 4 x 13 (profile) + 4 x 25 (timing)"
+  },
+  "mechanism": [
+    "fused forward replaces silu plus forward mul: -4.7 ms device",
+    "backward mul unchanged; silu_backward -0.6 ms from allocation layout",
+    "host path costs +12.1 ms per update (+26.5 us per call) because the fused call is three Python dispatches plus an autograd wrapper where the baseline is two",
+    "net +6.6 ms per update, about -0.9 percent throughput"
+  ],
+  "memory": {
+    "peak_allocated_GiB": {
+      "baseline": 5.193,
+      "variant": 5.201
+    },
+    "reserved_GiB": 5.59
+  },
+  "meta": {
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-3D SwiGLU forward fusion prototype",
+    "git_head_before": "6de0cc2",
+    "mode": "isolated prototype, bounded GPU, no production change",
+    "reports_read": [
+      "V3.1-PERF-3A-FUSION-AUDIT.md",
+      "V3.1-PERF-3B-SINGLE-CAST.md",
+      "V3.1-PERF-3C-SWIGLU-DESIGN.md"
+    ],
+    "strategy": "A (fused forward, native ATen backward) from PERF-3C"
+  },
+  "power": {
+    "mean_W": [
+      97.8,
+      103.8
+    ],
+    "note": "whole run windows include CPU-bound trace export; not update-level",
+    "peak_W": [
+      266,
+      272
+    ],
+    "sclk_mean_GHz": [
+      1.94,
+      1.97
+    ]
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "ckpt_step0_sha256_prefix": "6efff0086ab0497b",
+    "ckpt_step500_sha256_prefix": "865946d66664399b",
+    "drift_guard": "OK",
+    "head": "6de0cc2",
+    "kfd": "idle at every checkpoint",
+    "main_diff_prefix": "056540dab24662e4",
+    "main_entries": 42,
+    "tag_v2": "b89d0f0",
+    "tag_v31a": "3aff73e",
+    "worktree": "clean"
+  },
+  "profiled_wall_note": "profiled wall 1.27-1.36 s over 712 ms device time for both variants; record_shapes tracing costs about 13 us CPU per kernel, so profiled wall is not comparable to PERF-1 and was not used end-to-end",
+  "unknowns": [
+    "whether a lower-overhead launch path (graph capture, C++ extension, Inductor) would surface the 5.3 ms device saving",
+    "precise split of the +12.1 ms host cost between allocations, Triton launcher and autograd wrapper",
+    "durability of the silu_backward alignment effect",
+    "no bitwise argument exists for a fused backward (strategies B/C); untested"
+  ]
+}
