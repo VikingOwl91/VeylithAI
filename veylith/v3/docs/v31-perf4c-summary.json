@@ -1,0 +1,405 @@
+{
+  "decision": {
+    "integration_authorized": false,
+    "option": 1,
+    "rationale": "bitwise inert over 150 resumed updates with non-zero AdamW moments, reproduces the original trajectory, removes 25.7 percent of launches, 6.26 percent faster updates and 3.28 percent less energy per million CE targets, no VRAM change",
+    "reproduced_perf4b_gain_pct": {
+      "perf4b": 6.57,
+      "perf4c": 6.26
+    },
+    "verdict": "recommend production integration with an explicit safety policy"
+  },
+  "deviations": [
+    "log_every set to 1 for all arms (fixture config used 10) to obtain per-update records; run-control field outside the fingerprint, applied identically",
+    "per-arm stop_after 400 to run 150 updates from the fixture",
+    "no production, checkpoint, architecture, precision, package or ROCm change"
+  ],
+  "fixture": {
+    "adamw_param_states_nonzero": "229 of 229",
+    "adamw_step_counters": 250.0,
+    "config_source": "rebuilt from the stored config; only out_dir, resume, stop_after, log_every, wall guard and output paths replaced",
+    "fingerprint": "1212c3d134911dee2745d5deb2b91454296eaf86954d21013d4d641c0aefd260",
+    "integrity_check": "production load_state validates kind, format and fingerprint",
+    "loader": {
+      "batch": 2000,
+      "epoch": 0
+    },
+    "lr_at_resume": 0.00017242918854766024,
+    "path": "~/veylith-v31l-dense-20261027/ckpt_state_step250.pt",
+    "rng_keys": [
+      "cuda",
+      "numpy",
+      "python",
+      "torch"
+    ],
+    "scheduler": {
+      "base_lr": 0.0003,
+      "max_steps": 500,
+      "min_lr_ratio": 0.1,
+      "step": 250,
+      "warmup_steps": 15
+    },
+    "sha256": "ab259ebf78166d3f5a2b87f4d1f60acb71f19a0ba3cddd257f899a6a0871d33d",
+    "step": 250,
+    "tokens_seen": 8176000,
+    "verified_against": "checkpoints.jsonl recorded hash and step-250 size"
+  },
+  "gate1_correctness": {
+    "arms": [
+      "resume_a",
+      "resume_b",
+      "resume_variant",
+      "resume_prime_aa",
+      "resume_prime_55"
+    ],
+    "fields_compared": [
+      "logits_digest",
+      "main_ce",
+      "aux_sum",
+      "loss",
+      "grad_norm",
+      "lr",
+      "router_digest",
+      "grad_digest",
+      "model_digest",
+      "optimizer_digest",
+      "scheduler_digest",
+      "rng_digest",
+      "initial_state"
+    ],
+    "mismatches": {
+      "baseline_a_vs_baseline_b": 0,
+      "prefill_on_vs_off": 0,
+      "prime_0x55_vs_unprimed": 0,
+      "prime_0xaa_vs_prime_0x55": 0,
+      "prime_0xaa_vs_unprimed": 0
+    },
+    "peak_reserved_GiB": {
+      "baseline": 5.674,
+      "primed": 5.713,
+      "variant": 5.674
+    },
+    "result": "pass",
+    "separate_process_per_arm": true,
+    "shared_digests": {
+      "initial_rng": "88fea76f64b7b5e7",
+      "initial_scheduler": "ab5e16af73985837",
+      "logits": "47eedab5bf8b2bf4",
+      "model": "f0c31013ae80e324",
+      "optimizer": "73488f7735897875",
+      "rng_after_update": "72d4776911632c6a",
+      "scheduler": "c225fbeb93689526"
+    },
+    "state_handling": {
+      "deterministic_algorithms_in_effect": "True in all five arms",
+      "fill_in_effect": {
+        "baseline": true,
+        "variant": false
+      },
+      "fill_restored_after": "True in all five arms"
+    },
+    "updates_per_arm": 2,
+    "values": {
+      "ce_step251": 5.935148414567025,
+      "ce_step252": 5.958611714163405,
+      "grad_norm_step251": 0.4273534417152405
+    }
+  },
+  "integrity": {
+    "checkpoint_change": "none",
+    "cpu_tests": "96 passed, 2 skipped",
+    "drift_guard": "OK",
+    "environment_change": "none",
+    "gpu_work": "bounded and supervised: 5 gate arms, 2 profile arms, 4 A/B arms",
+    "production_change": "none",
+    "push": "none"
+  },
+  "meta": {
+    "change": "torch.utils.deterministic.fill_uninitialized_memory disabled via the PERF-4B shim; everything else identical",
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-4C resumed-state paired A/B",
+    "git_head": "2efce3d",
+    "mode": "isolated experiment, production files untouched",
+    "reports_read": [
+      "V3.1-PERF-4A-HOST-AUDIT.md",
+      "V3.1-PERF-4B-PREFILL.md"
+    ]
+  },
+  "paired_ab": {
+    "arms": [
+      {
+        "ce_targets_per_s": 41293,
+        "cpu_s": 306.5,
+        "median_ms": 786.4,
+        "overhead_s": 34.3,
+        "prefill": "on",
+        "tag": "b1",
+        "trimmed_ms": 787.4,
+        "wall_s": 155.6
+      },
+      {
+        "ce_targets_per_s": 44615,
+        "cpu_s": 197.0,
+        "median_ms": 738.1,
+        "overhead_s": 36.9,
+        "prefill": "off",
+        "tag": "n1",
+        "trimmed_ms": 732.9,
+        "wall_s": 149.3
+      },
+      {
+        "ce_targets_per_s": 44160,
+        "cpu_s": 198.0,
+        "median_ms": 733.2,
+        "overhead_s": 33.3,
+        "prefill": "off",
+        "tag": "n2",
+        "trimmed_ms": 733.0,
+        "wall_s": 147.0
+      },
+      {
+        "ce_targets_per_s": 41686,
+        "cpu_s": 304.6,
+        "median_ms": 783.1,
+        "overhead_s": 34.5,
+        "prefill": "on",
+        "tag": "b2",
+        "trimmed_ms": 784.1,
+        "wall_s": 154.6
+      }
+    ],
+    "checkpoints": {
+      "artifact_note": "ckpt_best.pt is not written when stop_after < max_steps (the loop returns before save_artifact); best weights are compared via the state's best_state",
+      "excluded_by_design": [
+        "config.out_dir",
+        "config.checkpoint",
+        "config.state_path",
+        "config.curve_jsonl",
+        "curve.jsonl timestamps and paths",
+        "state file sha256 (changes with the paths above)"
+      ],
+      "fields_identical": [
+        "step",
+        "tokens_seen",
+        "loader",
+        "parameters",
+        "optimizer moments and step counters",
+        "scheduler",
+        "rng",
+        "best_state",
+        "best_step",
+        "best_metric",
+        "dataset",
+        "model_config",
+        "versions",
+        "fingerprint"
+      ],
+      "shared_digests": {
+        "optimizer": "7bbc8c10aec12eca",
+        "parameters": "6e4501701b043498",
+        "rng": "d82efe695b9dc450",
+        "scheduler": "260c3090ada4de20"
+      },
+      "step400": {
+        "best_metric": 5.502156042187248,
+        "best_step": 400,
+        "loader": {
+          "batch": 3200,
+          "epoch": 0
+        },
+        "step": 400,
+        "tokens_seen": 13081600
+      },
+      "step400_state_semantics_identical": true
+    },
+    "method": "production train(), four interleaved arms, 150 updates each from the immutable fixture, first 10 excluded from timing",
+    "paired": {
+      "ce_targets_per_s_pct": 6.99,
+      "cpu_s": [
+        -108.1,
+        -35.37
+      ],
+      "median_ms": [
+        -49.1,
+        -6.26
+      ],
+      "trimmed_ms": [
+        -52.8,
+        -6.72
+      ],
+      "wall_s": [
+        -7.0,
+        -4.51
+      ]
+    },
+    "schedule": "fixture's own validation and checkpoint schedule (eval_steps [100,250,500], save_steps [10,25,50,100,250,500])",
+    "trajectory": {
+      "fields": [
+        "train_main_ce",
+        "train_aux",
+        "grad_norm",
+        "lr"
+      ],
+      "identical_across_all_four_arms": true,
+      "steps_compared": 150,
+      "validation_block_at_step_400_identical": true
+    }
+  },
+  "performance": {
+    "energy": {
+      "j_per_million_ce_targets": {
+        "delta_pct": -3.28,
+        "prefill_off": [
+          7593,
+          7562
+        ],
+        "prefill_on": [
+          7783,
+          7885
+        ]
+      },
+      "mean_W": {
+        "prefill_off": [
+          250.8,
+          253.2
+        ],
+        "prefill_on": [
+          247.3,
+          250.5
+        ]
+      },
+      "note": "whole-arm windows including validation and checkpoint phases",
+      "peak_W": {
+        "prefill_off": [
+          333,
+          333
+        ],
+        "prefill_on": [
+          323,
+          325
+        ]
+      },
+      "window_kJ": {
+        "prefill_off": [
+          37.25,
+          37.1
+        ],
+        "prefill_on": [
+          38.18,
+          38.68
+        ]
+      }
+    },
+    "kernels": {
+      "delta": {
+        "device_ms": -47.58,
+        "device_pct": -6.53,
+        "kernels": -10552,
+        "kernels_pct": -25.75
+      },
+      "method": "5 profiled updates per condition, separate from wall timing",
+      "prefill_off": {
+        "device_ms": 680.75,
+        "elementwise": {
+          "kernels": 20342,
+          "ms": 307.1
+        },
+        "fill": {
+          "kernels": 993,
+          "ms": 4.2
+        },
+        "gemm": {
+          "kernels": 5064,
+          "ms": 249.4
+        },
+        "other": {
+          "kernels": 4027,
+          "ms": 120.0
+        },
+        "total": 30426
+      },
+      "prefill_on": {
+        "device_ms": 728.33,
+        "elementwise": {
+          "kernels": 20342,
+          "ms": 312.7
+        },
+        "fill": {
+          "kernels": 11545,
+          "ms": 45.9
+        },
+        "gemm": {
+          "kernels": 5064,
+          "ms": 248.7
+        },
+        "other": {
+          "kernels": 4027,
+          "ms": 121.0
+        },
+        "total": 40978
+      }
+    },
+    "memory": {
+      "identical": true,
+      "peak_allocated_GiB": 5.18,
+      "peak_reserved_GiB": 5.598
+    }
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "drift_guard": "OK",
+    "head": "2efce3d",
+    "kfd": "idle before every arm",
+    "main_diff_prefix": "056540dab24662e4",
+    "main_entries": 42,
+    "standard_states": {
+      "step0": "6efff0086ab0497b",
+      "step500": "865946d66664399b"
+    },
+    "tag_v2": "b89d0f0",
+    "tag_v31a": "3aff73e",
+    "worktree": "clean"
+  },
+  "resume_fidelity": {
+    "conclusion": "the resumed run continues the original 500-update run exactly, not merely self-consistently",
+    "logged_steps_compared": 15,
+    "method": "compare the resumed trajectory against the original v3.1-L curve.jsonl over logged steps in 251-400",
+    "mismatches": 0,
+    "step400_ce_original_and_resumed": 5.4836864135503305
+  },
+  "safety_assessment": {
+    "claim": "no computed value depends on uninitialized memory for these gated and timed steps; this is not a proof of memory safety",
+    "not_covered": [
+      "allocations before priming (parameters, optimizer state, resume load)",
+      "footprint beyond 3 GiB",
+      "fresh driver segments",
+      "hipBLASLt workspaces and allocator metadata"
+    ],
+    "priming": {
+      "applied_after_resume_load": true,
+      "coverage": "3.0 GiB of a 5.18 GiB peak allocation footprint; update-phase allocations only",
+      "pattern_gib": 3.0,
+      "patterns": [
+        "0xaa",
+        "0x55"
+      ]
+    },
+    "proposed_policy": [
+      "default prefill off for training runs, set in train() right after deterministic mode",
+      "VEYLITH_DETERMINISTIC_PREFILL=1 restores current behaviour for debugging and new-operator bring-up",
+      "record the effective value in run provenance (log line and artifact metadata)",
+      "never disable it in tests that probe uninitialized memory; re-enable when adding an operator that does not fully write its output",
+      "runtime flag, not a config field: keeps the fingerprint and resume compatibility with existing states"
+    ],
+    "residual_risk": "an uninitialized read in future code would produce silent garbage instead of NaN",
+    "resumed_training_additions": "1.57 GB state loaded to device before priming, plus loader and scheduler rebuild",
+    "still_enabled": "torch.use_deterministic_algorithms(True) with its operator checks"
+  },
+  "unknowns": [
+    "steps 1-250 and 401-500 were not re-run under the change",
+    "only one resume point tested; an epoch-boundary resume could exercise different allocator and loader states",
+    "priming covers at most 3.0 GiB of 5.18 GiB and no driver or library memory",
+    "whole-run process CPU drop unexplained in magnitude",
+    "no ckpt_best.pt written with stop_after < max_steps, so artifact comparison is limited to best_state"
+  ]
+}
