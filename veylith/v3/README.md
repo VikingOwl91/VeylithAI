@@ -236,6 +236,13 @@ CPU run above 5M parameters; no 0.1B CPU run and no GPU run happened.
 Docs: `docs/V3.1-TRAINING.md`, `docs/V3.1-CHECKPOINTS.md`,
 `docs/V3.1-GPU-SMOKE-PLAN.md` (proposal only).
 
+The authorized GPU compatibility smoke ran on 2026-10-27: bf16 baseline,
+SDPA parity (fp32 exact, bf16 max abs 0.003906, identical input grads),
+sparse top-2 MoE at A width, and full A at microbatch 1/2/4/8 all passed in
+8.3 s. MB8: 0.150 s/step, 27,345 tokens/s, 3.40 GB allocated / 3.58 GB
+reserved, no fault. No pretraining was started. Results:
+`docs/V3.1-GPU-SMOKE-RESULTS.md`.
+
 ## Tests
 
 ```bash

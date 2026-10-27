@@ -144,16 +144,19 @@ class MoE(nn.Module):
         if self.cfg.moe_impl == "dense":
             weights = (assign * top_weights.unsqueeze(-1)).sum(1)
             for expert_index, expert in enumerate(self.experts):
-                out = out + weights[:, expert_index:expert_index + 1] * expert(flat)
+                contribution = (weights[:, expert_index:expert_index + 1]
+                                * expert(flat)).to(out.dtype)
+                out = out + contribution
         else:
             for expert_index, expert in enumerate(self.experts):
                 mask = (top_idx == expert_index).any(dim=-1)
                 if not bool(mask.any()):
                     continue
                 token_weights = (top_weights * (top_idx == expert_index)).sum(dim=-1)[mask]
+                contribution = (token_weights.unsqueeze(-1)
+                                * expert(flat[mask])).to(out.dtype)
                 out = out.index_add(
-                    0, mask.nonzero(as_tuple=False).squeeze(1),
-                    token_weights.unsqueeze(-1) * expert(flat[mask]))
+                    0, mask.nonzero(as_tuple=False).squeeze(1), contribution)
         return out.view(B, T, C), aux, top_idx
 
 

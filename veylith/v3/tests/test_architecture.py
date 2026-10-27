@@ -182,3 +182,18 @@ def test_compute_estimates_scale_and_are_positive():
     assert dense["total_flops"] > small["total_flops"]
     wall = wall_clock_estimate(cfg, 95_951_233)
     assert wall["hours"] > 0
+
+
+@pytest.mark.parametrize("moe_impl", ["sparse", "dense"])
+def test_moe_bf16_paths_are_finite_on_cpu(moe_impl):
+    # Regression for the bf16 index_add dtype bug found by the GPU smoke.
+    cfg = tiny_config(dropout=0.0, moe_impl=moe_impl)
+    model = GPT(cfg).to(torch.bfloat16)
+    idx = torch.randint(0, cfg.vocab_size, (2, 8))
+    targets = torch.randint(0, cfg.vocab_size, (2, 8))
+    logits, loss, metrics = model(idx, targets=targets, return_metrics=True)
+    assert torch.isfinite(logits).all()
+    assert torch.isfinite(loss)
+    loss.backward()
+    grads = [p.grad for p in model.parameters() if p.grad is not None]
+    assert grads and all(torch.isfinite(g).all() for g in grads)
