@@ -1,0 +1,188 @@
+{
+  "boundary_match": {
+    "cols": 3075,
+    "extent": 4194300,
+    "fault_page": "0x00007fd7b5400000",
+    "gap_bytes": 4,
+    "nearest_C": "0x7fd7b5000000",
+    "rows": 682,
+    "tensor_end": "0x7fd7b53ffffc"
+  },
+  "boundary_note": "third independent reproduction of the same geometry (5C baseline, 5C attribution, 5D), different absolute address, same 4-byte gap",
+  "evidence_levels": {
+    "candidate_kernel_family": true,
+    "direct_kernel_attribution": false,
+    "insufficient_trace_coverage": false,
+    "strong_operation_correlation": true
+  },
+  "execution": {
+    "cycles_exported": 57,
+    "exit_code": -6,
+    "fault_mode": "sigabrt",
+    "fault_pages": [
+      "0x00007fd7b5400000"
+    ],
+    "faulted": true,
+    "gpu_after_idle": true,
+    "hip_error": "illegal memory access raised in a worker thread",
+    "kernel_fault_records": 4,
+    "metadata_lost": true,
+    "reset_lines": [],
+    "serialization": "none",
+    "timeout_reached": false,
+    "wall_seconds": 26
+  },
+  "integrity": {
+    "checkpoint_change": "none",
+    "cpu_tests": "122 passed, 2 skipped",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none"
+  },
+  "limits": [
+    "the faulting iteration's own trace is not provably among the exports",
+    "kernel events carry no shapes or pointers, so the consumer is inferred from shape class and ordering",
+    "per-cycle metadata was lost to the abort in this run",
+    "a vectorized cast is expected to mask its tail; the alternative (unmasked epilogue store or a misreported RW flag) cannot be excluded without the kernel name"
+  ],
+  "meta": {
+    "budget": {
+      "max_executions": 1,
+      "retries": 0,
+      "used": 1
+    },
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5D rolling trace and boundary attribution",
+    "git_head": "a332868",
+    "mode": "one bounded GPU execution; no serialization, no backend switch, no production change",
+    "reports_read": [
+      "V3.1-PERF-5B-KTAIL-ISOLATION.md",
+      "V3.1-PERF-5C-KERNEL-ATTRIBUTION.md"
+    ]
+  },
+  "next_experiment": {
+    "runs": 1,
+    "shape": "same rolling schedule with record_shapes=True, plus a hook recording the last aten::copy_ input shape and strides per iteration; keep the address match as the cross-check",
+    "success": "an aten::copy_ (or the GEMM) event whose shape and ordering place it at the boundary buffer in the last covered iteration"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle before the run",
+    "head": "a332868",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean"
+  },
+  "preparation": {
+    "added_sync": "none",
+    "cpu_lifecycle_test": {
+      "all_nonempty": true,
+      "covered_iterations": [
+        0,
+        1,
+        2,
+        2
+      ],
+      "cycles": 4,
+      "note": "the fourth is the flush cycle at context close",
+      "published": 4
+    },
+    "harness": "veylith/v3/perf/v31p5d_rolling.py",
+    "publication": "export to a temporary file then os.replace; one file per cycle; metadata with cycle, covered iteration and bytes",
+    "schedule": {
+      "requested": "wait=1 warmup=1 active=1 repeat=-1",
+      "used": "wait=0 warmup=0 active=1 repeat=0",
+      "why": "this build rejects repeat=-1 (needs >= 0); repeat=0 is the infinite repeat, and wait/warmup gaps would have skipped the faulting iteration"
+    },
+    "step_boundary": "patched sparse_moe_v2_train.get_batch calls prof.step() before the fetch, so the previous iteration exports just before the historically failing copy"
+  },
+  "tail_ordering": {
+    "kernels_after_last_gemm_last_full_trace": 1,
+    "last_trace_tail": [
+      {
+        "dur": 2.759,
+        "is_gemm": false,
+        "launched_by": "aten::copy_",
+        "name": "void at::native::vectorized_elementwise_kernel<4, at::native::bfloat16tofloat32_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul> >(int, at::native::bfloat16tofloat32_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul>) [clone .kd]",
+        "ts": 2254913634556.842
+      },
+      {
+        "dur": 19.639,
+        "is_gemm": false,
+        "launched_by": "aten::silu_backward",
+        "name": "void at::native::vectorized_elementwise_kernel<8, at::native::(anonymous namespace)::silu_backward_kernel(at::TensorIteratorBase&)::{lambda()#1}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16, c10::BFloat16)#1}, std::array<char*, 3ul> >(int, at::native::(anonymous namespace)::silu_backward_kernel(at::TensorIteratorBase&)::{lambda()#1}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16, c10::BFloat16)#1}, std::array<char*, 3ul>) [clone .kd]",
+        "ts": 2254913634564.162
+      },
+      {
+        "dur": 45.12,
+        "is_gemm": true,
+        "launched_by": "aten::mm",
+        "name": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FDSI0_GRPM1_GRVWA8_GRVWB8_GSUAMB_GLS0_ISA1201_IU1_K1_LDSTI0_LBSPPA1024_LBSPPB0_LBSPPM0_LPA32_LPB0_LPM0_LRVW8_LWPMn1_MIAV1_MIWT2_2_MO40_NTn1_NTA0_NTB0_NTC0_NTD0_NTM0_NEPBS0_NLCA1_NLCB2_ONLL0_PGR1_PLR1_PKA0_SIA3_SS0_SPO0_SRVW0_SSO0_SVW8_SK0_SKFTR0_SKXCCM0_TLDS0_ULSGRO0_USL1_UIOFGRO0_USFGROn1_VSn1_VWA2_VWB1_WSGRA0_WSGRB0_WS32_WG32_4_1.kd",
+        "ts": 2254913634588.282
+      },
+      {
+        "dur": 2.639,
+        "is_gemm": false,
+        "launched_by": "aten::copy_",
+        "name": "void at::native::vectorized_elementwise_kernel<4, at::native::bfloat16tofloat32_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul> >(int, at::native::bfloat16tofloat32_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul>) [clone .kd]",
+        "ts": 2254913634637.963
+      }
+    ],
+    "pattern_A": {
+      "count": 46,
+      "note": "last kernel is at::native::bfloat16tofloat32_copy_kernel launched by aten::copy_",
+      "signature": "aten::silu_backward -> aten::mm -> aten::copy_"
+    },
+    "pattern_B": {
+      "count": 10,
+      "note": "no GEMM in the last three kernels; treated as traces cut mid iteration, not used as evidence",
+      "signature": "aten::add -> aten::mul -> aten::add"
+    }
+  },
+  "trace_inventory": {
+    "batch_only_cycles": 1,
+    "cycles": 57,
+    "full_iterations": 56,
+    "gemms_per_full_iteration": 453,
+    "kernels_per_full_iteration": {
+      "max": 3330,
+      "min": 1606
+    },
+    "last_full_trace": "trace-cycle-0057.json",
+    "metadata_note": "per-cycle metadata was lost to the abort; coverage reconstructed from trace sizes; the harness now appends cycles.jsonl per export"
+  },
+  "verdict": {
+    "against_gemm": [
+      "a GEMM would produce a write fault, which RW does not support",
+      "the fault page is past the tensor, not inside it"
+    ],
+    "candidate_family": [
+      "at::native::bfloat16tofloat32_copy_kernel launched by aten::copy_",
+      "the routing-weight multiply aten::mul that precedes it",
+      "the GEMM epilogue, weaker"
+    ],
+    "consumer_vs_gemm": "a consumer of the GEMM output is better supported than the GEMM itself",
+    "label": "strong_operation_correlation",
+    "level": 2,
+    "not_claimed": [
+      "the faulting kernel is named",
+      "the faulting iteration's trace is provably exported",
+      "the historical 16E K-tail hypothesis is supported or refuted here"
+    ],
+    "supporting": [
+      "the fault is a read (kernel log RW 0x0) and the GEMM writes that buffer",
+      "the only kernel after the last GEMM in 46 of 56 traced iterations is a bf16-to-fp32 cast that reads such an output",
+      "the boundary buffer is a bf16 GEMM output whose tensor end is 4 bytes short of the mapping end",
+      "the fault page equals that mapping end in three independent runs"
+    ]
+  }
+}
