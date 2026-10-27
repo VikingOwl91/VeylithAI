@@ -20,6 +20,7 @@ Modes
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import os
 import sys
@@ -58,6 +59,7 @@ def padded_buffer(rows: int, cols: int, dtype, device, slack: int = SLACK_BYTES)
         "slack_after_tensor": storage_end - tensor_end,
         "page_rounded_storage_end": hex(page_end),
         "bytes_from_tensor_end_to_page_end": page_end - tensor_end,
+        "t": round(time.time(), 3),
     }
     GEOMETRY.append(row)
     if os.environ.get("V31P5G_PRINT_ALLOC") == "1":
@@ -132,6 +134,119 @@ def apply_padding(model) -> int:
     return patched
 
 
+def unapply_padding(model) -> int:
+    """Restore the stock ``nn.Linear`` forward on every patched module."""
+    removed = 0
+    for module in model.modules():
+        w3 = getattr(module, "w3", None)
+        if isinstance(w3, torch.nn.Linear) and "forward" in w3.__dict__:
+            del w3.__dict__["forward"]
+            removed += 1
+    return removed
+
+
+def capture_first_forward(impl, store):
+    """Record the first training batch, its full-precision loss and the weights.
+
+    The reproducer prints ``{loss:.4f}`` only. Gate A wants the underlying
+    value, so keep the full float and enough state to recompute it after the
+    loop. The run uses ``--no_optimizer``, so the weights at the end of the loop
+    are the weights at iteration 0; the check below verifies that rather than
+    assuming it.
+    """
+    original = impl.GPT.forward
+
+    def wrapped(self, idx, targets=None):
+        out = original(self, idx, targets)
+        if "model" not in store:
+            store["model"] = self
+            store["idx"] = idx.detach().clone()
+            store["targets"] = targets.detach().clone() if targets is not None else None
+            store["loss"] = float(out[1].detach())
+            # Print immediately: PERF-5I faulted inside the loop, so the value
+            # captured here was never persisted and Gate A could only be applied
+            # at display precision.
+            print("FIRSTLOSS " + json.dumps({"iter0_loss": repr(store["loss"]),
+                                             "iter0_loss_4dp": f"{store['loss']:.4f}"}),
+                  flush=True)
+            store["params"] = {n: p.detach().clone()
+                               for n, p in self.named_parameters()}
+        return out
+
+    impl.GPT.forward = wrapped
+    return original
+
+
+def post_check(impl, store) -> dict:
+    """Recompute iteration 0 after the loop, stock and padded, at full precision.
+
+    Runs after ``COMPLETED`` so it cannot change the fault conditions of the
+    loop. The padded pass runs first, so a fault in the stock pass cannot destroy
+    the padded-arm measurement.
+    """
+    report = {"postcheck_started_local": time.strftime("%Y-%m-%d %H:%M:%S"),
+              "postcheck_started_epoch": round(time.time(), 3)}
+    model = store.get("model")
+    if model is None:
+        return {"error": "no captured forward"}
+    report["iter0_loss_loop"] = store["loss"]
+    report["iter0_loss_loop_4dp"] = f"{store['loss']:.4f}"
+    report["model_state_unchanged_after_loop"] = bool(all(
+        torch.equal(p.detach(), store["params"][n])
+        for n, p in model.named_parameters()))
+    idx, tgt = store["idx"], store["targets"]
+    experts = [(n, p) for n, p in model.named_parameters() if ".mlp.experts." in n]
+
+    def run(patched: bool):
+        if patched:
+            apply_padding(model)
+        else:
+            unapply_padding(model)
+        report["w3_modules_padded_at_pass" if patched else
+               "w3_modules_stock_at_pass"] = sum(
+            1 for m in model.modules()
+            if isinstance(getattr(m, "w3", None), torch.nn.Linear)
+            and "forward" in m.w3.__dict__)
+        model.zero_grad(set_to_none=True)
+        autocast = (torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+                    if idx.is_cuda else contextlib.nullcontext())
+        with autocast:
+            _, loss = model(idx, tgt)
+        value = float(loss.detach())
+        if loss.requires_grad:
+            loss.backward()
+        grads = {n: p.grad.detach().clone() for n, p in experts if p.grad is not None}
+        norm = float(sum(float(g.double().pow(2).sum()) for g in grads.values()) ** 0.5)
+        model.zero_grad(set_to_none=True)
+        return value, grads, norm
+
+    try:
+        pad_loss, pad_grads, pad_norm = run(True)
+        report["padded_loss_recomputed"] = pad_loss
+        report["padded_grad_norm_experts"] = pad_norm
+        report["padded_grads_captured"] = len(pad_grads)
+        report["padded_loss_equals_loop_loss"] = pad_loss == store["loss"]
+    except BaseException as exc:  # noqa: BLE001
+        report["padded_pass_error"] = f"{type(exc).__name__}: {exc}"
+        return report
+    try:
+        stock_loss, stock_grads, stock_norm = run(False)
+        report["stock_loss_recomputed"] = stock_loss
+        report["stock_grad_norm_experts"] = stock_norm
+        report["stock_grads_captured"] = len(stock_grads)
+        report["stock_vs_padded_loss_bitwise"] = stock_loss == pad_loss
+        report["stock_vs_padded_loss_4dp_equal"] = (
+            f"{stock_loss:.4f}" == f"{pad_loss:.4f}")
+        report["grad_names_equal"] = sorted(stock_grads) == sorted(pad_grads)
+        report["grads_bitwise_equal"] = bool(
+            report["grad_names_equal"]
+            and all(torch.equal(stock_grads[n], pad_grads[n]) for n in stock_grads))
+        report["grad_norm_equal"] = stock_norm == pad_norm
+    except BaseException as exc:  # noqa: BLE001
+        report["stock_pass_error"] = f"{type(exc).__name__}: {exc}"
+    return report
+
+
 def _debug_config():
     import sparse_moe_v2_train as impl
 
@@ -193,6 +308,33 @@ def full_model_gate():
         "w3_forwards_patched": patched_modules,
         "all_w3_still_linear": bool(linear_kept),
     }
+
+
+def post_check_gate():
+    """Exercise the post-loop comparison logic on CPU before any GPU use."""
+    import sparse_moe_v2_train as impl
+
+    torch.manual_seed(11)
+    model = impl.GPT(_debug_config())
+    apply_padding(model)
+    gen = torch.Generator().manual_seed(13)
+    idx = torch.randint(0, 1000, (2, 32), generator=gen)
+    tgt = torch.randint(0, 1000, (2, 32), generator=gen)
+    with torch.no_grad():
+        _, loss = model(idx, tgt)
+    store = {"model": model, "idx": idx, "targets": tgt,
+             "loss": float(loss.detach()),
+             "params": {n: p.detach().clone() for n, p in model.named_parameters()}}
+    res = post_check(impl, store)
+    keys = ("model_state_unchanged_after_loop", "padded_loss_equals_loop_loss",
+            "stock_vs_padded_loss_bitwise", "grads_bitwise_equal",
+            "grad_norm_equal", "padded_grads_captured", "stock_grads_captured")
+    out = {k: res.get(k) for k in keys}
+    out["stock_loss_minus_padded"] = (res.get("stock_loss_recomputed", 0.0)
+                                      - res.get("padded_loss_recomputed", 0.0))
+    out["errors"] = [res[k] for k in ("padded_pass_error", "stock_pass_error")
+                     if k in res]
+    return out
 
 
 def selftest() -> int:
@@ -272,6 +414,18 @@ def selftest() -> int:
     report["storage_preserved"] = out_storage_preserved
     report["out_wrote_into_view"] = out_wrote_into_view
     report["out_returned_same_object"] = out_returned_same_object
+    post = post_check_gate()
+    report["post_check"] = post
+    post_ok = (post["model_state_unchanged_after_loop"] is True
+               and post["padded_loss_equals_loop_loss"] is True
+               and post["stock_vs_padded_loss_bitwise"] is True
+               and post["grads_bitwise_equal"] is True
+               and post["grad_norm_equal"] is True
+               and (post["padded_grads_captured"] or 0) > 0
+               and (post["stock_grads_captured"] or 0) > 0
+               and not post["errors"])
+    report["post_check_ok"] = post_ok
+
     model = full_model_gate()
     report["full_model"] = model
     model_ok = (model["names_equal"] and model["state_bitwise_identical"]
@@ -293,14 +447,41 @@ def selftest() -> int:
                                     ("all_bitwise", "geometry_ok", "pointer_preserved",
                                      "storage_preserved", "out_wrote_into_view",
                                      "out_returned_same_object", "mixed_dtype_ok",
-                                     "full_model_ok")})
+                                     "full_model_ok", "post_check_ok")})
           + " " + json.dumps(report["cases"]))
     print("MIXED " + json.dumps(report["mixed_dtype"], sort_keys=True))
     print("MODEL " + json.dumps(model, sort_keys=True))
+    print("POST " + json.dumps(post, sort_keys=True))
     ok = (report["all_bitwise"] and report["geometry_ok"] and mixed_ok and model_ok
+          and post_ok
           and report["pointer_preserved"] and report["storage_preserved"]
           and report["out_wrote_into_view"] and report["out_returned_same_object"])
     return 0 if ok else 1
+
+
+def dump_payload(payload, out_path) -> None:
+    """Persist the record.
+
+    Called once when the loop ends and again at exit, so a fault during the
+    post-loop check cannot destroy the loop evidence.
+    """
+    targets = [g for g in GEOMETRY if g["shape"] == [3075, 682]]
+    payload["buffers"] = list(GEOMETRY)
+    payload["buffers_total"] = len(GEOMETRY)
+    payload["slack_min"] = min((g["slack_after_tensor"] for g in GEOMETRY),
+                               default=None)
+    payload["all_contiguous"] = all(g["contiguous"] for g in GEOMETRY)
+    payload["all_offset_zero"] = all(g["storage_offset"] == 0 for g in GEOMETRY)
+    payload["all_pointer_preserved"] = all(g.get("pointer_preserved") is True
+                                           for g in GEOMETRY)
+    payload["all_storage_preserved"] = all(g.get("storage_preserved") is True
+                                           for g in GEOMETRY)
+    payload["any_resized_by_out"] = any(g.get("resized_by_out") is True
+                                        for g in GEOMETRY)
+    payload["target_buffers"] = len(targets)
+    payload["target_bytes_to_page_end_min"] = min(
+        (g["bytes_from_tensor_end_to_page_end"] for g in targets), default=None)
+    json.dump(payload, open(out_path, "w"), indent=2, sort_keys=True)
 
 
 def repro(pad: int, out_path: str, repro_args) -> int:
@@ -322,35 +503,35 @@ def repro(pad: int, out_path: str, repro_args) -> int:
     exit_code = 0
     payload = {"pad": bool(pad), "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                                              time.gmtime())}
+    store = {}
+    original_forward = capture_first_forward(sparse_impl, store)
     try:
         reproducer.main()
+        # The loop is over: persist its evidence before any post-loop GPU work.
+        dump_payload(payload, out_path)
+        print("POSTCHECK-BEGIN", flush=True)
+        try:
+            payload["post_check"] = post_check(sparse_impl, store)
+        except BaseException as exc:  # noqa: BLE001
+            payload["post_check"] = {"error": f"{type(exc).__name__}: {exc}"}
     except BaseException as exc:  # noqa: BLE001
         payload["exception"] = {"type": type(exc).__name__,
                                 "message": str(exc).splitlines()[0][:300]}
         exit_code = 1
     finally:
-        # Every allocation is recorded: Gate B has to be checked per target
-        # buffer, not on a sample of twenty.
-        targets = [g for g in GEOMETRY if g["shape"] == [3075, 682]]
-        payload["buffers"] = GEOMETRY
-        payload["buffers_total"] = len(GEOMETRY)
-        payload["slack_min"] = min((g["slack_after_tensor"] for g in GEOMETRY),
-                                   default=None)
-        payload["all_contiguous"] = all(g["contiguous"] for g in GEOMETRY)
-        payload["all_offset_zero"] = all(g["storage_offset"] == 0 for g in GEOMETRY)
-        payload["all_pointer_preserved"] = all(g.get("pointer_preserved") is True
-                                               for g in GEOMETRY)
-        payload["all_storage_preserved"] = all(g.get("storage_preserved") is True
-                                               for g in GEOMETRY)
-        payload["any_resized_by_out"] = any(g.get("resized_by_out") is True
-                                            for g in GEOMETRY)
-        payload["target_buffers"] = len(targets)
-        payload["target_bytes_to_page_end_min"] = min(
-            (g["bytes_from_tensor_end_to_page_end"] for g in targets), default=None)
-        json.dump(payload, open(out_path, "w"), indent=2, sort_keys=True)
+        sparse_impl.GPT.forward = original_forward
+        dump_payload(payload, out_path)
+    pc = payload.get("post_check") or {}
     print("REPRO " + json.dumps({"pad": bool(pad), "buffers": len(GEOMETRY),
                                  "slack_min": payload.get("slack_min"),
-                                 "exception": payload.get("exception")}), flush=True)
+                                 "exception": payload.get("exception"),
+                                 "post_check": {k: pc.get(k) for k in
+                                                ("iter0_loss_loop_4dp",
+                                                 "padded_loss_recomputed",
+                                                 "stock_loss_recomputed",
+                                                 "padded_loss_equals_loop_loss",
+                                                 "stock_vs_padded_loss_bitwise",
+                                                 "grads_bitwise_equal")}}), flush=True)
     return exit_code
 
 

@@ -1,0 +1,413 @@
+{
+  "confounders": [
+    "both candidate reads were dispatched in the same second; host dispatch order is not GPU execution order",
+    "0x7ff321000000 was reused earlier by two padded allocations, so pointer-only attribution would be wrong",
+    "padding changes the allocator layout, so stock addresses differ from a reference run",
+    "full-precision numerical identity is unavailable for this run",
+    "kernel identity is unavailable in this build"
+  ],
+  "cpu_gates": {
+    "all_gradients_bitwise": true,
+    "all_w3_still_linear": true,
+    "drift_guard": "OK",
+    "expert_grad_tensors_compared": 105,
+    "grad_input_2d_and_3d_supported": true,
+    "logits_and_loss_bitwise": true,
+    "model_state_182_tensors_bitwise": true,
+    "no_post_gemm_copy": true,
+    "no_silent_resize": true,
+    "param_names_equal": true,
+    "patch_installed_after_init_weights": true,
+    "post_check_gate": {
+      "grad_norm_equal": true,
+      "grads_bitwise": true,
+      "loss_bitwise": true,
+      "stock_minus_padded": 0.0
+    },
+    "tests": "122 passed, 2 skipped",
+    "w3_modules_patched": 46
+  },
+  "execution": {
+    "M_range": [
+      1494,
+      16384
+    ],
+    "command": "v31p5i_plan.py --execute, corrected padded arm",
+    "completed": false,
+    "core_limit": "0",
+    "detection_point": "next iteration's get_batch H2D copy, the historical asynchronous signature",
+    "distinct_token_counts": 1489,
+    "exit_code": 1,
+    "fault_mode": "hip-illegal-address",
+    "fault_page": [
+      "0x00007ff321400000"
+    ],
+    "faulted": true,
+    "fresh_process": true,
+    "gemm_calls_logged": 23279,
+    "gpu_idle_after": true,
+    "iterations_printed": [
+      0,
+      25
+    ],
+    "kernel_fault_records": 4,
+    "padded_allocations": 2068,
+    "post_check_ran": false,
+    "reset_lines": [],
+    "retries": 0,
+    "serialization": null,
+    "signal": null,
+    "timeout_s": 120
+  },
+  "gate_a_numerics": {
+    "consequence": "numerical identity rests on three displayed values plus the CPU whole-model bitwise gate; whole-trajectory bitwise identity is not claimed",
+    "display_identity": true,
+    "display_values_compared": 2,
+    "full_precision_available": false,
+    "full_precision_reason": "the loop faulted before the post-loop recompute, so the captured full-precision loss was never persisted; no reference arm ever recorded one either",
+    "harness_fix": "FIRSTLOSS is now printed at capture time with the full value",
+    "optimizer_state": "AdamW is constructed but --no_optimizer never steps, so there is no optimizer state to compare",
+    "padded_display": {
+      "eval25": "10.4923",
+      "iter0": "10.4816",
+      "iter25": "10.4898"
+    },
+    "reference_display": {
+      "eval25": "10.4923",
+      "iter0": "10.4816",
+      "iter25": "10.4898"
+    }
+  },
+  "gate_b_descriptors": {
+    "compute_type": "COMPUTE_32F",
+    "epilogue": "EPILOGUE_DEFAULT, alpha 1, beta 0, workspace 79691776",
+    "kernel_identity": "unknown; this build logs no solution id",
+    "output_shape_groups_only_in_one_side": 0,
+    "scale_type": "R_32F",
+    "signature_set_differences": "expert token counts and run length only",
+    "w3_backward": "Adesc R_16BF 682 256 682, OP_N/OP_N, Cdesc R_16BF 682 3075 682",
+    "w3_forward": "Adesc R_16BF 256 682 256, OP_T/OP_N, Cdesc R_16BF 256 3075 256",
+    "w3_group_equal": true
+  },
+  "gate_c_padded_storage": {
+    "all_contiguous": true,
+    "all_offset_zero": true,
+    "all_pointer_preserved": true,
+    "all_storage_preserved": true,
+    "allocations_recorded": 2068,
+    "any_resized_by_out": false,
+    "mapping_note": "page-rounded storage end is inferred from the allocation; GPU mapping accessibility was not directly observed",
+    "page_distance_range": [
+      65536,
+      69628
+    ],
+    "page_gap_ok": true,
+    "slack_bytes": 65536,
+    "slack_ok": true,
+    "target": {
+      "bytes_from_tensor_end_to_page_end": 65540,
+      "data_ptr": "0x7ff2a6d50000",
+      "dtype": "torch.bfloat16",
+      "pointer_preserved": true,
+      "resized_by_out": false,
+      "shape": [
+        3075,
+        682
+      ],
+      "slack_after_tensor": 65536,
+      "storage_bytes": 4259836,
+      "storage_offset": 0,
+      "storage_preserved": true,
+      "stride": [
+        682,
+        1
+      ],
+      "tensor_bytes": 4194300
+    },
+    "target_allocations": 1,
+    "target_dispatched_padded": true
+  },
+  "gate_d_producer_attribution": {
+    "any_stock_producer_within_64B": true,
+    "attribution_basis": "descriptor signature, operation phase, recorded shape and timestamp; bare pointer matching is unsafe because 0x7ff321000000 was reused by two padded allocations earlier in the same run",
+    "fault_page": [
+      "0x00007ff321400000"
+    ],
+    "faulting_buffer": {
+      "consumers": [
+        "w3 weight gradient grad_out^T @ t, transB OP_T",
+        "w3 forward t @ W3^T, transB OP_N"
+      ],
+      "descriptor": [
+        682,
+        3075,
+        682
+      ],
+      "dispatched": "16:52:15, the faulting second",
+      "padded": false,
+      "pointer": "0x7ff321000000",
+      "role": "B operand, read",
+      "tensor": "SwiGLU product silu(w1(x)) * w2(x), a mul output",
+      "tensor_end": "0x7ff3213ffffc",
+      "tensor_end_vs_fault_page": "fault page minus 4 bytes"
+    },
+    "loop_wide_calls": [
+      {
+        "Adesc": [
+          256,
+          682,
+          256
+        ],
+        "C": "0x7ff31fa00000",
+        "Cdesc": [
+          682,
+          3075,
+          682
+        ],
+        "bytes_to_page_rounded_storage_end": null,
+        "gap_to_next_2mib": 4,
+        "gap_to_next_4kib": 4,
+        "padded_view": false,
+        "producer": "forward_output_mx682",
+        "slack_after_tensor": null,
+        "transA": "OP_T",
+        "transB": "OP_N"
+      },
+      {
+        "Adesc": [
+          256,
+          682,
+          256
+        ],
+        "C": "0x7ff2a7600000",
+        "Cdesc": [
+          682,
+          3075,
+          682
+        ],
+        "bytes_to_page_rounded_storage_end": null,
+        "gap_to_next_2mib": 4,
+        "gap_to_next_4kib": 4,
+        "padded_view": false,
+        "producer": "forward_output_mx682",
+        "slack_after_tensor": null,
+        "transA": "OP_T",
+        "transB": "OP_N"
+      },
+      {
+        "Adesc": [
+          682,
+          256,
+          682
+        ],
+        "C": "0x7ff2a7a00000",
+        "Cdesc": [
+          256,
+          3075,
+          256
+        ],
+        "bytes_to_page_rounded_storage_end": null,
+        "gap_to_next_2mib": 522752,
+        "gap_to_next_4kib": 2560,
+        "padded_view": false,
+        "producer": "other_output_rows256",
+        "slack_after_tensor": null,
+        "transA": "OP_T",
+        "transB": "OP_N"
+      },
+      {
+        "Adesc": [
+          682,
+          256,
+          682
+        ],
+        "C": "0x7ff2a6d50000",
+        "Cdesc": [
+          682,
+          3075,
+          682
+        ],
+        "bytes_to_page_rounded_storage_end": 65540,
+        "gap_to_next_2mib": 720900,
+        "gap_to_next_4kib": 4,
+        "padded_view": true,
+        "producer": "w3_backward_input_grad",
+        "slack_after_tensor": 65536,
+        "transA": "OP_N",
+        "transB": "OP_N"
+      },
+      {
+        "Adesc": [
+          256,
+          682,
+          256
+        ],
+        "C": "0x7ff2f3bdfc00",
+        "Cdesc": [
+          256,
+          3075,
+          256
+        ],
+        "bytes_to_page_rounded_storage_end": null,
+        "gap_to_next_2mib": 654848,
+        "gap_to_next_4kib": 3584,
+        "padded_view": false,
+        "producer": "other_output_rows256",
+        "slack_after_tensor": null,
+        "transA": "OP_N",
+        "transB": "OP_N"
+      },
+      {
+        "Adesc": [
+          256,
+          682,
+          256
+        ],
+        "C": "0x7ff2f344ea00",
+        "Cdesc": [
+          256,
+          3075,
+          256
+        ],
+        "bytes_to_page_rounded_storage_end": null,
+        "gap_to_next_2mib": 200704,
+        "gap_to_next_4kib": 0,
+        "padded_view": false,
+        "producer": "other_output_rows256",
+        "slack_after_tensor": null,
+        "transA": "OP_N",
+        "transB": "OP_N"
+      }
+    ],
+    "nearest_padded_storage_gap_bytes": 167592,
+    "padded_storage_containment": 0,
+    "page_exact_4byte_tail_candidates": 1,
+    "page_exact_reads": [
+      {
+        "descriptor": [
+          682,
+          3075,
+          682
+        ],
+        "padded_view": false,
+        "page": "0x00007ff321400000",
+        "ptr": "0x7ff321000000",
+        "role": "B",
+        "slack_after_tensor": null,
+        "stamp": "2026-10-27 16:52:15",
+        "tensor_end": "0x7ff3213ffffc"
+      },
+      {
+        "descriptor": [
+          682,
+          3075,
+          682
+        ],
+        "padded_view": false,
+        "page": "0x00007ff321400000",
+        "ptr": "0x7ff321000000",
+        "role": "B",
+        "slack_after_tensor": null,
+        "stamp": "2026-10-27 16:52:15",
+        "tensor_end": "0x7ff3213ffffc"
+      }
+    ],
+    "page_exact_stores": [
+      {
+        "descriptor": [
+          256,
+          3745,
+          256
+        ],
+        "padded_view": false,
+        "page": "0x00007ff321400000",
+        "ptr": "0x7ff32122b000",
+        "role": "C",
+        "slack_after_tensor": null,
+        "stamp": "2026-10-27 16:52:14",
+        "tensor_end": "0x7ff3213ff200"
+      },
+      {
+        "descriptor": [
+          256,
+          3745,
+          256
+        ],
+        "padded_view": false,
+        "page": "0x00007ff321400000",
+        "ptr": "0x7ff32122b000",
+        "role": "C",
+        "slack_after_tensor": null,
+        "stamp": "2026-10-27 16:52:14",
+        "tensor_end": "0x7ff3213ff200"
+      }
+    ],
+    "stock_producer_min_gap_2mib": 4,
+    "w3_backward_all_padded": true
+  },
+  "integrity": {
+    "backend_switch": "none",
+    "checkpoint_change": "none",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "kernel_serialization": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none",
+    "tests": "122 passed, 2 skipped"
+  },
+  "interpretation": {
+    "corrected_harness_reproduces_reference": true,
+    "epistemic_status": "page-exact coincidence plus same-second dispatch is strong correlation, not direct observation",
+    "fault_recurred_with_w3_gradient_protected": true,
+    "intervention_real_and_dispatched": true,
+    "not_established": [
+      "faulty kernel identity",
+      "which of the two consumer GEMMs over-read",
+      "that the product is the only boundary-sensitive buffer"
+    ],
+    "revised_candidate": "Tensile operand read past the mapping end of the SwiGLU product",
+    "w3_input_gradient_boundary_dependence": "not supported"
+  },
+  "meta": {
+    "budget": {
+      "max_executions": 1,
+      "retries": 0,
+      "used": 1
+    },
+    "classification": 2,
+    "classification_text": "valid corrected padded execution, faulted",
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5I corrected full-model padding verification",
+    "git_head_at_preflight": "8b8f55c",
+    "mode": "single padded execution with the corrected patch, four validity gates"
+  },
+  "next_experiment": {
+    "arm": "the same corrected arm with the SwiGLU product written into padded storage via torch.mul(..., out=<padded view>), keeping shapes, strides, dtype and the two forward GEMMs identical",
+    "gates": [
+      "whole-model CPU gate passes bitwise",
+      "the product's descriptor group is unchanged",
+      "every allocation shows slack and no resize",
+      "first loss matches 10.4816 and prints its full value immediately"
+    ],
+    "if_clean": "the product's boundary is implicated by a controlled comparison",
+    "if_faulted": "run once with --no_backward to remove the weight-gradient read and leave only the forward read of the same operand",
+    "limit": "one clean run remains preliminary; the fault is intermittent",
+    "runs": 1
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle, no foreign KFD process, before and after",
+    "head": "8b8f55c",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean before the stage"
+  }
+}
