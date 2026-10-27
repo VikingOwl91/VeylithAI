@@ -1,0 +1,318 @@
+{
+  "confounders": [
+    "model state differed at initialization, which invalidates the arm",
+    "two GEMMs produce a 4,194,300-byte (3075, 682) bf16 output, w1 forward and w3 input gradient; only the second is padded",
+    "the custom Function replaces an ATen backward node even when every gradient is bitwise identical",
+    "allocator address reuse makes bare pointer matching unreliable; the analysis requires the recorded shape to match the descriptor"
+  ],
+  "corrections_committed": [
+    "patch the bound forward of SwiGLU.w3 instead of replacing the module, so the class, parameter object, names and initialization path stay identical",
+    "install the patch from GPT.__init__ after construction and after _init_weights",
+    "flatten leading dimensions in the backward and view the result back, matching ATen for 3-D input; latent, not exercised by this arm",
+    "record every padded allocation with pointer, storage, stride, offset, resize flag and page distance",
+    "add full_model_gate comparing whole-model state, logits, loss and all gradients bitwise"
+  ],
+  "cpu_gates": {
+    "drift_guard": "OK",
+    "forward_grad_input_grad_weight_bitwise_fp32_bf16": true,
+    "full_model_gate": {
+      "all_w3_still_linear": true,
+      "grads_bitwise": true,
+      "logits_bitwise": true,
+      "loss_bitwise": true,
+      "names_equal": true,
+      "params": 182,
+      "state_bitwise_identical": true,
+      "w3_forwards_patched": 46
+    },
+    "grad_weight_returned_dtype": "torch.float32",
+    "max_abs_diff": 0.0,
+    "mixed_dtype_bitwise": true,
+    "module_replacement_mechanism_fails": {
+      "default_uniform_bound": 0.038292,
+      "other_params_differing": "21 of 153",
+      "stock_w3_std": 0.019941,
+      "w3_params_differing": "54 of 54",
+      "why": "GPT._init_weights initializes only nn.Linear and nn.Embedding, so a wrapper module skips w3 and shifts the RNG stream for later parameters",
+      "wrapped_w3_absmax": 0.038292,
+      "wrapped_w3_std": 0.022048
+    },
+    "no_post_gemm_copy": true,
+    "out_wrote_into_view": true,
+    "padded_view_contiguous_offset0": true,
+    "pointer_and_storage_preserved_no_resize": true,
+    "tests": "122 passed, 2 skipped",
+    "trailing_slack_bytes": 65536,
+    "weight_cast_used": "torch.bfloat16"
+  },
+  "execution": {
+    "M_range": [
+      1046,
+      16384
+    ],
+    "command": "v31p5h_plan.py --execute, pad 1",
+    "completed": true,
+    "core_limit": "0",
+    "distinct_expert_token_counts": 2770,
+    "exception": null,
+    "exit_code": 0,
+    "faulted": false,
+    "fresh_process": true,
+    "gemm_calls_logged": 49300,
+    "gpu_idle_after": true,
+    "kernel_fault_records": 0,
+    "kernel_window": "No entries",
+    "log_lines": 49302,
+    "padded_allocations": 4400,
+    "reference_gemm_calls": 23091,
+    "reset_lines": [],
+    "retries": 0,
+    "serialization": null,
+    "signal": null,
+    "timeout_s": 120
+  },
+  "gate_a_descriptors": {
+    "compute_type": "COMPUTE_32F",
+    "epilogue": "EPILOGUE_DEFAULT, alpha 1, beta 0, workspace 79691776",
+    "group_set_differences_explained_by": "expert token counts and run length; the reference faulted after iteration 25",
+    "kernel_selection": "not observable; this hipBLASLt build logs no solution id",
+    "scale_type": "R_32F",
+    "w1_forward_variant": "Adesc R_16BF 256 682 256, OP_T/OP_N",
+    "w3_backward_variant": "Adesc R_16BF 682 256 682, OP_N/OP_N, Cdesc R_16BF 682 3075 682",
+    "w3_group_counts_reference": [
+      {
+        "Adesc": [
+          "R_16BF",
+          682,
+          256,
+          682
+        ],
+        "calls": 1,
+        "transA": "OP_N",
+        "transB": "OP_N"
+      },
+      {
+        "Adesc": [
+          "R_16BF",
+          256,
+          682,
+          256
+        ],
+        "calls": 2,
+        "transA": "OP_T",
+        "transB": "OP_N"
+      }
+    ],
+    "w3_group_equal": true
+  },
+  "gate_b_output_storage": {
+    "alignment_note": "the padded tensor end was 522,756 bytes from the next 2 MiB boundary, so the protection comes from the slack, not from reproducing the 4-byte alignment",
+    "all_contiguous": true,
+    "all_offset_zero": true,
+    "all_pointer_preserved": true,
+    "all_storage_preserved": true,
+    "allocations_recorded": 4400,
+    "any_resized_by_out": false,
+    "mapping_note": "page-rounded storage end is inferred from the allocation; GPU mapping accessibility was not directly observed",
+    "other_wide_calls_unpadded": [
+      {
+        "Adesc": [
+          "R_16BF",
+          256,
+          682,
+          256
+        ],
+        "C": "0x7f0cb5300c00",
+        "Cdesc": [
+          682,
+          3075,
+          682
+        ],
+        "bytes_from_tensor_end_to_page_end": null,
+        "gap_to_next_2mib": 1045508,
+        "matched_padded_buffer": false,
+        "slack_after_tensor": null,
+        "transA": "OP_T",
+        "transB": "OP_N"
+      },
+      {
+        "Adesc": [
+          "R_16BF",
+          256,
+          682,
+          256
+        ],
+        "C": "0x7f0c52600000",
+        "Cdesc": [
+          682,
+          3075,
+          682
+        ],
+        "bytes_from_tensor_end_to_page_end": null,
+        "gap_to_next_2mib": 4,
+        "matched_padded_buffer": false,
+        "slack_after_tensor": null,
+        "transA": "OP_T",
+        "transB": "OP_N"
+      },
+      {
+        "Adesc": [
+          "R_16BF",
+          682,
+          256,
+          682
+        ],
+        "C": "0x7f0cb5c81200",
+        "Cdesc": [
+          256,
+          3075,
+          256
+        ],
+        "bytes_from_tensor_end_to_page_end": null,
+        "gap_to_next_2mib": 2091008,
+        "matched_padded_buffer": false,
+        "slack_after_tensor": null,
+        "transA": "OP_T",
+        "transB": "OP_N"
+      }
+    ],
+    "page_distance_range": [
+      65536,
+      69628
+    ],
+    "page_gap_ok": true,
+    "slack_min": 65536,
+    "slack_ok": true,
+    "target": {
+      "bytes_from_tensor_end_to_page_end": 68100,
+      "data_ptr": "0x7f0c52f80600",
+      "dtype": "torch.bfloat16",
+      "pointer_preserved": true,
+      "resized_by_out": false,
+      "shape": [
+        3075,
+        682
+      ],
+      "slack_after_tensor": 65536,
+      "storage_bytes": 4259836,
+      "storage_offset": 0,
+      "storage_preserved": true,
+      "stride": [
+        682,
+        1
+      ],
+      "tensor_bytes": 4194300,
+      "weight_cast_used": "torch.bfloat16"
+    },
+    "target_allocations": 1,
+    "target_dispatch": [
+      {
+        "Adesc": [
+          "R_16BF",
+          682,
+          256,
+          682
+        ],
+        "C": "0x7f0c52f80600",
+        "Cdesc": [
+          682,
+          3075,
+          682
+        ],
+        "bytes_from_tensor_end_to_page_end": 68100,
+        "gap_to_next_2mib": 522756,
+        "matched_padded_buffer": true,
+        "slack_after_tensor": 65536,
+        "transA": "OP_N",
+        "transB": "OP_N"
+      }
+    ],
+    "w3_backward_all_padded": true
+  },
+  "gate_c_numerics": {
+    "divergence_at_iteration_0": true,
+    "evals_equal": false,
+    "losses_equal": false,
+    "padded_evals": [
+      "10.4872",
+      "10.4892"
+    ],
+    "padded_losses": {
+      "0": "10.4890",
+      "25": "10.4931"
+    },
+    "reference_evals": [
+      "10.4923"
+    ],
+    "reference_losses": {
+      "0": "10.4816",
+      "25": "10.4898"
+    },
+    "residual_limitation": "the reference recorded 4-decimal losses and no arm recorded gradient norms, so device-level bitwise gradient comparison against a reference does not exist",
+    "root_cause": "model initialization changed by the module-replacement wrapper",
+    "tolerance": "none applied"
+  },
+  "gate_d_integrity": {
+    "additional_gemm_or_copy": "the harness issues exactly the two GEMMs of the linear backward and adds no copy; an extra same-shape GEMM cannot be excluded from the log",
+    "gpu_reset": false,
+    "persistent_kfd_process": false,
+    "target_gemm_executed": true,
+    "unexpected_fallback": "none observed; not provable without solution ids",
+    "wide_calls": 4
+  },
+  "integrity": {
+    "backend_switch": "none",
+    "checkpoint_change": "none",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "kernel_serialization": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none",
+    "tests": "122 passed, 2 skipped"
+  },
+  "meta": {
+    "budget": {
+      "max_executions": 1,
+      "retries": 0,
+      "used": 1
+    },
+    "classification": 3,
+    "classification_text": "invalid comparison due to numerical differences",
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5H corrected padded arm",
+    "git_head_at_preflight": "665687d",
+    "mode": "single padded execution of the PERF-5G harness, four validity gates"
+  },
+  "next_experiment": {
+    "gates_before_fault_interpretation": [
+      "full-model CPU gate passes and the first printed loss equals 10.4816 exactly",
+      "w3 backward signature stays R_16BF 682 256 682 OP_N/OP_N with Cdesc 682 3075 682",
+      "the padded target shows slack >= 65,536 and > 44 bytes to the page-rounded storage end, identified by descriptor signature plus matching shape",
+      "record per iteration which of the two (3075, 682) producers sits within 64 bytes of a page, since the stock w1 forward output can keep doing so"
+    ],
+    "limit": "one clean run is preliminary; the fault appeared in 1 to 3 of 12,919 wide calls, and a clean run would not name the faulty dispatch",
+    "needs": "fresh authorization; the one-execution budget is spent",
+    "runs": 1
+  },
+  "observation_not_evidence": {
+    "detail": "one w1 forward output of (3075, 682) ended 4 bytes before a 2 MiB boundary and the run still completed 100 iterations clean",
+    "stock_buffer_at_fault_geometry": true,
+    "why_not_evidence": "the model state differed, so this is a different model, not the same model with a different output buffer"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle, no foreign KFD process, before and after",
+    "head": "665687d",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean before the stage"
+  }
+}

@@ -24,6 +24,7 @@ import json
 import os
 import sys
 import time
+import types
 
 import torch
 import torch.nn.functional as F
@@ -86,39 +87,112 @@ class PaddedW3(torch.autograd.Function):
         # cast node. The weight gradient is produced in the activation dtype and
         # returned in the parameter dtype, matching that cast.
         weight_cast = weight.to(grad_output.dtype)
-        out = padded_buffer(grad_output.shape[0], weight.shape[1],
+        # ATen's linear backward flattens leading dimensions before the GEMMs;
+        # linear also receives 3-D input from the dense blocks, so do the same and
+        # view the result back. The view is free, the storage is the padded one.
+        x2 = x.reshape(-1, x.shape[-1])
+        g2 = grad_output.reshape(-1, grad_output.shape[-1])
+        out = padded_buffer(g2.shape[0], weight.shape[1],
                             grad_output.dtype, grad_output.device)
         expected_ptr = out.data_ptr()
         expected_storage = out.untyped_storage().nbytes()
         shape_before = tuple(out.shape)
-        grad_input = torch.mm(grad_output, weight_cast, out=out)
+        grad_input = torch.mm(g2, weight_cast, out=out)
         GEOMETRY[-1]["pointer_preserved"] = grad_input.data_ptr() == expected_ptr
         GEOMETRY[-1]["storage_preserved"] = (grad_input.untyped_storage().nbytes()
                                              == expected_storage)
         GEOMETRY[-1]["resized_by_out"] = tuple(grad_input.shape) != shape_before
-        grad_weight = torch.mm(grad_output.t(), x)
+        grad_weight = torch.mm(g2.t(), x2)
         GEOMETRY[-1]["weight_cast_used"] = str(weight_cast.dtype)
-        return grad_input, grad_weight.to(weight.dtype)
+        return grad_input.view(x.shape), grad_weight.to(weight.dtype)
 
 
-class WrappedLinear(torch.nn.Module):
-    def __init__(self, original):
-        super().__init__()
-        self.weight = original.weight
-
-    def forward(self, x):
-        return PaddedW3.apply(x, self.weight)
+def _padded_forward(self, x):
+    return PaddedW3.apply(x, self.weight)
 
 
 def apply_padding(model) -> int:
-    """Replace every SwiGLU.w3 with the padded-backward wrapper."""
+    """Give each ``SwiGLU.w3`` a padded-backward forward, keeping the module.
+
+    The module has to stay an ``nn.Linear``. ``GPT._init_weights`` initializes
+    only instances of ``nn.Linear`` and ``nn.Embedding``, so replacing the
+    module with a wrapper skips w3's initialization *and* shifts the RNG stream
+    for every parameter initialized after it. That is a model-state change, not
+    a storage change, and it made PERF-5H's first arm numerically invalid.
+
+    Patching only the bound ``forward`` keeps the class, the parameter object,
+    the parameter names and the initialization path identical.
+    """
     patched = 0
     for module in model.modules():
-        if hasattr(module, "w3") and isinstance(module.w3, torch.nn.Linear):
-            original = module.w3
-            module.w3 = WrappedLinear(original)
+        w3 = getattr(module, "w3", None)
+        if isinstance(w3, torch.nn.Linear) and "forward" not in w3.__dict__:
+            w3.forward = types.MethodType(_padded_forward, w3)
             patched += 1
     return patched
+
+
+def _debug_config():
+    import sparse_moe_v2_train as impl
+
+    return impl.Config(n_layer=6, n_head=8, n_kv_head=2, n_embd=256, block_size=256,
+                       sliding_window=128, full_attn_every=4, dropout=0.0,
+                       n_experts=8, n_experts_per_tok=2, first_k_dense=1, n_mtp=1,
+                       vocab_size=1000)
+
+
+def full_model_gate():
+    """Stock versus patched model: bitwise state, forward and backward on CPU.
+
+    This is the gate that PERF-5H needed: it compares the *whole model state*
+    after construction, not only the GEMM outputs, so a patching mechanism that
+    changes initialization cannot pass.
+    """
+    import sparse_moe_v2_train as impl
+
+    torch.manual_seed(1337)
+    stock = impl.GPT(_debug_config())
+    original_init = impl.GPT.__init__
+
+    def patched_init(self, *args, **kwargs):
+        original_init(self, *args, **kwargs)
+        apply_padding(self)
+
+    impl.GPT.__init__ = patched_init
+    try:
+        torch.manual_seed(1337)
+        pad_model = impl.GPT(_debug_config())
+    finally:
+        impl.GPT.__init__ = original_init
+
+    s, p = dict(stock.named_parameters()), dict(pad_model.named_parameters())
+    names_equal = list(s) == list(p)
+    state_identical = names_equal and all(torch.equal(s[n], p[n]) for n in s)
+    patched_modules = sum(1 for m in pad_model.modules() if "forward" in m.__dict__)
+    linear_kept = all(isinstance(m.w3, torch.nn.Linear)
+                      for m in pad_model.modules() if hasattr(m, "w3"))
+
+    gen = torch.Generator().manual_seed(7)
+    idx = torch.randint(0, 1000, (2, 32), generator=gen)
+    tgt = torch.randint(0, 1000, (2, 32), generator=gen)
+    logits_a, loss_a = stock(idx, tgt)
+    loss_a.backward()
+    logits_b, loss_b = pad_model(idx, tgt)
+    loss_b.backward()
+    pairs = list(zip(stock.parameters(), pad_model.parameters()))
+    grads_bitwise = all(
+        (torch.equal(a.grad, b.grad) if a.grad is not None and b.grad is not None
+         else a.grad is None and b.grad is None) for a, b in pairs)
+    return {
+        "params": len(s), "names_equal": names_equal,
+        "state_bitwise_identical": bool(state_identical),
+        "logits_bitwise": bool(torch.equal(logits_a, logits_b)),
+        "loss_bitwise": bool(torch.equal(loss_a, loss_b)),
+        "grads_bitwise": bool(grads_bitwise),
+        "loss": float(loss_a.detach()),
+        "w3_forwards_patched": patched_modules,
+        "all_w3_still_linear": bool(linear_kept),
+    }
 
 
 def selftest() -> int:
@@ -158,11 +232,17 @@ def selftest() -> int:
     xb2 = xb.clone().requires_grad_(True)
     wf2 = wf.clone().requires_grad_(True)
     PaddedW3.apply(xb2, wf2).sum().backward()
+    mixed_row = GEOMETRY[-1]
     report["mixed_dtype"] = {
         "grad_input_bitwise": bool(torch.equal(stock_gi, xb2.grad)),
         "grad_weight_bitwise": bool(torch.equal(stock_gw, wf2.grad)),
         "grad_input_dtype": str(xb2.grad.dtype), "grad_weight_dtype": str(wf2.grad.dtype),
-        "weight_cast_used": GEOMETRY[-1].get("weight_cast_used"),
+        "weight_cast_used": mixed_row.get("weight_cast_used"),
+        "resized_by_out": mixed_row.get("resized_by_out"),
+        "pointer_preserved": mixed_row.get("pointer_preserved"),
+        "storage_preserved": mixed_row.get("storage_preserved"),
+        "storage_offset": mixed_row.get("storage_offset"),
+        "contiguous": mixed_row.get("contiguous"),
     }
 
     # explicit out= semantics check: the write must land in the padded view and
@@ -192,12 +272,32 @@ def selftest() -> int:
     report["storage_preserved"] = out_storage_preserved
     report["out_wrote_into_view"] = out_wrote_into_view
     report["out_returned_same_object"] = out_returned_same_object
+    model = full_model_gate()
+    report["full_model"] = model
+    model_ok = (model["names_equal"] and model["state_bitwise_identical"]
+                and model["logits_bitwise"] and model["loss_bitwise"]
+                and model["grads_bitwise"] and model["all_w3_still_linear"]
+                and model["w3_forwards_patched"] > 0)
+    report["full_model_ok"] = model_ok
+    mixed_ok = (report["mixed_dtype"]["grad_input_bitwise"]
+                and report["mixed_dtype"]["grad_weight_bitwise"]
+                and report["mixed_dtype"]["weight_cast_used"] == "torch.bfloat16"
+                and report["mixed_dtype"]["grad_input_dtype"] == "torch.bfloat16"
+                and report["mixed_dtype"]["grad_weight_dtype"] == "torch.float32"
+                and report["mixed_dtype"]["resized_by_out"] is False
+                and report["mixed_dtype"]["pointer_preserved"] is True
+                and report["mixed_dtype"]["contiguous"] is True
+                and report["mixed_dtype"]["storage_offset"] == 0)
+    report["mixed_dtype_ok"] = mixed_ok
     print("SELFTEST " + json.dumps({k: report[k] for k in
                                     ("all_bitwise", "geometry_ok", "pointer_preserved",
                                      "storage_preserved", "out_wrote_into_view",
-                                     "out_returned_same_object")})
+                                     "out_returned_same_object", "mixed_dtype_ok",
+                                     "full_model_ok")})
           + " " + json.dumps(report["cases"]))
-    ok = (report["all_bitwise"] and report["geometry_ok"]
+    print("MIXED " + json.dumps(report["mixed_dtype"], sort_keys=True))
+    print("MODEL " + json.dumps(model, sort_keys=True))
+    ok = (report["all_bitwise"] and report["geometry_ok"] and mixed_ok and model_ok
           and report["pointer_preserved"] and report["storage_preserved"]
           and report["out_wrote_into_view"] and report["out_returned_same_object"])
     return 0 if ok else 1
@@ -209,15 +309,15 @@ def repro(pad: int, out_path: str, repro_args) -> int:
 
     GEOMETRY.clear()
     if pad:
-        original_build = None
-        # patch after the model exists: wrap the SwiGLU construction
-        original_init = sparse_impl.SwiGLU.__init__
+        # Patch after construction: the module must stay an nn.Linear so that
+        # _init_weights still initializes w3 inside GPT.__init__.
+        original_init = sparse_impl.GPT.__init__
 
         def patched_init(self, *args, **kwargs):
             original_init(self, *args, **kwargs)
-            self.w3 = WrappedLinear(self.w3)
+            apply_padding(self)
 
-        sparse_impl.SwiGLU.__init__ = patched_init
+        sparse_impl.GPT.__init__ = patched_init
     sys.argv = [os.path.join(DEBUG, "reproducer.py")] + list(repro_args)
     exit_code = 0
     payload = {"pad": bool(pad), "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ",
@@ -229,11 +329,24 @@ def repro(pad: int, out_path: str, repro_args) -> int:
                                 "message": str(exc).splitlines()[0][:300]}
         exit_code = 1
     finally:
-        payload["buffers"] = GEOMETRY[:20]
+        # Every allocation is recorded: Gate B has to be checked per target
+        # buffer, not on a sample of twenty.
+        targets = [g for g in GEOMETRY if g["shape"] == [3075, 682]]
+        payload["buffers"] = GEOMETRY
         payload["buffers_total"] = len(GEOMETRY)
         payload["slack_min"] = min((g["slack_after_tensor"] for g in GEOMETRY),
                                    default=None)
         payload["all_contiguous"] = all(g["contiguous"] for g in GEOMETRY)
+        payload["all_offset_zero"] = all(g["storage_offset"] == 0 for g in GEOMETRY)
+        payload["all_pointer_preserved"] = all(g.get("pointer_preserved") is True
+                                               for g in GEOMETRY)
+        payload["all_storage_preserved"] = all(g.get("storage_preserved") is True
+                                               for g in GEOMETRY)
+        payload["any_resized_by_out"] = any(g.get("resized_by_out") is True
+                                            for g in GEOMETRY)
+        payload["target_buffers"] = len(targets)
+        payload["target_bytes_to_page_end_min"] = min(
+            (g["bytes_from_tensor_end_to_page_end"] for g in targets), default=None)
         json.dump(payload, open(out_path, "w"), indent=2, sort_keys=True)
     print("REPRO " + json.dumps({"pad": bool(pad), "buffers": len(GEOMETRY),
                                  "slack_min": payload.get("slack_min"),
