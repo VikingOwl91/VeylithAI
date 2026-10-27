@@ -1,0 +1,167 @@
+{
+  "candidate_ranking": [
+    "w3 backward GEMM epilogue writing past its output end",
+    "Tensile operand read past the end of the same mapping",
+    "another kernel reading the reused 4 MiB block after allocator reuse"
+  ],
+  "cpu_preparation": {
+    "geometry_across_faults": [
+      {
+        "C": "0x7f3b44800000",
+        "extent": 4194300,
+        "gap": 4,
+        "page": "0x7f3b44c00000",
+        "run": "5C baseline"
+      },
+      {
+        "C": "0x7fdb91c00000",
+        "extent": 4194300,
+        "gap": 4,
+        "page": "0x7fdb92000000",
+        "run": "5C attribution"
+      },
+      {
+        "C": "0x7fd7b5000000",
+        "extent": 4194300,
+        "gap": 4,
+        "page": "0x7fd7b5400000",
+        "run": "5D rolling"
+      },
+      {
+        "C": "0x7f4aae000000",
+        "extent": 4194300,
+        "gap": 4,
+        "page": "0x7f4aae400000",
+        "run": "5F case A"
+      }
+    ],
+    "masking": {
+      "consequence": "masked tail reads exactly remaining elements",
+      "files": [
+        "ATen/native/cuda/CUDALoops.cuh",
+        "ATen/native/cuda/MemoryAccess.cuh"
+      ],
+      "tail_policy": "policies::unroll with if (thread_idx < remaining) in load and store, scalar LoadWithoutCast"
+    },
+    "padding_feasibility": {
+      "can_move_this_boundary": false,
+      "changes_descriptors": false,
+      "knob": "PYTORCH_HIP_ALLOC_CONF=roundup_power2_divisions:4",
+      "supported_by_build": true,
+      "why": "any power-of-2-division rounding of 4,194,300 rounds to 4,194,304, i.e. the same page-aligned end; only a jump to 8,388,608 would add slack and the knob does not do that at four divisions"
+    },
+    "placement_checks": "pointer, extent and distance to the next 2 MiB page recorded per case; observed allocation boundaries kept separate from the inferred mapping end"
+  },
+  "excluded": [
+    "the bf16-to-fp32 consumer as an over-reader (case B plus the masked-tail source)"
+  ],
+  "executions": [
+    {
+      "case": "A",
+      "exit_code": -6,
+      "fault_mode": "sigabrt",
+      "fault_page": "0x00007f4aae400000",
+      "faulted": true,
+      "geometry": {
+        "calls_within_64B_of_page": 1,
+        "min_gap": 4,
+        "wide_calls": 12919
+      },
+      "wall_seconds": 24,
+      "what": "reference with the PERF-5D rolling profiler"
+    },
+    {
+      "case": "B",
+      "exit_code": 0,
+      "faulted": false,
+      "geometry": {
+        "calls": 2,
+        "data_ptr": "0x7f5e82800000",
+        "gap": 4,
+        "next_page": "0x7f5e82c00000",
+        "slack_in_block": 0,
+        "storage_bytes": 4194300,
+        "tensor_end": "0x7f5e82bffffc"
+      },
+      "kernel_name_captured": false,
+      "note": "the buffer ended 4 bytes before a page, the exact fault geometry, and two casts were clean",
+      "wall_seconds": 6,
+      "what": "standalone bf16->fp32 cast on 682 x 3075"
+    },
+    {
+      "arm_status": "void: the padding did not change the geometry",
+      "case": "C",
+      "exit_code": -6,
+      "fault_mode": "sigabrt",
+      "fault_page": "0x00007f4ccea00000",
+      "faulted": true,
+      "geometry": {
+        "calls_within_64B_of_page": 3,
+        "min_gap": 4,
+        "wide_calls": 12919
+      },
+      "wall_seconds": 23,
+      "what": "reference plus PYTORCH_HIP_ALLOC_CONF=roundup_power2_divisions:4"
+    }
+  ],
+  "integrity": {
+    "checkpoint_change": "none",
+    "cpu_tests": "122 passed, 2 skipped",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none"
+  },
+  "interpretation": {
+    "1_boundary_dependence_demonstrated": false,
+    "2_supported_but_confounded": false,
+    "3_reproduced_without_causal_discrimination": true,
+    "4_not_reproduced": false,
+    "5_inconclusive_causal": true,
+    "boundary_correlation": "exact and reproducible in four runs, but never varied by an arm",
+    "boundary_rarity": "1 to 3 of 12,919 wide GEMM calls sit within 64 bytes of a page in a faulting run",
+    "consumer_excluded_experimentally": true
+  },
+  "meta": {
+    "budget": {
+      "d_not_run": true,
+      "max_executions": 4,
+      "used": 3
+    },
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5F boundary-sensitive fault discrimination",
+    "git_head": "1d22d92",
+    "mode": "bounded GPU discrimination; no production change, no serialization, no backend switch",
+    "reports_read": [
+      "V3.1-PERF-5B-KTAIL-ISOLATION.md",
+      "V3.1-PERF-5C-KERNEL-ATTRIBUTION.md",
+      "V3.1-PERF-5D-ROLLING-TRACE.md",
+      "V3.1-PERF-5E-CONSUMER-ATTRIBUTION.md"
+    ]
+  },
+  "next_experiment": {
+    "arms": [
+      "padded-output ablation in the experimental harness only, keeping shapes, strides and dtype so GEMM descriptors are unchanged",
+      "epilogue-versus-operand discrimination by placing the 682-column operand at a page in a separate run"
+    ],
+    "containment": "one condition per fresh process, idle gate, ulimit -c 0, 120 s timeout, kernel-log capture, abort on reset or a second unexpected fault",
+    "status": "requires authorization because it touches experimental code"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle before each execution",
+    "head": "1d22d92",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean"
+  },
+  "why_d_not_run": "no arm available under the constraints can change the boundary for a 4,194,300-byte tensor: a different shape is forbidden, a padded model allocation needs code changes, and the allocator granularity this build can express rounds to the same page end"
+}
