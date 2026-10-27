@@ -19,7 +19,7 @@ from architecture.accounting import (
     wall_clock_estimate,
 )
 from architecture.config import CANDIDATES, ModelConfig, get_candidate, tiny_config
-from architecture.model import GPT
+from architecture.model import GPT, MoE
 
 
 @pytest.mark.parametrize("name", sorted(CANDIDATES))
@@ -198,6 +198,59 @@ def test_moe_bf16_paths_are_finite_on_cpu(moe_impl):
     loss.backward()
     grads = [p.grad for p in model.parameters() if p.grad is not None]
     assert grads and all(torch.isfinite(g).all() for g in grads)
+
+
+@pytest.mark.parametrize("dtype", [torch.float32, torch.bfloat16])
+def test_sparse_dense_moe_parity_with_empty_experts(dtype):
+    # One token, top-2 forced to experts 0 and 1, so experts 2 and 3 are empty.
+    cfg = tiny_config(n_layer=1, first_k_dense=0, n_experts=4,
+                      n_experts_per_tok=2, n_embd=32, expert_ffn_dim=32,
+                      shared_expert=False, dropout=0.0, moe_impl="sparse")
+    torch.manual_seed(1)
+    x = torch.randn(1, 1, 32, dtype=dtype)
+    sparse = MoE(cfg).to(dtype)
+    dense_cfg = tiny_config(**{**cfg.to_dict(), "moe_impl": "dense"})
+    dense = MoE(dense_cfg).to(dtype)
+    dense.load_state_dict(sparse.state_dict())
+    with torch.no_grad():
+        v = x.reshape(-1).float()
+        for model in (sparse, dense):
+            model.gate.weight.zero_()
+            model.gate.weight[0] = 10.0 * v
+            model.gate.weight[1] = 5.0 * v
+            model.gate.weight[2:] = -10.0 * v
+
+    sparse.zero_grad(set_to_none=True)
+    dense.zero_grad(set_to_none=True)
+    out_s, aux_s, idx_s = sparse(x)
+    out_d, aux_d, idx_d = dense(x)
+    assert out_s.shape == x.shape
+    assert idx_s.shape == (1, 2)
+    assert int(idx_s.min()) >= 0 and int(idx_s.max()) < 4
+    assert idx_s.tolist() == [[0, 1]]
+    assert idx_d.tolist() == [[0, 1]]
+    for expert in range(4):
+        sel = (idx_s == expert).any(dim=-1).nonzero(as_tuple=False).squeeze(1)
+        assert sel.numel() == len(set(sel.tolist()))
+    assert torch.allclose(out_s.float(), out_d.float(), atol=3e-2, rtol=3e-2)
+    assert float(aux_s.detach()) == pytest.approx(float(aux_d.detach()), abs=1e-3)
+
+    (out_s.float().sum() + aux_s).backward()
+    (out_d.float().sum() + aux_d).backward()
+    for expert in range(4):
+        for name in ("w1", "w2", "w3"):
+            left = getattr(sparse.experts[expert], name).weight.grad
+            right = getattr(dense.experts[expert], name).weight.grad
+            if expert >= 2:
+                assert left is None
+                assert right is None or torch.count_nonzero(right) == 0
+            else:
+                assert left is not None and right is not None
+                assert torch.allclose(left.float(), right.float(),
+                                      atol=3e-2, rtol=3e-2)
+    assert torch.allclose(sparse.gate.weight.grad.float(),
+                          dense.gate.weight.grad.float(),
+                          atol=3e-2, rtol=3e-2)
 
 
 def test_aux_balanced_baseline_is_one_per_layer_and_sums_over_layers():
