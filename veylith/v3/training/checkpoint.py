@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
 import os
 import platform
 import random
+import site
 import sys
 
 import numpy as np
@@ -12,6 +14,31 @@ import torch
 
 STATE_FORMAT = 1
 ARTIFACT_FORMAT = 1
+
+
+def _file_sha256(path: str | None) -> str | None:
+    if not path:
+        return None
+    digest = hashlib.sha256()
+    try:
+        with open(path, "rb") as handle:
+            for block in iter(lambda: handle.read(1 << 20), b""):
+                digest.update(block)
+    except OSError:
+        return None
+    return digest.hexdigest()
+
+
+def environment_provenance() -> dict:
+    path = os.environ.get("VEYLITH_ENV_FINGERPRINT")
+    return {
+        "sys_prefix": sys.prefix,
+        "base_prefix": sys.base_prefix,
+        "user_site": bool(site.ENABLE_USER_SITE),
+        "hip": getattr(torch.version, "hip", None),
+        "fingerprint_path": path,
+        "fingerprint_sha256": _file_sha256(path),
+    }
 
 
 def versions() -> dict:
@@ -23,6 +50,7 @@ def versions() -> dict:
         "sentencepiece": getattr(sentencepiece, "__version__", "unknown"),
         "platform": platform.platform(),
         "cuda_available": torch.cuda.is_available(),
+        "environment": environment_provenance(),
     }
 
 

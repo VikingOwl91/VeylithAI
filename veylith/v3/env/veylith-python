@@ -1,0 +1,16 @@
+#!/bin/sh
+# Run the isolated Veylith interpreter from fish or a POSIX shell.
+set -eu
+
+ENV_DIR="${VEYLITH_ENV_DIR:-$HOME/veylith-v31-isolated}"
+PYTHON="$ENV_DIR/bin/python"
+
+if [ ! -x "$PYTHON" ]; then
+    echo "isolated interpreter not found: $PYTHON" >&2
+    echo "set VEYLITH_ENV_DIR or create the v3.1-H environment" >&2
+    exit 1
+fi
+
+unset PYTHONPATH PYTHONHOME LD_LIBRARY_PATH ROCM_PATH HIP_PATH
+export PYTHONNOUSERSITE=1
+exec "$PYTHON" "$@"

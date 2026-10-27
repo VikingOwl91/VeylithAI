@@ -302,3 +302,9 @@ aborted with a GPU memory access fault at about 115 s, before the step-100
 checkpoint. There was no retry, no dense fallback, no test evaluation and no
 further training. See `docs/V3.1-E-PARTIAL-RUN-RESULTS.md` and
 `docs/V3.1-FULL-RUN-PLAN.md`.
+
+The isolated GPU training environment (v3.1-H) is at
+`~/veylith-v31-isolated`. Its pinned lock, launcher, fingerprint baseline and
+read-only drift guard are under `env/`; CPU validation passes 90 tests with
+1 skip. GPU smoke and training remain pending separate authorization. See
+`env/README.md`.

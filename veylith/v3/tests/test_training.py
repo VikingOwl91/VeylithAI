@@ -1,8 +1,10 @@
 """CPU smoke tests for the v3.1-A training infrastructure."""
 
+import hashlib
 import json
 import math
 import os
+import sys
 
 import numpy as np
 import pytest
@@ -320,6 +322,37 @@ def test_resume_rejects_a_changed_fingerprint(corpus, tmp_path):
     state_path = str(tmp_path / "ckpt_state.pt")
     with pytest.raises(ValueError, match="fingerprint"):
         load_state(state_path, "0" * 64)
+
+
+def test_environment_provenance_records_and_hashes_the_fingerprint(
+        tmp_path, monkeypatch):
+    from training.checkpoint import environment_provenance, versions
+
+    fingerprint_file = tmp_path / "env.fingerprint.json"
+    fingerprint_file.write_text("{}\n", encoding="utf-8")
+    monkeypatch.setenv("VEYLITH_ENV_FINGERPRINT", str(fingerprint_file))
+    provenance = environment_provenance()
+    assert provenance["sys_prefix"] == sys.prefix
+    assert provenance["base_prefix"] == sys.base_prefix
+    assert isinstance(provenance["user_site"], bool)
+    assert provenance["fingerprint_sha256"] == hashlib.sha256(b"{}\n").hexdigest()
+    assert versions()["environment"] == provenance
+
+
+def test_state_and_artifact_record_environment_provenance(
+        corpus, tmp_path, monkeypatch):
+    fingerprint_file = tmp_path / "env.fingerprint.json"
+    fingerprint_file.write_text("{}\n", encoding="utf-8")
+    monkeypatch.setenv("VEYLITH_ENV_FINGERPRINT", str(fingerprint_file))
+    cfg = make_config(corpus, tmp_path, max_steps=1)
+    train(cfg, log=lambda *_: None)
+    state = torch.load(cfg.state_path, map_location="cpu", weights_only=False)
+    artifact = torch.load(cfg.checkpoint, map_location="cpu", weights_only=False)
+    expected = hashlib.sha256(b"{}\n").hexdigest()
+    for payload in (state, artifact):
+        provenance = payload["versions"]["environment"]
+        assert provenance["sys_prefix"] == sys.prefix
+        assert provenance["fingerprint_sha256"] == expected
 
 
 def test_cpu_guard_refuses_the_real_0_1b_model(corpus, tmp_path):
