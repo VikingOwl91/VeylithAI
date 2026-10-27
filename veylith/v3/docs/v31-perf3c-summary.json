@@ -1,0 +1,201 @@
+{
+  "cluster": {
+    "backward_kernels_per_call": 3,
+    "expert_calls_per_update": 448,
+    "forward_kernels_per_call": 2,
+    "mul_ms_per_update": 36.66,
+    "silu_backward_ms_per_update": 14.45,
+    "silu_ms_per_update": 7.8,
+    "source": "model.py:109-110; PERF-1 trace2",
+    "total_ms_per_update": 58.91
+  },
+  "derivation": {
+    "aten_form": "grad * (s * (1 + x*(1-s))), s = 1/(1+exp(-x)), FP32 then one BF16 round",
+    "definition": "y = SiLU(a) * b, s = sigmoid(a), SiLU(a) = a*s",
+    "dy_da": "b * (s * (1 + a*(1-s)))",
+    "dy_db": "SiLU(a)"
+  },
+  "equivalence_contract": {
+    "accumulation": "unchanged; a and b are single-consumer, g_a/g_b feed the same Linears, param grads FP32",
+    "backward": "exact by construction with strategy A (same ATen mul and silu_backward kernels)",
+    "bitwise_gate": "required; no tolerance substitution",
+    "forward": "conditional on a bitwise match of the Triton silu against ATen",
+    "optimizer": "unchanged",
+    "perf3b_risk": "does not apply: no shared tensor changes accumulation dtype",
+    "rng": "dropout outside the fused region; unchanged",
+    "router": "gate and aux outside the fused region; unchanged"
+  },
+  "graph": {
+    "backward": [
+      "g_t = grad * b BF16",
+      "g_b = grad * t BF16",
+      "g_a = silu_backward(g_t, a) BF16",
+      "w1/w2 Linear backward BF16 GEMMs",
+      "AccumulateGrad into FP32 parameter grads"
+    ],
+    "forward": [
+      "a = w1(x) BF16",
+      "b = w2(x) BF16",
+      "t = silu(a) BF16",
+      "y = t * b BF16",
+      "w3(y) BF16",
+      "dropout on w3 output BF16"
+    ],
+    "inferred": [
+      "op-to-source mapping from shape and frequency (trace has no stacks)",
+      "CUDA/HIP silu formula source-derived, CPU-validated only"
+    ],
+    "saved_for_backward": [
+      "a (silu input, BF16)",
+      "t (silu output, BF16)",
+      "b (BF16)"
+    ],
+    "verified_cpu": [
+      "saved_tensors_hooks captures a, t, b in BF16",
+      "explicit backward chain is bitwise equal to autograd on CPU"
+    ]
+  },
+  "integrity": {
+    "code_changes": "none",
+    "cpu_tests": "96 passed, 2 skipped",
+    "drift_guard": "OK",
+    "gpu_work": "none",
+    "historical_checkpoints": "untouched",
+    "kfd": "idle",
+    "production": "unchanged"
+  },
+  "meta": {
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-3C SwiGLU fusion design audit",
+    "git_head": "734c0d9",
+    "mode": "design and static analysis only; no GPU, no benchmark, no production change",
+    "reports_read": [
+      "V3.1-PERF-1-BASELINE.md",
+      "V3.1-PERF-2-GEMM.md",
+      "V3.1-PERF-3A-FUSION-AUDIT.md",
+      "V3.1-PERF-3B-SINGLE-CAST.md"
+    ]
+  },
+  "precision": {
+    "backward_rounding": [
+      "g_t = BF16(FP32(grad) * FP32(b))",
+      "g_b = BF16(FP32(grad) * FP32(t))",
+      "g_a = BF16(FP32(g_t) * (s*(1 + FP32(a)*(1-s))))"
+    ],
+    "cpu_checks": {
+      "alternate_algebra_equal": false,
+      "alternate_algebra_max_abs_diff": 0.0001220703125,
+      "method": "bf16 tensors on CPU, 4096x960, torch.equal on bit patterns",
+      "mul_matches_float_product": true,
+      "silu_backward_matches_aten_formula": true,
+      "silu_matches_float_formula": true
+    },
+    "cuda_unverified": "exp/division implementations on gfx1201 are not verified in this stage",
+    "forward_rounding": [
+      "t = BF16(FP32(a) / (1 + exp(-FP32(a))))",
+      "y = BF16(FP32(t) * FP32(b))"
+    ]
+  },
+  "prototype_design": {
+    "abort_conditions": [
+      "any bitwise mismatch",
+      "non-finite values",
+      "fewer than 448 fewer forward kernels",
+      "no kernel-time reduction",
+      "GPU/HIP fault",
+      "environment drift"
+    ],
+    "backward": "torch.mul(g,b), torch.mul(g,t), aten.silu_backward(g_t,a)",
+    "expected_kernel_change": "forward 896->448 per update; backward unchanged",
+    "gates": [
+      "bitwise forward/backward",
+      "two-update full-model digest gate, baseline determinism first",
+      "five-update profile only after both"
+    ],
+    "identity_checks": [
+      "head logits",
+      "CE/aux/loss",
+      "router assignments",
+      "gradients",
+      "weights",
+      "optimizer state"
+    ],
+    "kernel": "Triton silu+mul computing t (BF16, stored) and y (BF16) in one pass",
+    "module": "veylith/v3/perf/v31p3d_swiglu.py (experimental, instance-level patch)",
+    "unit_tests": [
+      "(4088,960) bitwise t and y",
+      "(1,960) and (17,960) masks",
+      "zeros, large values, small values, bf16 boundaries",
+      "backward g_a/g_b bitwise",
+      "non-contiguous rejected",
+      "dtype guard"
+    ]
+  },
+  "selection": {
+    "expected_saving_ms": 5.0,
+    "expected_update_pct": -0.64,
+    "if_forward_not_bitwise": "reject the fusion; do not relax the gate",
+    "rationale": "only strategy with a bitwise-exact backward by construction; isolates the remaining unknown to one forward kernel and one test; 14 ms requires an unguaranteed fused backward",
+    "strategy": "A"
+  },
+  "strategies": [
+    {
+      "autograd": "custom Function; backward calls ATen mul twice and silu_backward",
+      "backward_launch_reduction_per_update": 0,
+      "bitwise": "backward guaranteed, forward conditional",
+      "complexity": "low-medium",
+      "expected_saving_ms": 5.0,
+      "forward_launch_reduction_per_update": 448,
+      "id": "A",
+      "name": "fused forward only, native ATen backward",
+      "numerical_risk": "forward silu exp/div/rounding only; backward exact",
+      "rocm": "Triton 3.8; bf16 gfx1201 unverified",
+      "traffic_saving_gb": 3.5
+    },
+    {
+      "autograd": "custom backward for three paths",
+      "backward_launch_reduction_per_update": 896,
+      "bitwise": "not guaranteed",
+      "complexity": "medium-high",
+      "expected_saving_ms": 13.0,
+      "forward_launch_reduction_per_update": 448,
+      "id": "B",
+      "name": "custom Function with fused forward and backward",
+      "numerical_risk": "backward formula, exp and rounding all must match",
+      "rocm": "Triton 3.8",
+      "traffic_saving_gb": 10.5
+    },
+    {
+      "autograd": "manual Function",
+      "backward_launch_reduction_per_update": 896,
+      "bitwise": "not guaranteed",
+      "complexity": "high",
+      "expected_saving_ms": 13.0,
+      "forward_launch_reduction_per_update": 448,
+      "id": "C",
+      "name": "Triton forward and backward kernels",
+      "numerical_risk": "same as B plus kernel-level exp/rounding",
+      "rocm": "Triton 3.8; needs gfx1201 testing",
+      "traffic_saving_gb": 10.5
+    },
+    {
+      "autograd": "automatic",
+      "backward_launch_reduction_per_update": "potential 896",
+      "bitwise": "not guaranteed",
+      "complexity": "medium",
+      "expected_saving_ms": null,
+      "forward_launch_reduction_per_update": "potential 448",
+      "id": "D",
+      "name": "scoped torch.compile / Inductor",
+      "numerical_risk": "Inductor may reorder/round differently",
+      "rocm": "Inductor on gfx1201 unproven",
+      "traffic_saving_gb": "potential 10.5"
+    }
+  ],
+  "unknowns": [
+    "Triton exp/division bitwise match against ATen silu on gfx1201",
+    "Triton compiler preserving the explicit BF16 rounding of t before the multiply",
+    "actual profiled saving versus the ~5 ms traffic estimate",
+    "whether a fused backward can ever be bitwise; not assumed"
+  ]
+}
