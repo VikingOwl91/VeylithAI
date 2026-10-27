@@ -12,6 +12,8 @@
   "fault": {
     "coredump": "handler exited with error (status: 1); no core file",
     "exit_code": 134,
+    "gpu_reset_observed": false,
+    "kernel_log": "no amdgpu error or GPU reset; unrelated Bluetooth USB resets; GPU responsive and idle after the fault",
     "message": "Memory access fault by GPU node-1 ... Page not present or supervisor privilege",
     "retry_attempted": false,
     "signal": "SIGABRT",
