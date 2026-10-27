@@ -167,9 +167,10 @@ def test_tiny_training_decreases_loss(corpus, tmp_path):
     result = train(cfg, log=lambda *_: None)
     assert result["steps"] == 10
     lines = [json.loads(line) for line in open(cfg.curve_jsonl, encoding="utf-8")]
-    assert len(lines) == 10
-    assert lines[-1]["train_loss"] < lines[0]["train_loss"]
-    assert all(math.isfinite(line["train_loss"]) for line in lines)
+    train_lines = [line for line in lines if "train_loss" in line]
+    assert len(train_lines) == 10
+    assert train_lines[-1]["train_loss"] < train_lines[0]["train_loss"]
+    assert all(math.isfinite(line["train_loss"]) for line in train_lines)
 
 
 def test_resume_matches_uninterrupted_run(corpus, tmp_path):

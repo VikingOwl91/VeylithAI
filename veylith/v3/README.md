@@ -283,3 +283,10 @@ network smoke test is opt-in: `VEYLITH_NETWORK_TESTS=1`.
 - Cosmopedia is 15.9 % synthetic; contamination and hallucination risks are
   documented in the multi-source report and the v3.1 design note.
 - No GPU code, no model training, no model benchmark in this step.
+
+
+The first real-data training run (v3.1-D) completed 100 updates on the
+verified corpus: validation macro main CE 9.1168 -> 7.4325, bits/char
+3.3452 -> 2.7085, all three sources improved, router healthy, 36.5k
+tokens/s, 1.77 GB allocated / 4.12 GB reserved, no fault. See
+`docs/V3.1-FIRST-RUN-RESULTS.md`; checkpoints stay outside Git.

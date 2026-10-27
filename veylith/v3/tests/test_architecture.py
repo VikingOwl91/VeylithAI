@@ -75,7 +75,8 @@ def test_forward_shapes_metrics_and_router():
         idx, targets=targets, return_metrics=True, return_router=True)
     assert logits.shape == (2, 16, cfg.vocab_size)
     assert torch.isfinite(loss)
-    assert set(metrics) == {"main_ce", "aux_loss", "composite_loss"}
+    assert set(metrics) == {"main_ce", "aux_loss", "aux_loss_per_layer",
+                        "composite_loss"}
     assert "mtp_ce" not in metrics
     expected = metrics["main_ce"] + cfg.moe_aux_weight * metrics["aux_loss"]
     assert torch.allclose(metrics["composite_loss"], expected)
@@ -197,3 +198,20 @@ def test_moe_bf16_paths_are_finite_on_cpu(moe_impl):
     loss.backward()
     grads = [p.grad for p in model.parameters() if p.grad is not None]
     assert grads and all(torch.isfinite(g).all() for g in grads)
+
+
+def test_aux_balanced_baseline_is_one_per_layer_and_sums_over_layers():
+    cfg = tiny_config(n_layer=2, first_k_dense=0, dropout=0.0)
+    model = GPT(cfg)
+    for block in model.blocks:
+        torch.nn.init.zeros_(block.mlp.gate.weight)
+    idx = torch.randint(0, cfg.vocab_size, (2, 8))
+    targets = torch.randint(0, cfg.vocab_size, (2, 8))
+    _, _, metrics = model(idx, targets=targets, return_metrics=True)
+    n_moe = sum(1 for block in model.blocks if block.is_moe)
+    assert n_moe == 2
+    assert metrics["aux_loss_per_layer"].item() == pytest.approx(1.0, rel=1e-5)
+    assert metrics["aux_loss"].item() == pytest.approx(float(n_moe), rel=1e-5)
+    assert metrics["composite_loss"].item() == pytest.approx(
+        metrics["main_ce"].item() + cfg.moe_aux_weight * metrics["aux_loss"].item(),
+        rel=1e-6)

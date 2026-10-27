@@ -54,13 +54,31 @@ def _loss_terms(model, batch, device, aux_weight: float):
     lengths = torch.tensor(batch["lengths"], device=device)
     positions = torch.arange(x.size(1), device=device)[None, :]
     valid = positions < (lengths[:, None] - 1)
-    logits, _, metrics = model(x, return_metrics=True)
+    logits, _, metrics, router = model(x, return_metrics=True,
+                                       return_router=True)
     ce = F.cross_entropy(logits.reshape(-1, logits.size(-1)), y.reshape(-1),
                          reduction="none").reshape(y.shape)
     ce_sum = ce[valid].sum()
     count = int(valid.sum())
     aux = metrics["aux_loss"]
-    return ce_sum, aux, count
+    return ce_sum, aux, count, router
+
+
+def _router_summary(counts, n_experts: int):
+    layers = []
+    entropies = []
+    for index, layer_counts in enumerate(counts):
+        total = int(layer_counts.sum())
+        if total == 0:
+            continue
+        probs = layer_counts.float() / total
+        entropy = float(-(probs * probs.clamp(min=1e-12).log()).sum())
+        norm = entropy / math.log(n_experts)
+        entropies.append(norm)
+        layers.append({"layer": index, "entropy_norm": norm,
+                       "share_pct": [round(float(value) * 100, 2) for value in probs]})
+    return {"layers": layers,
+            "mean_entropy_norm": sum(entropies) / len(entropies) if entropies else None}
 
 
 def _select_score(metrics: dict, cfg: TrainConfig) -> float:
@@ -155,6 +173,29 @@ def train(cfg: TrainConfig, log=print) -> dict:
     tokens_seen = int(tokens_seen)
     loader_epoch_out, loader_batch_out = loader_epoch, loader_batch
     t_start = time.time()
+    if step == 0 and cfg.eval_interval > 0:
+        val = evaluate(model, cfg, "validation", max_batches=cfg.eval_max_batches)
+        gap = evaluate(model, cfg, "train", max_batches=cfg.train_gap_batches)
+        score = _select_score(val, cfg)
+        best_metric = score
+        best_step = 0
+        best_metrics = val
+        best_state = {key: value.detach().cpu().clone()
+                      for key, value in model.state_dict().items()}
+        initial_record = {
+            "step": 0, "val": val,
+            "train_gap": {
+                "train_main_ce": gap["overall"]["main_ce"],
+                "gap_nats": (val["overall"]["main_ce"] - gap["overall"]["main_ce"])
+                if (val["overall"]["main_ce"] is not None
+                    and gap["overall"]["main_ce"] is not None) else None,
+            },
+            "selection": {"metric": cfg.select_metric, "value": score,
+                          "improved": True, "best_value": score},
+        }
+        _append_jsonl(cfg.curve_jsonl, initial_record)
+        log(f"initial validation: macro {val['overall']['macro_main_ce']:.4f} "
+            f"token {val['overall']['main_ce']:.4f}")
     while step < stop_step:
         window = []
         for _ in range(cfg.grad_accum):
@@ -168,16 +209,24 @@ def train(cfg: TrainConfig, log=print) -> dict:
                           for length in batch["lengths"])
         if total_valid <= 0:
             continue
+        step_start = time.perf_counter()
         optimizer.zero_grad(set_to_none=True)
         window_ce = window_aux = 0.0
+        router_counts = None
         with autocast_context(cfg.device, cfg.precision):
             for batch in window:
-                ce_sum, aux, count = _loss_terms(
+                ce_sum, aux, count, router = _loss_terms(
                     model, batch, cfg.device, cfg.model.moe_aux_weight)
                 loss = (ce_sum + cfg.model.moe_aux_weight * aux * count) / total_valid
                 loss.backward()
                 window_ce += float(ce_sum.detach())
                 window_aux += float(aux.detach()) * count
+                if router_counts is None:
+                    router_counts = [torch.zeros(cfg.model.n_experts, dtype=torch.long)
+                                     for _ in router]
+                for layer, top_idx in enumerate(router):
+                    router_counts[layer] += torch.bincount(
+                        top_idx.reshape(-1).cpu(), minlength=cfg.model.n_experts)
         if cfg.grad_clip > 0:
             grad_norm = float(torch.nn.utils.clip_grad_norm_(
                 model.parameters(), cfg.grad_clip))
@@ -190,6 +239,9 @@ def train(cfg: TrainConfig, log=print) -> dict:
         optimizer.step()
         tokens_seen += total_valid
         step += 1
+        step_seconds = time.perf_counter() - step_start
+        if step_seconds > 120:
+            raise RuntimeError(f"optimizer update {step} exceeded 120 s: {step_seconds:.1f}s")
         last = window[-1]
         loader_epoch_out = int(last["epoch"])
         loader_batch_out = int(last["batch"]) + 1
@@ -198,6 +250,7 @@ def train(cfg: TrainConfig, log=print) -> dict:
             loader_batch_out = 0
         train_main = window_ce / total_valid
         train_aux = window_aux / total_valid
+        n_moe = sum(1 for block in model.blocks if block.is_moe)
         train_loss = train_main + cfg.model.moe_aux_weight * train_aux
         record = {
             "step": step,
@@ -205,10 +258,19 @@ def train(cfg: TrainConfig, log=print) -> dict:
             "tokens_seen": tokens_seen,
             "train_main_ce": train_main,
             "train_aux": train_aux,
+            "train_aux_per_layer": train_aux / max(1, n_moe),
+            "train_aux_weighted": cfg.model.moe_aux_weight * train_aux,
             "train_loss": train_loss,
             "grad_norm": grad_norm,
+            "step_seconds": round(step_seconds, 4),
+            "tokens_per_s": round(total_valid / max(step_seconds, 1e-9), 1),
+            "router": _router_summary(router_counts, cfg.model.n_experts)
+            if router_counts is not None else None,
             "elapsed_s": round(time.time() - t_start, 3),
         }
+        if cfg.device == "cuda":
+            record["vram_allocated_gb"] = round(torch.cuda.memory_allocated() / 1e9, 3)
+            record["vram_reserved_gb"] = round(torch.cuda.memory_reserved() / 1e9, 3)
         if step % cfg.eval_interval == 0 or step == stop_step:
             val = evaluate(model, cfg, "validation",
                            max_batches=cfg.eval_max_batches)

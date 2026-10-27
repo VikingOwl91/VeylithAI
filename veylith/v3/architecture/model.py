@@ -219,6 +219,8 @@ class GPT(nn.Module):
             if top_idx is not None:
                 router.append(top_idx)
         logits = self.head(self.ln_f(x))
+        n_moe = sum(1 for block in self.blocks if block.is_moe)
+        aux_per_layer = aux_total / max(1, n_moe)
         loss = None
         metrics = None
         if targets is not None:
@@ -228,9 +230,11 @@ class GPT(nn.Module):
                 logits.reshape(-1, logits.size(-1)), targets.reshape(-1))
             loss = main_ce + self.cfg.moe_aux_weight * aux_total
             metrics = {"main_ce": main_ce, "aux_loss": aux_total,
+                       "aux_loss_per_layer": aux_per_layer,
                        "composite_loss": loss}
         elif return_metrics:
             metrics = {"main_ce": None, "aux_loss": aux_total,
+                       "aux_loss_per_layer": aux_per_layer,
                        "composite_loss": None}
         if return_metrics and return_router:
             return logits, loss, metrics, router

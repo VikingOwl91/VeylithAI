@@ -1,0 +1,81 @@
+{
+  "checkpoints": {
+    "artifact_bytes": 393462284,
+    "artifact_sha256": "08f1eb13408a5fcb7c3b7b7f385fbf69e056a6bd8aa88053170f795d51de6634",
+    "artifact_step": 100,
+    "best_step": 100,
+    "fingerprint": "d963c2fea44a305bdff0311179fcf51580e9062e2525ef74ff0a694ccb6a3e0e",
+    "no_mtp": true,
+    "state_bytes": 1573838498,
+    "state_sha256": "51397957d2ff25ab0c9836c1a3321a9997e197ddfc9d7b029821ff01dd3dd9bd",
+    "state_step": 100,
+    "tokens_seen": 3270400
+  },
+  "command": "see command.txt in the run directory",
+  "data_manifest_digest": "7a6e7991dd83244ced4c9c13627028e1824f00b0f58735cc665323ff111bdcf0",
+  "data_root": "~/veylith-v3-data/multi-100m-20261026",
+  "final": {
+    "aux_sum": 7.049281368348677,
+    "bits_per_char": 2.7085142825028816,
+    "grad_norm": 0.24783185124397278,
+    "macro_main_ce": 7.432459604489485,
+    "router_mean_entropy": 0.9684010815982589,
+    "step_seconds": 0.8951,
+    "token_main_ce": 7.380714016684921,
+    "tokens_per_s": 36536.4,
+    "train_aux_per_layer": 1.0027809057916914,
+    "train_aux_sum": 7.01946634054184,
+    "train_aux_weighted": 0.0701946634054184,
+    "train_loss": 7.453136878042772,
+    "train_main_ce": 7.382942214637353,
+    "vram_allocated_gb": 1.767,
+    "vram_reserved_gb": 4.121
+  },
+  "initial": {
+    "aux_sum": 7.744250961219258,
+    "bits_per_char": 3.3452490399953563,
+    "macro_main_ce": 9.116758007853344,
+    "router_mean_entropy": 0.9601730548570802,
+    "token_main_ce": 9.115819192202924
+  },
+  "limits": {
+    "gpu_seconds": 134.2,
+    "limit_seconds": 1200,
+    "limit_tokens": 3276800,
+    "limit_updates": 100,
+    "tokens": 3276800,
+    "updates": 100
+  },
+  "model": "v3.1-a-primary",
+  "notes": [
+    "50-step state was overwritten by the 100-step state at the same path",
+    "no GPU 50+50 resume comparison (would exceed the 100-update cap); CPU resume test green",
+    "test split not used for selection"
+  ],
+  "optimizer_updates": 100,
+  "run": "v3.1-d-first-real-data-2026-10-27",
+  "sources": {
+    "cosmopedia-v2": {
+      "final_bits": 2.5196111638408407,
+      "final_ce": 7.600184140230766,
+      "initial_bits": 3.0235177564173,
+      "initial_ce": 9.120173791022474
+    },
+    "fineweb-edu": {
+      "final_bits": 2.675172659805302,
+      "final_ce": 7.335745748791842,
+      "initial_bits": 3.324060454390334,
+      "initial_ce": 9.115098518088049
+    },
+    "wikipedia": {
+      "final_bits": 2.939363462318787,
+      "final_ce": 7.361448924445849,
+      "initial_bits": 3.6395420620870285,
+      "initial_ce": 9.115001714449507
+    }
+  },
+  "tokenizer_sha256": "411227a8e5289d6f4b450059b744ed278532a4624d3895f1a4979600c49ae034",
+  "training_ce_tokens": 3270400,
+  "training_token_positions": 3276800,
+  "wall_seconds": 134.2
+}
