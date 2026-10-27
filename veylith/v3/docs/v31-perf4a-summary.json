@@ -1,0 +1,465 @@
+{
+  "anchors": {
+    "aten_calls_per_update": 159094,
+    "device_idle_ms": {
+      "class": "derived",
+      "perf1": 53.0,
+      "perf3d": 47.0
+    },
+    "device_ms_per_update": {
+      "a0": 716.01,
+      "b0": 713.44,
+      "class": "measured"
+    },
+    "gpu_busy_pct_perf1": 95.09,
+    "kernels_per_update": 40975,
+    "loader_ms_per_window": 13.72,
+    "wall_ms_per_update": {
+      "harness_perf3d": {
+        "class": "measured",
+        "updates": 40,
+        "value": 758.9
+      },
+      "production_loop_perf1": {
+        "class": "measured",
+        "updates": 150,
+        "value": 780.45
+      }
+    }
+  },
+  "host_bound_model": {
+    "class": "derived from measured wall and device busy",
+    "evidence": [
+      "device 715 ms vs wall 759/780 ms: device idle 47 to 53 ms",
+      "PERF-3D pass-through: +12.1 ms host produced +6.6 ms wall (54 percent)",
+      "PERF-1 GPU busy 95.09 percent"
+    ],
+    "implication": "device-only fusion (PERF-3A P2 at about 15 ms, P3 at 5.3 ms) cannot improve wall time until the host drops below the device time; PERF-3D confirmed the inverse case",
+    "not_established": "split of the idle between barrier-induced and host-work-induced",
+    "statement": "wall ~ max(host_critical_path, device_busy) + serialization residual"
+  },
+  "host_cost": {
+    "class": "measured under instrumentation; profiler inflates host rows by about 35 percent",
+    "dispatch_multiplier": {
+      "aten_calls": 159094,
+      "kernels": 40975,
+      "note": "view ops (as_strided 15156, transpose 9992, t 8456) dominate call count but are metadata-cheap",
+      "ratio": 3.88
+    },
+    "rows": [
+      {
+        "row": "backward annotation",
+        "self_ms": 830,
+        "share_pct": 40.9
+      },
+      {
+        "row": "aten::mm",
+        "self_ms": 207,
+        "share_pct": 10.2
+      },
+      {
+        "row": "hipLaunchKernel (35304 calls, 5.66 us)",
+        "self_ms": 200,
+        "share_pct": 9.8
+      },
+      {
+        "row": "aten::fill_ (11958 calls)",
+        "self_ms": 75,
+        "share_pct": 3.7
+      },
+      {
+        "row": "aten::mul",
+        "self_ms": 62,
+        "share_pct": 3.1
+      },
+      {
+        "row": "aten::copy_",
+        "self_ms": 41,
+        "share_pct": 2.0
+      },
+      {
+        "row": "hipExtModuleLaunchKernel (5064 calls, 7.54 us)",
+        "self_ms": 38,
+        "share_pct": 1.9
+      },
+      {
+        "row": "aten::empty_strided (7138 calls)",
+        "self_ms": 33,
+        "share_pct": 1.6
+      },
+      {
+        "row": "aten::add_",
+        "self_ms": 27,
+        "share_pct": 1.3
+      },
+      {
+        "row": "aten::_to_copy (5797 calls)",
+        "self_ms": 26,
+        "share_pct": 1.3
+      }
+    ],
+    "self_cpu_total_ms": 2030,
+    "source": "key_averages_cpu_variant0.txt, 5 profiled updates, normalized per update",
+    "uninstrumented_process_cpu_ms": 1506
+  },
+  "integrity": {
+    "benchmark": "none",
+    "checkpoint_change": "none",
+    "code_changes": "docs only",
+    "environment_change": "none",
+    "gpu_work": "none",
+    "production_change": "none",
+    "push": "none",
+    "training": "none"
+  },
+  "launch_families": {
+    "prefill_by_dtype": [
+      {
+        "dtype": "float",
+        "kernels": 5006,
+        "ms": 21.41
+      },
+      {
+        "dtype": "bfloat16",
+        "kernels": 4795,
+        "ms": 17.78
+      },
+      {
+        "dtype": "int64",
+        "kernels": 1224,
+        "ms": 2.51
+      },
+      {
+        "dtype": "bool",
+        "kernels": 520,
+        "ms": 2.1
+      }
+    ],
+    "prefill_mechanism": {
+      "attribution": "at least 99 percent of 11,545 fills are prefill, derived from the proven mechanism and the explicit-zero count",
+      "cause": "torch.use_deterministic_algorithms(True) enables fill_uninitialized_memory; every empty/empty_like becomes allocation plus NaN fill",
+      "explicit_zeros_in_model": "about 64 per update (model.py:143 per MoE layer, model.py:214 per forward)",
+      "proven_on_device": "PERF-3D diag: deterministic off 0 fills, on 2 per call, fill flag off 0 fills",
+      "source_line": "training/train.py:140-142"
+    },
+    "rows": [
+      {
+        "family": "elementwise",
+        "kernels": 19430,
+        "kernels_pct": 47.4,
+        "ms": 286.3,
+        "ms_pct": 40.0
+      },
+      {
+        "family": "gemm_tensile",
+        "kernels": 5064,
+        "kernels_pct": 12.4,
+        "ms": 246.3,
+        "ms_pct": 34.4
+      },
+      {
+        "family": "other_attention_copies_scans",
+        "kernels": 1915,
+        "kernels_pct": 4.7,
+        "ms": 82.7,
+        "ms_pct": 11.5
+      },
+      {
+        "family": "deterministic_nan_prefill",
+        "kernels": 11545,
+        "kernels_pct": 28.2,
+        "ms": 43.8,
+        "ms_pct": 6.1
+      },
+      {
+        "family": "reductions",
+        "kernels": 1428,
+        "kernels_pct": 3.5,
+        "ms": 24.7,
+        "ms_pct": 3.4
+      },
+      {
+        "family": "silu_backward",
+        "kernels": 456,
+        "kernels_pct": 1.1,
+        "ms": 14.3,
+        "ms_pct": 2.0
+      },
+      {
+        "family": "dropout_rng",
+        "kernels": 520,
+        "kernels_pct": 1.3,
+        "ms": 8.5,
+        "ms_pct": 1.2
+      },
+      {
+        "family": "silu_forward",
+        "kernels": 456,
+        "kernels_pct": 1.1,
+        "ms": 7.0,
+        "ms_pct": 1.0
+      },
+      {
+        "family": "copy_cast",
+        "kernels": 161,
+        "kernels_pct": 0.4,
+        "ms": 2.6,
+        "ms_pct": 0.4
+      }
+    ],
+    "source": "PERF-3D trace a0/b0, 8 profiled updates each, kernel events only"
+  },
+  "meta": {
+    "correction": "PERF-3D reported fill 17.8 ms/update, counting only FillFunctor<c10::BFloat16>; all fill types total 11,545 kernels and 43.8 ms/update. PERF-3D decision unchanged.",
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-4A host overhead and launch amortization audit",
+    "git_head": "4bb8d47",
+    "mode": "read-only audit: no GPU execution, no training, no benchmark, no code change",
+    "reports_read": [
+      "V3.1-PERF-1-BASELINE.md",
+      "V3.1-PERF-2-GEMM.md",
+      "V3.1-PERF-3A-FUSION-AUDIT.md",
+      "V3.1-PERF-3B-SINGLE-CAST.md",
+      "V3.1-PERF-3C-SWIGLU-DESIGN.md",
+      "V3.1-PERF-3D-SWIGLU-PROTOTYPE.md"
+    ]
+  },
+  "perf4b_design": {
+    "abort": [
+      "any field mismatch or non-deterministic baseline",
+      "any non-finite value",
+      "fills not reduced to the explicit-zero baseline",
+      "wall improvement below 10 ms (falsifies the host-bound model)",
+      "GPU fault, drift, or VRAM above guard"
+    ],
+    "files": [
+      "veylith/v3/perf/v31p4b_nofill.py",
+      "veylith/v3/perf/v31p4b_harness.py"
+    ],
+    "gate": "two-update deterministic run: baseline twice plus variant once from the verified step-0 state; logits, CE, aux, router, gradient, weight, optimizer-state digests and lr; zero mismatches and a deterministic baseline",
+    "memory_power": "peak allocated and reserved must not exceed 5.568/6.107 GiB and must stay under the guard; power reported, not decisive",
+    "prediction": {
+      "ce_targets_per_s": [
+        41773,
+        [
+          43500,
+          45400
+        ]
+      ],
+      "device_ms": [
+        715,
+        671
+      ],
+      "fill_kernels": [
+        11545,
+        64
+      ],
+      "wall_ms": [
+        780,
+        [
+          720,
+          750
+        ]
+      ]
+    },
+    "production_changes": "none",
+    "rollback": "delete the two experimental files; production path untouched",
+    "shim": "wrap torch.use_deterministic_algorithms so the prefill flag is cleared immediately after the loop enables deterministic mode; kernel determinism stays on",
+    "single_variable": "deterministic NaN prefill off, everything else identical",
+    "tests": [
+      "flag state: determinism on, prefill off via shim; both restored without shim",
+      "prefill count: fills drop from about 11545 to the explicit-zero baseline of about 64 per update, measured by kernel name",
+      "uninitialized-content invariance: two gate runs with the flag off, allocator primed with 0xAA then 0x55, bitwise identical results"
+    ],
+    "timing": "production train() with stop_after=60, log_every=1, eval_interval=1000; four interleaved arms baseline/no-prefill/no-prefill/baseline; medians and trimmed means; one profiled arm per condition for kernel counts"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "ckpt_step0_sha256_prefix": "6efff0086ab0497b",
+    "ckpt_step500_sha256_prefix": "865946d66664399b",
+    "drift_guard": "OK",
+    "gpu_work": "none",
+    "head": "4bb8d47",
+    "kfd": "idle",
+    "main_diff_prefix": "056540dab24662e4",
+    "main_entries": 42,
+    "tag_v2": "b89d0f0",
+    "tag_v31a": "3aff73e",
+    "tests": "96 passed, 2 skipped",
+    "worktree": "clean"
+  },
+  "ranking": [
+    {
+      "benefit_ms": [
+        -60,
+        -30
+      ],
+      "candidate": "E, starting with prefill removal",
+      "complexity": "very low",
+      "evidence": "measured 28.2 percent of launches, 43.8 ms device, 11958 dispatches, mechanism proven on device",
+      "hard_bound_ms": -91,
+      "isolation": "one flag",
+      "numerical_risk": "none to computed values, gateable",
+      "rank": 1,
+      "vram": "none"
+    },
+    {
+      "benefit_ms": null,
+      "candidate": "B, HIP graph capture",
+      "complexity": "very high",
+      "evidence": "derived only, no local experiment",
+      "numerical_risk": "high, RNG contract",
+      "rank": 2,
+      "vram": "+1 to +2 GB"
+    },
+    {
+      "benefit_ms": null,
+      "candidate": "A, scoped Inductor",
+      "complexity": "medium",
+      "evidence": "weak, no local evidence on ROCm",
+      "numerical_risk": "high, rounding boundaries",
+      "rank": 3,
+      "vram": "+1 to +2 GB"
+    },
+    {
+      "candidate": "D, batched experts",
+      "rank": 4,
+      "verdict": "device-side win in a host-bound loop, numerically blocked"
+    },
+    {
+      "candidate": "C, more fused regions",
+      "rank": 5,
+      "verdict": "measured host regression"
+    }
+  ],
+  "strategies": [
+    {
+      "autograd": "automatic, AOTAutograd may reorder accumulation",
+      "complexity": "medium-high",
+      "device_effect": "unknown, may change GEMM schedules",
+      "dropout_rng": "Inductor emits its own Philox offsets; equality unproven",
+      "host_reduction": "high in principle",
+      "id": "A",
+      "name": "scoped torch.compile / Inductor",
+      "numerical": "bad: fuses elementwise chains across BF16 rounding points (PERF-3B mechanism)",
+      "reversible": "yes",
+      "rocm": "Inductor on gfx1201 unproven",
+      "routing_graph_breaks": "dense MoE loop is static; topk, boolean mask and view patterns risk breaks",
+      "verdict": "rank 3, predicted bitwise failure",
+      "vram": "+1 to +2 GB"
+    },
+    {
+      "autograd": "static graph must cover backward",
+      "complexity": "high: 89 in-region barriers must be removed and allocation made static",
+      "device_effect": "neutral, same kernels",
+      "dropout_rng": "BLOCKED: capture freezes Philox seed and offset into kernel args, so replays reuse one mask set; diverges at update 2",
+      "host_reduction": "highest: 40975 launches and 159k dispatches collapse to one replay",
+      "id": "B",
+      "name": "HIP graph capture and replay",
+      "numerical": "values identical only if RNG and pointers match",
+      "reversible": "yes",
+      "rocm": "torch.cuda.CUDAGraph present; HIP replay unexercised here",
+      "routing_graph_breaks": "dense MoE shapes are static",
+      "verdict": "rank 2, not admissible under current contract",
+      "vram": "+1 to +2 GB, private pool on top of 5.6 GiB reserved"
+    },
+    {
+      "complexity": "medium",
+      "device_effect": "small",
+      "host_reduction": "negative: measured +26.5 us per call in PERF-3D",
+      "id": "C",
+      "name": "larger fused execution regions",
+      "numerical": "bad for the same rounding reason",
+      "reversible": "yes",
+      "verdict": "rank 5, rejected on measurement"
+    },
+    {
+      "autograd": "needs custom scatter/gather backward",
+      "complexity": "high",
+      "device_effect": "large: dense fallback computes 8 experts where 2 are used, 4x expert FLOPs wasted",
+      "host_reduction": "some: 1344 expert GEMMs become 168 batched calls",
+      "id": "D",
+      "name": "batched or grouped expert execution",
+      "numerical": "BLOCKED: gathering tokens per expert changes GEMM shapes and row order",
+      "reversible": "yes",
+      "rocm": "batched GEMM available, unverified for this shape set",
+      "routing_graph_breaks": "discrete token counts break static shapes",
+      "verdict": "rank 4, numerically blocked and device-side",
+      "vram": "a few hundred MB of grouped buffers"
+    },
+    {
+      "autograd": "unchanged",
+      "complexity": "low",
+      "device_effect": "positive: removing prefills also removes 43.8 ms of device time",
+      "dropout_rng": "unchanged",
+      "host_reduction": "high and direct: fewer launches, allocations and host reads",
+      "id": "E",
+      "name": "reduced Python dispatch and allocation",
+      "numerical": "none: same kernels on the same values",
+      "reversible": "one flag or one loop edit",
+      "rocm": "no new dependency",
+      "routing_graph_breaks": "unchanged",
+      "verdict": "rank 1, admissible",
+      "vram": "neutral"
+    }
+  ],
+  "synchronization": {
+    "envelope_ms": [
+      47,
+      53
+    ],
+    "full_syncs_per_update": 2,
+    "proven_barriers_per_update": 89,
+    "sites": [
+      {
+        "count": 8,
+        "line": "training/train.py:83",
+        "op": "int(valid.sum())"
+      },
+      {
+        "count": 8,
+        "line": "training/train.py:321",
+        "op": "float(loss.detach())"
+      },
+      {
+        "count": 8,
+        "line": "training/train.py:324",
+        "op": "float(ce_sum.detach())"
+      },
+      {
+        "count": 8,
+        "line": "training/train.py:325",
+        "op": "float(aux.detach())"
+      },
+      {
+        "count": 56,
+        "line": "training/train.py:331",
+        "op": "bincount(top_idx.cpu()) 7 layers x 8 microbatches"
+      },
+      {
+        "count": 1,
+        "line": "training/train.py:333",
+        "op": "float(clip_grad_norm_(...))"
+      },
+      {
+        "count": 1,
+        "line": "training/train.py:311",
+        "op": "torch.cuda.synchronize()"
+      },
+      {
+        "count": 1,
+        "line": "training/train.py:351",
+        "op": "torch.cuda.synchronize()"
+      }
+    ],
+    "suspected_not_proven": "whether each wait drains the whole queue or only up to its producer; top_idx is produced early in forward, so its copy likely waits only for the gate. The 47 to 53 ms of idle is the total envelope."
+  },
+  "unknowns": [
+    "barrier cost is bounded (47 to 53 ms) but not attributed",
+    "instrumented host rows are inflated by about 35 percent; shares are usable, microseconds are not",
+    "removing the prefill trades a loud NaN signal for silence if a latent uninitialized read exists; the invariance test covers gated steps only",
+    "HIP graph replay on gfx1201 is unproven and moot until the dropout RNG contract is revisited",
+    "Inductor bitwise behaviour is predicted from PERF-3B, not measured",
+    "the dense MoE fallback wastes 4x expert FLOPs; blocked by the sparse fault and by GEMM-shape numerics"
+  ]
+}
