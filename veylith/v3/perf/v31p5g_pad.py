@@ -50,8 +50,11 @@ def _record_view(kind: str, view, tensor_bytes: int) -> dict:
         "data_ptr": hex(view.data_ptr()), "storage_ptr": hex(storage.data_ptr()),
         "storage_bytes": storage.nbytes(), "tensor_bytes": tensor_bytes,
         "storage_offset": view.storage_offset(),
+        "offset_bytes": view.data_ptr() - storage.data_ptr(),
+        "slack_before_tensor": view.data_ptr() - storage.data_ptr(),
         "stride": list(view.stride()), "contiguous": view.is_contiguous(),
         "slack_after_tensor": storage_end - tensor_end,
+        "ends_at_storage_end": tensor_end == storage_end,
         "page_rounded_storage_end": hex(page_end),
         "bytes_from_tensor_end_to_page_end": page_end - tensor_end,
         "t": round(time.time(), 3),
@@ -90,6 +93,38 @@ def padded_like(tensor, kind: str = "swiglu_product", slack: int = SLACK_BYTES):
     return view
 
 
+def padded_front_like(tensor, kind: str = "swiglu_product_front",
+                      slack: int = SLACK_BYTES):
+    """Storage of ``tensor_bytes + slack`` with the view placed after ``slack``.
+
+    The view ends exactly at the end of its backing storage, so it has no
+    trailing allocated bytes, while the allocation is larger than the logical
+    tensor and starts at a different address. Whether the pages just past the
+    view are mapped depends on the allocator block and on neighbours, which is
+    recorded as unknown rather than assumed.
+    """
+    itemsize = tensor.element_size()
+    tensor_bytes = tensor.numel() * itemsize
+    raw = _padded_empty(tensor_bytes, tensor.dtype, tensor.device, slack)
+    view = raw[slack:slack + tensor_bytes].view(tensor.dtype).view(tensor.shape)
+    _record_view(kind, view, tensor_bytes)
+    return view
+
+
+def _mul_into_padded(ctx, a, b, allocate):
+    ctx.save_for_backward(a, b)
+    out = allocate(a)
+    expected_ptr = out.data_ptr()
+    expected_bytes = out.untyped_storage().nbytes()
+    shape_before = tuple(out.shape)
+    torch.mul(a, b, out=out)
+    row = GEOMETRY[-1]
+    row["pointer_preserved"] = out.data_ptr() == expected_ptr
+    row["storage_preserved"] = out.untyped_storage().nbytes() == expected_bytes
+    row["resized_by_out"] = tuple(out.shape) != shape_before
+    return out
+
+
 class PaddedMul(torch.autograd.Function):
     """``a * b`` whose output storage carries trailing slack.
 
@@ -102,22 +137,20 @@ class PaddedMul(torch.autograd.Function):
 
     @staticmethod
     def forward(ctx, a, b):
-        ctx.save_for_backward(a, b)
-        out = padded_like(a)
-        expected_ptr = out.data_ptr()
-        expected_bytes = out.untyped_storage().nbytes()
-        shape_before = tuple(out.shape)
-        torch.mul(a, b, out=out)
-        row = GEOMETRY[-1]
-        row["pointer_preserved"] = out.data_ptr() == expected_ptr
-        row["storage_preserved"] = out.untyped_storage().nbytes() == expected_bytes
-        row["resized_by_out"] = tuple(out.shape) != shape_before
-        return out
+        return _mul_into_padded(ctx, a, b, padded_like)
 
     @staticmethod
     def backward(ctx, grad_output):
         a, b = ctx.saved_tensors
         return grad_output * b, grad_output * a
+
+
+class PaddedMulFront(PaddedMul):
+    """Same multiplication, view placed at the end of a larger allocation."""
+
+    @staticmethod
+    def forward(ctx, a, b):
+        return _mul_into_padded(ctx, a, b, padded_front_like)
 
 
 class PaddedW3(torch.autograd.Function):
@@ -204,6 +237,11 @@ def _padded_product_forward(self, x):
     return self.drop(self.w3(PaddedMul.apply(F.silu(self.w1(x)), self.w2(x))))
 
 
+def _padded_product_front_forward(self, x):
+    """SwiGLU with the product placed at the end of a larger allocation."""
+    return self.drop(self.w3(PaddedMulFront.apply(F.silu(self.w1(x)), self.w2(x))))
+
+
 def _is_swiglu(module) -> bool:
     return hasattr(module, "w1") and hasattr(module, "w2") and hasattr(module, "w3")
 
@@ -228,11 +266,33 @@ def unapply_product_padding(model) -> int:
     return removed
 
 
+def apply_product_front_padding(model) -> int:
+    """Front-pad the product; the w3 linear and its gradient stay stock."""
+    patched = 0
+    for module in model.modules():
+        if _is_swiglu(module) and "forward" not in module.__dict__:
+            module.forward = types.MethodType(_padded_product_front_forward, module)
+            patched += 1
+    return patched
+
+
+def unapply_product_front_padding(model) -> int:
+    removed = 0
+    for module in model.modules():
+        if (_is_swiglu(module) and "forward" in module.__dict__
+                and module.__dict__["forward"].__func__ is _padded_product_front_forward):
+            del module.__dict__["forward"]
+            removed += 1
+    return removed
+
+
 def apply_mode(model, mode: int) -> int:
     if mode == 1:
         return apply_padding(model)
     if mode == 2:
         return apply_product_padding(model)
+    if mode == 3:
+        return apply_product_front_padding(model)
     return 0
 
 
@@ -241,6 +301,8 @@ def unapply_mode(model, mode: int) -> int:
         return unapply_padding(model)
     if mode == 2:
         return unapply_product_padding(model)
+    if mode == 3:
+        return unapply_product_front_padding(model)
     return 0
 
 
@@ -407,8 +469,10 @@ def full_model_gate(mode: int = 1):
     }
 
 
-def padded_mul_gate():
-    """PaddedMul against stock mul: forward, both gradients, 2-D and 3-D, both dtypes."""
+def padded_mul_gate(front: bool = False):
+    """PaddedMul(PaddedMulFront) against stock mul: forward, both gradients,
+    2-D and 3-D, both dtypes, and the storage geometry of each variant."""
+    mul_cls = PaddedMulFront if front else PaddedMul
     torch.manual_seed(3)
     cases = []
     direct_out_rejected = None
@@ -426,7 +490,7 @@ def padded_mul_gate():
                 except RuntimeError:
                     direct_out_rejected = True
             a2, b2 = a.clone().requires_grad_(True), b.clone().requires_grad_(True)
-            z = PaddedMul.apply(a2, b2)
+            z = mul_cls.apply(a2, b2)
             z.sum().backward()
             row = GEOMETRY[-1]
             cases.append({
@@ -438,6 +502,8 @@ def padded_mul_gate():
                 "pointer_preserved": row.get("pointer_preserved") is True,
                 "slack_after_tensor": row["slack_after_tensor"],
                 "storage_offset": row["storage_offset"],
+                "offset_bytes": row.get("offset_bytes"),
+                "ends_at_storage_end": row.get("ends_at_storage_end"),
                 "contiguous": row["contiguous"],
                 "kind": row.get("kind"),
             })
@@ -451,8 +517,18 @@ def padded_mul_gate():
         "grad_a_bitwise": all(c["grad_a_bitwise"] for c in cases),
         "grad_b_bitwise": all(c["grad_b_bitwise"] for c in cases),
         "no_resize": all(c["no_resize"] and c["pointer_preserved"] for c in cases),
-        "geometry_ok": all(c["slack_after_tensor"] >= SLACK_BYTES and c["contiguous"]
-                           and c["storage_offset"] == 0 for c in cases),
+        "geometry_ok": (all(c["offset_bytes"] == SLACK_BYTES
+                            and c["slack_after_tensor"] == 0
+                            and c["ends_at_storage_end"] is True
+                            and c["contiguous"]
+                            and c["storage_offset"] == SLACK_BYTES // (4 if "float32" in c["dtype"] else 2)
+                            for c in cases) if front else
+                        all(c["slack_after_tensor"] >= SLACK_BYTES and c["contiguous"]
+                            and c["storage_offset"] == 0 for c in cases)),
+        "ends_at_storage_end_all": all(c["ends_at_storage_end"] is True for c in cases),
+        "offset_bytes_all": sorted({c["offset_bytes"] for c in cases}),
+        "slack_after_all": sorted({c["slack_after_tensor"] for c in cases}),
+        "front": front,
     }
     return out
 
@@ -568,6 +644,13 @@ def selftest() -> int:
                                        "geometry_ok", "no_resize"))
     report["padded_mul_ok"] = mul_ok
 
+    front_gate = padded_mul_gate(front=True)
+    report["padded_mul_front"] = front_gate
+    front_ok = all(front_gate[k] for k in ("forward_bitwise_2d", "forward_bitwise_3d",
+                                           "grad_a_bitwise", "grad_b_bitwise",
+                                           "geometry_ok", "no_resize"))
+    report["padded_mul_front_ok"] = front_ok
+
     post = post_check_gate(mode=2)
     report["post_check"] = post
     post_ok = (post["model_state_unchanged_after_loop"] is True
@@ -587,6 +670,16 @@ def selftest() -> int:
                 and model["grads_bitwise"] and model["all_w3_still_linear"]
                 and model["modules_patched"] > 0)
     report["full_model_ok"] = model_ok
+
+    front_model = full_model_gate(mode=3)
+    report["full_model_front"] = front_model
+    front_model_ok = (front_model["names_equal"]
+                      and front_model["state_bitwise_identical"]
+                      and front_model["logits_bitwise"] and front_model["loss_bitwise"]
+                      and front_model["grads_bitwise"]
+                      and front_model["all_w3_still_linear"]
+                      and front_model["modules_patched"] > 0)
+    report["full_model_front_ok"] = front_model_ok
 
     product_model = full_model_gate(mode=2)
     report["full_model_product"] = product_model
@@ -611,15 +704,18 @@ def selftest() -> int:
                                      "storage_preserved", "out_wrote_into_view",
                                      "out_returned_same_object", "mixed_dtype_ok",
                                      "full_model_ok", "full_model_product_ok",
-                                     "padded_mul_ok", "post_check_ok")})
+                                     "padded_mul_ok", "padded_mul_front_ok",
+                                     "full_model_front_ok", "post_check_ok")})
           + " " + json.dumps(report["cases"]))
     print("MIXED " + json.dumps(report["mixed_dtype"], sort_keys=True))
     print("MODEL " + json.dumps(model, sort_keys=True))
     print("MUL " + json.dumps(mul_gate, sort_keys=True))
+    print("MULFRONT " + json.dumps(front_gate, sort_keys=True))
+    print("MODEL-FRONT " + json.dumps(front_model, sort_keys=True))
     print("MODEL-PRODUCT " + json.dumps(product_model, sort_keys=True))
     print("POST " + json.dumps(post, sort_keys=True))
     ok = (report["all_bitwise"] and report["geometry_ok"] and mixed_ok and model_ok
-          and product_ok and mul_ok and post_ok
+          and product_ok and mul_ok and front_ok and front_model_ok and post_ok
           and report["pointer_preserved"] and report["storage_preserved"]
           and report["out_wrote_into_view"] and report["out_returned_same_object"])
     return 0 if ok else 1
@@ -705,8 +801,9 @@ def repro(pad: int, out_path: str, repro_args) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("selftest", "repro"), required=True)
-    parser.add_argument("--pad", type=int, choices=(0, 1, 2), default=0,
-                        help="0 none, 1 w3 input gradient, 2 SwiGLU product")
+    parser.add_argument("--pad", type=int, choices=(0, 1, 2, 3), default=0,
+                        help="0 none, 1 w3 input gradient, 2 SwiGLU product, "
+                             "3 front-padded SwiGLU product")
     parser.add_argument("--out", default="geometry.json")
     parser.add_argument("--repro-args", nargs=argparse.REMAINDER, default=[])
     args = parser.parse_args()

@@ -1,0 +1,357 @@
+{
+  "classification": {
+    "code": 3,
+    "descriptors_ok": true,
+    "faulted": false,
+    "if_mapping_ends_at_the_page_then_code": 2,
+    "isolation_ok": true,
+    "literal_64B_candidates": 138,
+    "literal_64B_code_would_be": 2,
+    "mapping_beyond_logical_end": "unknown",
+    "note": "a 4-byte page remainder was present and read, but the pad is a page multiple, so the 2 MiB grid line where a rounded block would end moved 65,536 bytes away; the run therefore does not reproduce the tight stock condition and cannot settle the comparison",
+    "numerics_ok": true,
+    "page_dist_4_reads": 11,
+    "page_dist_le_16_read_products": 65,
+    "text": "inconclusive: the 4-byte page remainder was present and read, but no product can be shown to end within a vector access of its mapped boundary",
+    "tight_mapping_products": 0
+  },
+  "cpu_gates": {
+    "drift_guard": "OK",
+    "full_model_mode3": {
+      "grads_bitwise": true,
+      "logits_bitwise": true,
+      "loss_bitwise": true,
+      "modules_patched": 46,
+      "state_bitwise": true,
+      "w3_still_linear": true
+    },
+    "isolation_probe": {
+      "all_contiguous": true,
+      "all_end_at_storage_end": true,
+      "all_offsets_65536": true,
+      "all_pointer_preserved": true,
+      "all_zero_trailing_bytes": true,
+      "any_resize": false,
+      "front_products": 38,
+      "gradients_captured": 38,
+      "gradients_padded": 0,
+      "isolation_ok": true,
+      "kinds_recorded": [
+        "swiglu_product_front"
+      ],
+      "loss_bitwise_vs_stock": true,
+      "mode": 3,
+      "padded_records": 38,
+      "products_bitwise_vs_stock": true,
+      "products_seen_as_front_padded": 38,
+      "stock_products": 38,
+      "swiglu_modules_patched": 46,
+      "w3_modules_patched": 0
+    },
+    "padded_mul_front": {
+      "ends_at_storage_end_all": true,
+      "forward_bitwise_2d_3d_fp32_bf16": true,
+      "gradients_both_operands_bitwise": true,
+      "no_resize": true,
+      "offset_bytes_all": [
+        65536
+      ],
+      "slack_after_all": [
+        0
+      ]
+    },
+    "tests": "122 passed, 2 skipped"
+  },
+  "execution": {
+    "command": "v31p5m_plan.py --execute (mode 3)",
+    "completed": true,
+    "core_limit": "0",
+    "exit_code": 0,
+    "faulted": false,
+    "fresh_process": true,
+    "front_padded_products": 5566,
+    "gemm_reads_of_products": 9608,
+    "gpu_idle_after": true,
+    "iterations": 100,
+    "kernel_fault_records": 0,
+    "kernel_window": "No entries",
+    "reset_lines": [],
+    "retries": 0,
+    "signal": null,
+    "timeout_s": 120
+  },
+  "gate_a_numerics": {
+    "display_identity": true,
+    "display_values_compared": 2,
+    "first_loss_against_reference_4dp": true,
+    "first_loss_full_precision": "10.481635093688965",
+    "grad_norm_equal": true,
+    "grads_bitwise_equal": true,
+    "grads_compared": 120,
+    "padded_recompute": 10.481635093688965,
+    "post_check_ran": true,
+    "stock_recompute": 10.481635093688965,
+    "stock_vs_padded_loss_bitwise": true
+  },
+  "gate_b_isolation": {
+    "all_contiguous": true,
+    "all_end_at_storage_end": true,
+    "all_pointer_preserved": true,
+    "any_resized": false,
+    "kinds_recorded": [
+      "swiglu_product_front"
+    ],
+    "offset_bytes_set": [
+      65536
+    ],
+    "padded_gradient_records": 0,
+    "storage_overhead_bytes": [
+      65536
+    ],
+    "trailing_bytes_set": [
+      0
+    ]
+  },
+  "gate_c_descriptors": {
+    "changed_fields": "none; pointer value and address shift only",
+    "kernel_identity": "unknown, no solution id",
+    "w3_forward": "Adesc 256 682 256, OP_T/OP_N, Cdesc 256 3075 256",
+    "w3_group_equal": true,
+    "w3_weight_grad": "Adesc 256 3075 256, OP_N/OP_T, Cdesc 256 682 256"
+  },
+  "gate_d_boundary_exposure": {
+    "distance_models": "page_dist says 4 bytes of slack for 11 reads; the 2 MiB block model says at least 283,652 bytes; the data cannot choose between them",
+    "faulting_shape_product": {
+      "consumers": [
+        "w3_forward",
+        "w3_weight_grad"
+      ],
+      "grid_2mib_dist": 2031620,
+      "offset_bytes": 65536,
+      "page_dist": 4,
+      "ptr": "0x7fbfe8810000",
+      "roles": [
+        "B",
+        "A"
+      ],
+      "round_2mib_gap": 2031620,
+      "shape": [
+        3075,
+        682
+      ],
+      "storage_bytes": 4259836,
+      "tensor_bytes": 4194300,
+      "trailing_bytes": 0
+    },
+    "mapping_beyond_logical_end": "unknown",
+    "mapping_note": "the view ends at its storage end, so the storage gives no trailing bytes; whether the allocator block and the driver mapping continue past it is not visible in the record",
+    "min_round_2mib_gap_among_page_dist_le_16": 283652,
+    "page_dist_4_products": [
+      {
+        "consumers": [
+          "w3_forward"
+        ],
+        "grid_2mib_dist": 638980,
+        "offset_bytes": 65536,
+        "page_dist": 4,
+        "ptr": "0x7fc056810000",
+        "roles": [
+          "B"
+        ],
+        "round_2mib_gap": 638980,
+        "shape": [
+          7171,
+          682
+        ],
+        "storage_bytes": 9846780,
+        "tensor_bytes": 9781244,
+        "trailing_bytes": 0
+      },
+      {
+        "consumers": [
+          "w3_forward",
+          "w3_weight_grad"
+        ],
+        "grid_2mib_dist": 684036,
+        "offset_bytes": 65536,
+        "page_dist": 4,
+        "ptr": "0x7fc055804800",
+        "roles": [
+          "B",
+          "A"
+        ],
+        "round_2mib_gap": 636932,
+        "shape": [
+          5635,
+          682
+        ],
+        "storage_bytes": 7751676,
+        "tensor_bytes": 7686140,
+        "trailing_bytes": 0
+      },
+      {
+        "consumers": [
+          "w3_forward",
+          "w3_weight_grad"
+        ],
+        "grid_2mib_dist": 1331204,
+        "offset_bytes": 65536,
+        "page_dist": 4,
+        "ptr": "0x7fc059b10400",
+        "roles": [
+          "B",
+          "A"
+        ],
+        "round_2mib_gap": 283652,
+        "shape": [
+          2819,
+          682
+        ],
+        "storage_bytes": 3910652,
+        "tensor_bytes": 3845116,
+        "trailing_bytes": 0
+      },
+      {
+        "consumers": [
+          "w3_forward",
+          "w3_weight_grad"
+        ],
+        "grid_2mib_dist": 1335300,
+        "offset_bytes": 65536,
+        "page_dist": 4,
+        "ptr": "0x7fc03a965000",
+        "roles": [
+          "B",
+          "A"
+        ],
+        "round_2mib_gap": 634884,
+        "shape": [
+          4099,
+          682
+        ],
+        "storage_bytes": 5656572,
+        "tensor_bytes": 5591036,
+        "trailing_bytes": 0
+      },
+      {
+        "consumers": [
+          "w3_forward",
+          "w3_weight_grad"
+        ],
+        "grid_2mib_dist": 2031620,
+        "offset_bytes": 65536,
+        "page_dist": 4,
+        "ptr": "0x7fbfe8810000",
+        "roles": [
+          "B",
+          "A"
+        ],
+        "round_2mib_gap": 2031620,
+        "shape": [
+          3075,
+          682
+        ],
+        "storage_bytes": 4259836,
+        "tensor_bytes": 4194300,
+        "trailing_bytes": 0
+      },
+      {
+        "consumers": [
+          "w3_forward",
+          "w3_weight_grad"
+        ],
+        "grid_2mib_dist": 2035716,
+        "offset_bytes": 65536,
+        "page_dist": 4,
+        "ptr": "0x7fc03100f800",
+        "roles": [
+          "B",
+          "A"
+        ],
+        "round_2mib_gap": 2033668,
+        "shape": [
+          4611,
+          682
+        ],
+        "storage_bytes": 6354940,
+        "tensor_bytes": 6289404,
+        "trailing_bytes": 0
+      }
+    ],
+    "read_page_dist_histogram_le_16": {
+      "0": 733,
+      "12": 20,
+      "16": 12,
+      "4": 11,
+      "8": 12
+    },
+    "reads_at_page_dist_4": 11,
+    "reads_at_page_dist_le_16": 788
+  },
+  "implementation": {
+    "additive": "modes 0, 1 and 2 unchanged and still gated",
+    "allocator": "padded_front_like: storage of tensor_bytes + 65,536, view at offset 65,536, so the view ends at its storage end",
+    "function": "PaddedMulFront, same forward and backward as PaddedMul",
+    "no_copy": "torch.mul(a, b, out=view) writes directly",
+    "w3": "untouched, so the product gradient stays a stock ATen allocation"
+  },
+  "integrity": {
+    "backend_switch": "none",
+    "checkpoint_change": "none",
+    "deviations": "none",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "kernel_serialization": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none",
+    "tests": "122 passed, 2 skipped"
+  },
+  "interpretation": {
+    "established": [
+      "the front-padded arm is numerically exact, on CPU bitwise and on device at full precision, with the product gradient left stock",
+      "the 4-byte page remainder occurred on the faulting shape and both w3 consumers read it, 11 dispatches across 6 products",
+      "a 64 KiB front pad is a page multiple, so it leaves the page remainder alone while moving the 2 MiB line where a rounded block ends 65,536 bytes away"
+    ],
+    "not_established": [
+      "whether those reads were within a vector access of their mapped boundary",
+      "therefore whether trailing protection or layout drives the fault"
+    ],
+    "why_inconclusive": "the two remainders coincide in the stock allocations that faulted; this arm separates them, and the resulting operand is tight against a page that is probably not the end of its mapping"
+  },
+  "meta": {
+    "budget": {
+      "max_executions": 1,
+      "retries": 0,
+      "used": 1
+    },
+    "classification": 3,
+    "classification_text": "inconclusive: the 4-byte page remainder was present and read, but no product can be shown to end within a vector access of its mapped boundary",
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5M front-padded product control",
+    "git_head_at_preflight": "42fb498",
+    "mode": "mode 3: SwiGLU product at offset 65,536 in a larger storage"
+  },
+  "next_experiment": {
+    "arm": "front-pad by exactly 2,097,152 bytes, one 2 MiB page",
+    "if_clean": "layout, not over-read, drives the fault, the strongest available evidence in that direction",
+    "if_faulted": "trailing proximity is what matters; earlier clean runs were protection",
+    "required_census": "page_dist == 4 and grid_2mib_dist == 4 for at least one product actually read by both consumers",
+    "why": "2 MiB is a multiple of both the page size and the block granularity, so both remainders stay at 4 bytes while the allocation doubles and the address shifts"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle, no foreign KFD process, before and after",
+    "head": "42fb498",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean before the stage"
+  }
+}
