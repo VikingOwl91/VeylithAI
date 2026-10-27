@@ -1,0 +1,306 @@
+{
+  "hypotheses": {
+    "A_over_read": {
+      "contradictory": "an identical tail-4 aligned tensor was read in 5J and 5K without a fault",
+      "missing": "the instruction and kernel, and whether the faulting read is the one at the page end",
+      "smallest_discriminating_experiment": "provenance-instrumented stock run",
+      "supporting": "three faults page-exact with a 4-byte tail at a 2 MiB aligned end; no fault when the buffer had slack"
+    },
+    "B_kernel_or_transpose": {
+      "contradictory": "the asymmetry is inferred from dispatch counts the records cannot fully explain, and in faulting runs the same tensor is read by both formulations",
+      "missing": "kernel identity and per-dispatch evidence",
+      "smallest_discriminating_experiment": "provenance that names the consumer of the faulting read",
+      "supporting": "only the runs with a C 256xM OP_N read of the tail-4 tensor faulted; 3 for 3 versus 0 for 2"
+    },
+    "C_reuse_or_lifetime": {
+      "contradictory": "the tensor is live in the dispatch record at the read, and no double free or use-after-free has been observed",
+      "missing": "free events and lifetimes",
+      "smallest_discriminating_experiment": "the same provenance run",
+      "supporting": "the 5N pointer was reused and a stale record for the same address exists; the fault surfaces one iteration later"
+    },
+    "D_other_kernel": {
+      "contradictory": "the 4-byte tail coincidence recurred in three independent runs at three addresses, each time with an (M,682) operand",
+      "missing": "the faulting kernel",
+      "smallest_discriminating_experiment": "a run that removes the tail-4 operand while leaving everything else equal",
+      "supporting": "asynchronous reporting one iteration later; in 5N a second page-exact candidate existed at the same page, an 8 MB stock activation ending exactly on it"
+    },
+    "confirmed": false
+  },
+  "instrumentation_design": {
+    "executed": false,
+    "layer_1": "torch.cuda.memory._record_memory_history: allocator events with Python stacks, C++ level, no operator interception; dump from the exception handler after a catchable fault",
+    "layer_2": "TorchFunctionMode restricted to BF16 outputs of exactly 4,194,300 bytes, recording producer tag and consumer role",
+    "reuse_handling": "key on (pointer, byte count, lifetime id) and reject joins outside the lifetime; retrospective pointer-only matching is abandoned",
+    "risk": "instrumentation suppressed this fault in PERF-5E, so the first run must be treated as an instrumentation-validity test too"
+  },
+  "integrity": {
+    "checkpoint_change": "none",
+    "drift_guard": "OK",
+    "gpu_execution": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "rocm_change": "none",
+    "tests": "122 passed, 2 skipped"
+  },
+  "meta": {
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5O operand provenance and fault reconciliation",
+    "git_head": "a5cc1ce",
+    "gpu_executions": 0,
+    "kind": "CPU-only offline analysis, no GPU execution"
+  },
+  "next_experiment": {
+    "arm": "unmodified stock reproducer, no padding, with layer 1 and the size-filtered layer 2 enabled, dumping from the exception handler",
+    "executed": false,
+    "gpu_runs": 1,
+    "outcome_classes": {
+      "freed_before_fault": "C",
+      "live_derivative_OP_N_consumer": "B gains support, A remains the mechanism",
+      "live_derivative_both_formulations": "A over B, asymmetry needs another explanation",
+      "no_fault": "instrumentation suppressed it; report and stop",
+      "no_tail4_operand_at_page": "D"
+    },
+    "safety": {
+      "core_limit": "0",
+      "foreign_kfd_check": true,
+      "fresh_process": true,
+      "gpu_reset": null,
+      "idle_gate": true,
+      "iterations": 100,
+      "profiler": null,
+      "retries": 0,
+      "serialization": null,
+      "timeout_s": 120
+    },
+    "stop_conditions": [
+      "no fault",
+      "ambiguous provenance join for the fault tensor",
+      "first loss changes"
+    ],
+    "validity_gates": [
+      "CPU: instrumentation numerically neutral, whole model bitwise",
+      "GPU: at least one tail-4 (M,682) BF16 allocation with a producer stack",
+      "GPU: at least one consumer dispatch matching pointer, byte count and lifetime",
+      "the fault page matches that tensor's page inside the same lifetime"
+    ],
+    "why": "four padding arms produced one clean discrimination and then a contradiction; one provenance run converts the hypotheses from inference to evidence"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "drift_guard": "OK",
+    "gpu": "not used",
+    "head": "a5cc1ce",
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean"
+  },
+  "reconciliation": {
+    "common_geometry": "BF16 GEMM operand, 4,194,300 bytes = (3075,682), 2 MiB aligned, page_dist 4, grid_2mib_dist 4",
+    "inferred": "the tensor is one of three (M,682) BF16 tensors that can be a GEMM operand; the descriptor pair is produced by three different producer/consumer combinations with identical fields",
+    "observed": [
+      "pointer",
+      "byte count from the descriptor",
+      "GEMM role and descriptor pair",
+      "dispatch timestamp",
+      "fault page when present",
+      "fault page lies in no padded storage in 5I, 5L and 5N"
+    ],
+    "runs": [
+      {
+        "arm": "mode 1, product stock, gradient padded",
+        "bytes": 4194300,
+        "fault_page": "0x00007ff321400000",
+        "fault_page_equals_tensor_page": true,
+        "faulted": true,
+        "grid_2mib_dist": 4,
+        "padded_membership": false,
+        "page_dist": 4,
+        "ptr": "0x7ff321000000",
+        "read_shapes": [
+          "C 256x682 transB OP_T",
+          "C 256x3075 transB OP_N"
+        ],
+        "reads": 2,
+        "run": "PERF-5I"
+      },
+      {
+        "arm": "mode 1 replication",
+        "bytes": 4194300,
+        "fault_page": "0x00007fccce200000",
+        "fault_page_equals_tensor_page": true,
+        "faulted": true,
+        "grid_2mib_dist": 4,
+        "padded_membership": false,
+        "page_dist": 4,
+        "ptr": "0x7fcccde00000",
+        "read_shapes": [
+          "C 256x682 transB OP_T",
+          "C 256x3075 transB OP_N"
+        ],
+        "reads": 2,
+        "run": "PERF-5L"
+      },
+      {
+        "arm": "mode 4, product front-padded 2 MiB",
+        "bytes": 4194300,
+        "fault_page": "0x00007f505b600000",
+        "fault_page_equals_tensor_page": true,
+        "faulted": true,
+        "grid_2mib_dist": 4,
+        "padded_membership": false,
+        "page_dist": 4,
+        "ptr": "0x7f505b200000",
+        "read_shapes": [
+          "C 256x682 transB OP_T",
+          "C 256x3075 transB OP_N"
+        ],
+        "reads": 4,
+        "run": "PERF-5N"
+      },
+      {
+        "arm": "mode 2, product back-padded",
+        "bytes": 4194300,
+        "fault_page": null,
+        "fault_page_equals_tensor_page": null,
+        "faulted": false,
+        "grid_2mib_dist": 4,
+        "padded_membership": false,
+        "page_dist": 4,
+        "ptr": "0x7fdf79800000",
+        "read_shapes": [
+          "C 256x682 transB OP_T"
+        ],
+        "reads": 1,
+        "run": "PERF-5J"
+      },
+      {
+        "arm": "mode 2 replication",
+        "bytes": 4194300,
+        "fault_page": null,
+        "fault_page_equals_tensor_page": null,
+        "faulted": false,
+        "grid_2mib_dist": 4,
+        "padded_membership": false,
+        "page_dist": 4,
+        "ptr": "0x7f594be00000",
+        "read_shapes": [
+          "C 256x682 transB OP_T"
+        ],
+        "reads": 1,
+        "run": "PERF-5K"
+      }
+    ],
+    "unknown": [
+      "no allocation record exists for the 5N fault pointer, so it was allocated by ATen, not by the harness",
+      "that pointer falls inside a storage the harness recorded earlier for a (3068,682) front-padded product at 0x7f505affb800, so pointer-only matching would wrongly name that product",
+      "the clean runs show only the C 256x682 OP_T read, the faulting runs show both shapes; whether that is a role asymmetry or a dispatch artefact is unresolved",
+      "no artifact records the allocating operator or a tensor lifetime"
+    ]
+  },
+  "static_graph": {
+    "candidates_by_arm": {
+      "5I_5L": [
+        "product",
+        "grad_up",
+        "grad_silu"
+      ],
+      "5J_5K_5N": [
+        "grad_up",
+        "grad_silu"
+      ],
+      "reason": "the product is provably padded in 5N (its single (3075,682) record is at 0x7f4f9ef50000) and in 5J/5K"
+    },
+    "family_size": 8,
+    "gemm_operand_candidates": [
+      4,
+      7,
+      8
+    ],
+    "tensors": [
+      {
+        "consumers": [
+          "silu"
+        ],
+        "gemm_operand": false,
+        "id": 1,
+        "phase": "forward",
+        "producer": "aten::linear (mm)",
+        "tensor": "w1_out"
+      },
+      {
+        "consumers": [
+          "mul"
+        ],
+        "gemm_operand": false,
+        "id": 2,
+        "phase": "forward",
+        "producer": "aten::silu",
+        "tensor": "silu_out"
+      },
+      {
+        "consumers": [
+          "mul"
+        ],
+        "gemm_operand": false,
+        "id": 3,
+        "phase": "forward",
+        "producer": "aten::linear (mm)",
+        "tensor": "w2_out"
+      },
+      {
+        "consumers": [
+          "w3 forward GEMM",
+          "MulBackward"
+        ],
+        "gemm_operand": true,
+        "id": 4,
+        "phase": "forward",
+        "producer": "aten::mul",
+        "tensor": "product"
+      },
+      {
+        "consumers": [
+          "MulBackward"
+        ],
+        "gemm_operand": false,
+        "id": 5,
+        "phase": "backward",
+        "producer": "aten::mm (linear backward)",
+        "tensor": "d_product"
+      },
+      {
+        "consumers": [
+          "silu_backward"
+        ],
+        "gemm_operand": false,
+        "id": 6,
+        "phase": "backward",
+        "producer": "MulBackward",
+        "tensor": "grad_gate"
+      },
+      {
+        "consumers": [
+          "w2 backward GEMMs"
+        ],
+        "gemm_operand": true,
+        "id": 7,
+        "phase": "backward",
+        "producer": "MulBackward",
+        "tensor": "grad_up"
+      },
+      {
+        "consumers": [
+          "w1 backward GEMMs"
+        ],
+        "gemm_operand": true,
+        "id": 8,
+        "phase": "backward",
+        "producer": "aten::silu_backward",
+        "tensor": "grad_silu"
+      }
+    ]
+  }
+}
