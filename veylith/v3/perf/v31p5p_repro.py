@@ -50,6 +50,8 @@ def main() -> int:
         return orig_get_batch(*a, **k)
 
     impl.get_batch = get_batch_counted
+    first = {}
+    restore_forward = provenance.capture_first_loss(impl, first)
     try:
         with provenance.Phase(impl):
             with provenance.TagMode():
@@ -64,9 +66,12 @@ def main() -> int:
                     provenance.dump_snapshot("fault")
                     print("PROVFAULT " + json.dumps(status), flush=True)
     finally:
+        impl.GPT.forward = restore_forward
         impl.get_batch = orig_get_batch
         provenance.dump_snapshot("final")
         provenance.finish()
+        status["first_loss"] = first.get("first_loss")
+        status["first_loss_error"] = first.get("first_loss_error")
         status["get_batch_calls"] = counter["n"]
         status["events"] = provenance._STATE["seq"]
         status["alloc_history"] = provenance._STATE["alloc_history"]

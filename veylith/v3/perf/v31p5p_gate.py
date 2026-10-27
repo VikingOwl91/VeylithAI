@@ -47,6 +47,8 @@ def run_model(instrumented: bool, out_dir: str):
         provenance.enable(out_dir)
     model = impl.GPT(cfg())
     idx, tgt = batch()
+    first = {}
+    restore = provenance.capture_first_loss(impl, first) if instrumented else None
     if instrumented:
         with provenance.Phase(impl):
             with provenance.TagMode():
@@ -55,11 +57,13 @@ def run_model(instrumented: bool, out_dir: str):
     else:
         logits, loss = model(idx, tgt)
         loss.backward()
+    if restore is not None:
+        impl.GPT.forward = restore
     grads = [(n, p.grad.clone() if p.grad is not None else None)
              for n, p in model.named_parameters()]
     state = [(n, p.detach().clone()) for n, p in model.named_parameters()]
     return {"logits": logits.detach(), "loss": float(loss.detach()),
-            "grads": grads, "state": state}
+            "grads": grads, "state": state, "first": first}
 
 
 def events(path):
@@ -96,6 +100,12 @@ def main() -> int:
         gates["model_run_events_parse"] = len(ev) >= 0
         gates["model_run_forward_phase_consistent"] = all(
             e["phase"] == "forward" for e in producers)
+        gates["first_loss_captured"] = inst["first"].get("first_loss") is not None
+        gates["first_loss_matches_model_loss"] = (
+            inst["first"].get("first_loss") == inst["loss"])
+        gates["first_loss_capture_no_drift"] = (
+            stock["loss"] == inst["loss"]
+            and torch.equal(stock["logits"], inst["logits"]))
 
         # 2, size-filtered tagging, exercised synthetically: the debug batch is
         # far too small to allocate a 4,194,300-byte tensor

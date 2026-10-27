@@ -171,6 +171,34 @@ class Phase:
         return False
 
 
+def capture_first_loss(impl, store: dict):
+    """Capture the first forward loss at full precision, once.
+
+    The reproducer already reads ``loss.item()`` for its display at iteration 0,
+    so this adds no new synchronisation or transfer; it only keeps the scalar
+    instead of formatting it to four decimals.
+    """
+    original = impl.GPT.forward
+
+    def forward(self, *a, **k):
+        out = original(self, *a, **k)
+        if "first_loss" not in store:
+            try:
+                loss = out[1] if isinstance(out, tuple) else None
+                if loss is not None:
+                    value = float(loss.detach())
+                    store["first_loss"] = value
+                    print("FIRSTLOSS " + json.dumps(
+                        {"iter0_loss": repr(value),
+                         "iter0_loss_4dp": f"{value:.4f}"}), flush=True)
+            except Exception as exc:  # noqa: BLE001
+                store["first_loss_error"] = f"{type(exc).__name__}: {exc}"
+        return out
+
+    impl.GPT.forward = forward
+    return original
+
+
 def enable_alloc_history() -> str:
     """Turn on the allocator's own history; returns its status."""
     try:

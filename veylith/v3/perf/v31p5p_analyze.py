@@ -146,9 +146,12 @@ def main() -> int:
                                  and all(a == b for a, b in zip(ref_evals, pad_evals))),
         "reference_losses": ref_losses, "padded_losses": pad_losses,
         "reference_evals": ref_evals, "padded_evals": pad_evals,
-        "first_loss_full_precision": None,
-        "first_loss_note": "the stock child entry point does not print the "
-                           "full-precision first loss; display value only",
+        "first_loss_full_precision": prov.get("first_loss"),
+        "first_loss_reference_expectation": 10.481635093688965,
+        "first_loss_matches_expectation":
+            prov.get("first_loss") == 10.481635093688965,
+        "first_loss_note": "value captured at iteration 0 and compared against the "
+                           "reference expectation recorded in earlier stages",
     }
     overhead = {
         "events": len(ev), "tagged_producers": len(tags),

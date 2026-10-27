@@ -1,0 +1,192 @@
+{
+  "attribution_quality": {
+    "consumer_roles": "observed from the dispatch record, including OP_N and OP_T",
+    "lifetime": "partial: allocation precedes consumption and no reuse is recorded, but the addresses fall outside the retained allocator history",
+    "phase": "observed: forward product, backward linear-output gradient",
+    "producer": "observed for every tail-4 candidate from the tag registry"
+  },
+  "comparison_5p": {
+    "5P": {
+      "attribution": "observed",
+      "fault": false,
+      "first_loss": null,
+      "tail4": 2
+    },
+    "5Q_A": {
+      "attribution": "observed",
+      "fault": false,
+      "first_loss": 10.481635093688965,
+      "tail4": 2
+    },
+    "5Q_B": {
+      "attribution": "observed",
+      "fault": false,
+      "first_loss": 10.481635093688965,
+      "tail4": 2
+    },
+    "note": "three instrumented stock runs, all clean, all with the product at the fault geometry and read by both the OP_N and OP_T formulations"
+  },
+  "integrity": {
+    "backend_switch": "none",
+    "checkpoint_change": "none",
+    "gpu_reset": "none",
+    "kernel_serialization": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none"
+  },
+  "meta": {
+    "classification": [
+      3,
+      3
+    ],
+    "classification_text": "clean with critical exposure in both runs; the instrumented configuration has not reproduced the fault in three runs",
+    "experiment": "v3.1-PERF-5Q instrumented stock replication",
+    "git_head": "d73b105",
+    "gpu_executions": 2
+  },
+  "next_experiment": {
+    "arm": "uninstrumented stock runs, mode 0, no provenance, full-precision first loss printed",
+    "gates": [
+      "display losses identical and first loss equal to 10.481635093688965",
+      "at least one tail-4 operand read to count as a meaningful control",
+      "stop at the first fault"
+    ],
+    "if_clean": "the base rate changed; re-examine the 5I, 5L and 5N attributions",
+    "if_faulted": "suppression becomes the leading explanation; next strip instrumentation to tags only",
+    "runs": 2,
+    "why": "separates instrumentation suppression from a changed base rate"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "drift_guard": "OK before and after",
+    "gpu": "idle, no foreign KFD process, before and after",
+    "head": "d73b105",
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean"
+  },
+  "preparation": {
+    "change": "first forward loss captured at full precision from a GPT.forward wrapper, printed once, stored in prov.json",
+    "cpu_gates": {
+      "bitwise_stock_vs_instrumented": true,
+      "drift_guard": "OK",
+      "fault_handler_parseable": true,
+      "first_loss_captured": true,
+      "first_loss_equals_model_loss": true,
+      "no_numerical_drift": true,
+      "reuse_handling": true,
+      "tag_filters_unchanged": true,
+      "tests": "122 passed, 2 skipped"
+    },
+    "new_instrumentation": "none; history limits and tag filters unchanged",
+    "no_new_sync": "the reproducer already calls loss.item() at iteration 0 for its display line"
+  },
+  "remaining_uncertainty": [
+    "whether the clean runs reflect suppression or a lower base rate under current conditions",
+    "whether the earlier faults depended on an allocation neighbourhood the snapshot buffers perturb",
+    "the faulting instruction is still unobserved"
+  ],
+  "runs": {
+    "A": {
+      "classification": 3,
+      "classification_text": "no fault, with the critical geometry present and read in this run",
+      "display_identity": true,
+      "faulted": false,
+      "first_loss_full_precision": 10.481635093688965,
+      "first_loss_matches_expectation": true,
+      "overhead": {
+        "events": 32,
+        "get_batch_calls": 120,
+        "snapshot_bytes": [
+          10451829,
+          16929567
+        ],
+        "snapshots": 5,
+        "tagged_producers": 15,
+        "truncated": false
+      },
+      "tail4": [
+        {
+          "op_n_reads": 1,
+          "op_t_reads": 1,
+          "producer_observed": "?.mul",
+          "producer_phase": "forward",
+          "provenance": "observed",
+          "ptr": "0x7fb639a00000",
+          "reads": 2
+        },
+        {
+          "op_n_reads": 0,
+          "op_t_reads": 1,
+          "producer_observed": "grad_of:torch._C._nn.linear",
+          "producer_phase": "backward",
+          "provenance": "observed",
+          "ptr": "0x7fb615200000",
+          "reads": 1
+        }
+      ]
+    },
+    "B": {
+      "classification": 3,
+      "classification_text": "no fault, with the critical geometry present and read in this run",
+      "display_identity": true,
+      "faulted": false,
+      "first_loss_full_precision": 10.481635093688965,
+      "first_loss_matches_expectation": true,
+      "overhead": {
+        "events": 32,
+        "get_batch_calls": 120,
+        "snapshot_bytes": [
+          10451829,
+          16929567
+        ],
+        "snapshots": 5,
+        "tagged_producers": 15,
+        "truncated": false
+      },
+      "tail4": [
+        {
+          "op_n_reads": 1,
+          "op_t_reads": 1,
+          "producer_observed": "?.mul",
+          "producer_phase": "forward",
+          "provenance": "observed",
+          "ptr": "0x7f2739400000",
+          "reads": 2
+        },
+        {
+          "op_n_reads": 0,
+          "op_t_reads": 1,
+          "producer_observed": "grad_of:torch._C._nn.linear",
+          "producer_phase": "backward",
+          "provenance": "observed",
+          "ptr": "0x7f2714c00000",
+          "reads": 1
+        }
+      ]
+    },
+    "runner": {
+      "faults": 0,
+      "max_runs": 2,
+      "stop_at_first_fault": true
+    }
+  },
+  "suppression_assessment": {
+    "fisher_one_sided_p": 0.1,
+    "instrumented_stock_runs_clean": [
+      "PERF-5P",
+      "PERF-5Q A",
+      "PERF-5Q B"
+    ],
+    "uninstrumented_stock_runs_faulted": [
+      "PERF-5F A",
+      "PERF-5G A"
+    ],
+    "verdict": "suggestive, not proven; three clean runs do not establish instrumentation suppression"
+  }
+}
