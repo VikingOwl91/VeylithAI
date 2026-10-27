@@ -6,6 +6,7 @@ import json
 import math
 import os
 import random
+import shutil
 import time
 
 import numpy as np
@@ -38,6 +39,26 @@ def _append_jsonl(path: str, payload: dict) -> None:
     os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
     with open(path, "a", encoding="utf-8") as handle:
         handle.write(json.dumps(payload, sort_keys=True) + "\n")
+
+
+def _record_checkpoint(cfg: TrainConfig, path: str, step: int,
+                       tokens_seen: int, log) -> dict:
+    digest = sha256_file(path)
+    size = os.path.getsize(path)
+    free = shutil.disk_usage(os.path.dirname(os.path.abspath(path))).free
+    record = {
+        "step": int(step),
+        "tokens_seen": int(tokens_seen),
+        "path": os.path.abspath(path),
+        "bytes": int(size),
+        "sha256": digest,
+        "free_bytes": int(free),
+        "time_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    }
+    _append_jsonl(os.path.join(cfg.out_dir, "checkpoints.jsonl"), record)
+    log(f"  state -> {path} (step {step}, {size/1e9:.2f} GB, "
+        f"sha {digest[:16]}, free {free/1e9:.1f} GB)")
+    return record
 
 
 def _param_groups(model, weight_decay: float):
@@ -79,6 +100,12 @@ def _router_summary(counts, n_experts: int):
                        "share_pct": [round(float(value) * 100, 2) for value in probs]})
     return {"layers": layers,
             "mean_entropy_norm": sum(entropies) / len(entropies) if entropies else None}
+
+
+def state_path_for(cfg: TrainConfig, step: int) -> str:
+    if "{step" in cfg.state_path:
+        return cfg.state_path.format(step=step)
+    return cfg.state_path
 
 
 def _select_score(metrics: dict, cfg: TrainConfig) -> float:
@@ -127,6 +154,7 @@ def train(cfg: TrainConfig, log=print) -> dict:
     tokens_seen = 0
     best_metric = float("inf")
     best_step = None
+    best_tokens_seen = 0
     best_state = None
     best_metrics = None
     loader_epoch, loader_batch = 0, 0
@@ -140,6 +168,7 @@ def train(cfg: TrainConfig, log=print) -> dict:
         tokens_seen = int(state["tokens_seen"])
         best_metric = float(state["best_metric"])
         best_step = state.get("best_step")
+        best_tokens_seen = int(state.get("best_tokens_seen", 0))
         best_state = state.get("best_state")
         best_metrics = state.get("best_metrics")
         loader_epoch = int(state["loader"]["epoch"])
@@ -151,8 +180,11 @@ def train(cfg: TrainConfig, log=print) -> dict:
     if start_step >= stop_step:
         return {"steps": start_step, "tokens_seen": tokens_seen,
                 "best_metric": best_metric, "best_step": best_step,
+                "best_tokens_seen": best_tokens_seen,
                 "stopped_early": stop_step < cfg.max_steps,
-                "checkpoint": cfg.checkpoint, "state_path": cfg.state_path,
+                "reason": "already_at_stop_step",
+                "checkpoint": cfg.checkpoint,
+                "state_path": state_path_for(cfg, start_step),
                 "curve_jsonl": cfg.curve_jsonl}
 
     plan = loader.plan_sequences(cfg.data_root, split="train",
@@ -160,8 +192,21 @@ def train(cfg: TrainConfig, log=print) -> dict:
     if plan["tokens"] <= 0:
         raise ValueError("empty training plan")
     batches_per_epoch = math.ceil(len(plan["sequences"]) / cfg.batch_size)
+    if cfg.single_pass:
+        expected_tokens = int(tokenization["splits"]["train"]["tokens"])
+        problems = loader.verify_plan(plan, expected_tokens=expected_tokens)
+        if problems:
+            raise ValueError("single-pass plan invalid: " + "; ".join(problems[:3]))
+        expected_updates = math.ceil(batches_per_epoch / cfg.grad_accum)
+        if cfg.max_steps != expected_updates:
+            raise ValueError(
+                f"single_pass max_steps {cfg.max_steps} does not match the "
+                f"deterministic plan ({expected_updates} updates)")
+        if loader_epoch != 0:
+            raise ValueError("single-pass resume must be inside the first epoch")
     remaining_batches = (stop_step - start_step) * cfg.grad_accum
-    epochs_needed = math.ceil(remaining_batches / batches_per_epoch) + 1
+    epochs_needed = (max(0, 1 - loader_epoch) if cfg.single_pass
+                     else math.ceil(remaining_batches / batches_per_epoch) + 1)
     iterator = loader.iter_batches(
         plan, cfg.data_root, batch_size=cfg.batch_size, epochs=epochs_needed,
         seed=cfg.seed, start_epoch=loader_epoch, start_batch=loader_batch)
@@ -173,17 +218,33 @@ def train(cfg: TrainConfig, log=print) -> dict:
     tokens_seen = int(tokens_seen)
     loader_epoch_out, loader_batch_out = loader_epoch, loader_batch
     t_start = time.time()
+
+    def persist(path, step_value, tokens_value, epoch_value, batch_value):
+        save_state(
+            path, model=model, optimizer=optimizer, schedule=schedule,
+            step=step_value, tokens_seen=tokens_value,
+            loader_epoch=epoch_value, loader_batch=batch_value,
+            best_metric=best_metric, best_step=best_step,
+            best_tokens_seen=best_tokens_seen,
+            best_state=best_state, best_metrics=best_metrics,
+            config=cfg, data_manifest_sha256=data_sha,
+            fingerprint=fingerprint)
+        return _record_checkpoint(cfg, path, step_value, tokens_value, log)
+
     if step == 0 and cfg.eval_interval > 0:
-        val = evaluate(model, cfg, "validation", max_batches=cfg.eval_max_batches)
-        gap = evaluate(model, cfg, "train", max_batches=cfg.train_gap_batches)
+        val = evaluate(model, cfg, "validation", max_batches=cfg.eval_max_batches,
+                       exact_chars=cfg.exact_chars)
+        gap = evaluate(model, cfg, "train", max_batches=cfg.train_gap_batches,
+                       exact_chars=cfg.exact_chars)
         score = _select_score(val, cfg)
         best_metric = score
         best_step = 0
+        best_tokens_seen = 0
         best_metrics = val
         best_state = {key: value.detach().cpu().clone()
                       for key, value in model.state_dict().items()}
         initial_record = {
-            "step": 0, "val": val,
+            "step": 0, "tokens_seen": 0, "val": val,
             "train_gap": {
                 "train_main_ce": gap["overall"]["main_ce"],
                 "gap_nats": (val["overall"]["main_ce"] - gap["overall"]["main_ce"])
@@ -196,7 +257,28 @@ def train(cfg: TrainConfig, log=print) -> dict:
         _append_jsonl(cfg.curve_jsonl, initial_record)
         log(f"initial validation: macro {val['overall']['macro_main_ce']:.4f} "
             f"token {val['overall']['main_ce']:.4f}")
+        if cfg.save_initial_state:
+            initial_path = state_path_for(cfg, 0)
+            persist(initial_path, 0, 0, 0, 0)
+    max_tokens = (int(tokenization["splits"]["train"]["tokens"])
+                  if cfg.single_pass else None)
+    collapse_streak = 0
     while step < stop_step:
+        if cfg.max_wall_seconds is not None and time.time() - t_start > cfg.max_wall_seconds:
+            partial_path = state_path_for(cfg, step)
+            persist(partial_path, step, tokens_seen,
+                    loader_epoch_out, loader_batch_out)
+            _append_jsonl(cfg.curve_jsonl, {
+                "event": "stopped", "step": step,
+                "tokens_seen": tokens_seen, "reason": "wall_clock",
+                "elapsed_s": round(time.time() - t_start, 3)})
+            log(f"wall-clock limit reached at step {step}; partial state written")
+            return {"steps": step, "tokens_seen": tokens_seen,
+                    "best_metric": best_metric, "best_step": best_step,
+                    "best_tokens_seen": best_tokens_seen,
+                    "stopped_early": True, "reason": "wall_clock",
+                    "checkpoint": None, "state_path": partial_path,
+                    "curve_jsonl": cfg.curve_jsonl}
         window = []
         for _ in range(cfg.grad_accum):
             try:
@@ -209,6 +291,10 @@ def train(cfg: TrainConfig, log=print) -> dict:
                           for length in batch["lengths"])
         if total_valid <= 0:
             continue
+        if max_tokens is not None and tokens_seen + total_valid > max_tokens:
+            raise RuntimeError(
+                f"token budget exhausted: {tokens_seen} + {total_valid} > "
+                f"{max_tokens}")
         step_start = time.perf_counter()
         optimizer.zero_grad(set_to_none=True)
         window_ce = window_aux = 0.0
@@ -218,6 +304,8 @@ def train(cfg: TrainConfig, log=print) -> dict:
                 ce_sum, aux, count, router = _loss_terms(
                     model, batch, cfg.device, cfg.model.moe_aux_weight)
                 loss = (ce_sum + cfg.model.moe_aux_weight * aux * count) / total_valid
+                if not math.isfinite(float(loss.detach())):
+                    raise RuntimeError(f"non-finite loss at update {step + 1}")
                 loss.backward()
                 window_ce += float(ce_sum.detach())
                 window_aux += float(aux.detach()) * count
@@ -233,11 +321,17 @@ def train(cfg: TrainConfig, log=print) -> dict:
         else:
             grad_norm = float(torch.nn.utils.clip_grad_norm_(
                 model.parameters(), float("inf")))
+        if not math.isfinite(grad_norm):
+            raise RuntimeError(f"non-finite gradient norm at update {step + 1}")
         lr = schedule.advance()
         for group in optimizer.param_groups:
             group["lr"] = lr
         optimizer.step()
         tokens_seen += total_valid
+        if max_tokens is not None and tokens_seen > max_tokens:
+            raise RuntimeError(
+                f"token budget exceeded at update {step + 1}: {tokens_seen} > "
+                f"{max_tokens}")
         step += 1
         step_seconds = time.perf_counter() - step_start
         if step_seconds > 120:
@@ -252,6 +346,20 @@ def train(cfg: TrainConfig, log=print) -> dict:
         train_aux = window_aux / total_valid
         n_moe = sum(1 for block in model.blocks if block.is_moe)
         train_loss = train_main + cfg.model.moe_aux_weight * train_aux
+        if not math.isfinite(train_loss):
+            raise RuntimeError(f"non-finite training loss at update {step}")
+        router_summary = (_router_summary(router_counts, cfg.model.n_experts)
+                          if router_counts is not None else None)
+        mean_entropy = (router_summary["mean_entropy_norm"]
+                        if router_summary is not None else None)
+        if mean_entropy is not None and mean_entropy < 0.5:
+            collapse_streak += 1
+        else:
+            collapse_streak = 0
+        if collapse_streak >= 10:
+            raise RuntimeError(
+                f"persistent router collapse: entropy {mean_entropy:.3f} "
+                f"for {collapse_streak} updates")
         record = {
             "step": step,
             "lr": lr,
@@ -264,18 +372,28 @@ def train(cfg: TrainConfig, log=print) -> dict:
             "grad_norm": grad_norm,
             "step_seconds": round(step_seconds, 4),
             "tokens_per_s": round(total_valid / max(step_seconds, 1e-9), 1),
-            "router": _router_summary(router_counts, cfg.model.n_experts)
-            if router_counts is not None else None,
+            "router": router_summary,
+            "router_collapse_streak": collapse_streak,
             "elapsed_s": round(time.time() - t_start, 3),
         }
+        if step == start_step + 1 and start_step > 0:
+            record["resume_trace"] = {
+                "loader_epoch": int(window[0]["epoch"]),
+                "loader_batch": int(window[0]["batch"]),
+                "indices": [int(value) for value in window[0]["indices"]],
+                "order_digest": window[0]["order_digest"],
+                "tokens_seen_before": tokens_seen - total_valid,
+            }
         if cfg.device == "cuda":
             record["vram_allocated_gb"] = round(torch.cuda.memory_allocated() / 1e9, 3)
             record["vram_reserved_gb"] = round(torch.cuda.memory_reserved() / 1e9, 3)
         if step % cfg.eval_interval == 0 or step == stop_step:
             val = evaluate(model, cfg, "validation",
-                           max_batches=cfg.eval_max_batches)
+                           max_batches=cfg.eval_max_batches,
+                           exact_chars=cfg.exact_chars)
             train_gap = evaluate(model, cfg, "train",
-                                 max_batches=cfg.train_gap_batches)
+                                 max_batches=cfg.train_gap_batches,
+                                 exact_chars=cfg.exact_chars)
             val_ce = val["overall"]["main_ce"]
             train_ce = train_gap["overall"]["main_ce"]
             record["val"] = val
@@ -290,6 +408,7 @@ def train(cfg: TrainConfig, log=print) -> dict:
             if improved:
                 best_metric = score
                 best_step = step
+                best_tokens_seen = tokens_seen
                 best_metrics = val
                 best_state = {key: value.detach().cpu().clone()
                               for key, value in model.state_dict().items()}
@@ -297,25 +416,28 @@ def train(cfg: TrainConfig, log=print) -> dict:
             log(f"step {step}: train {train_loss:.4f} | val macro "
                 f"{val['overall']['macro_main_ce']:.4f} token "
                 f"{val['overall']['main_ce']:.4f} | best {best_metric:.4f} @ {best_step}")
-        if step % cfg.log_every == 0 or "val" in record:
+        if (step % cfg.log_every == 0 or "val" in record
+                or "resume_trace" in record):
             _append_jsonl(cfg.curve_jsonl, record)
-        if step % cfg.save_every == 0 or step == stop_step:
-            save_state(
-                cfg.state_path, model=model, optimizer=optimizer, schedule=schedule,
-                step=step, tokens_seen=tokens_seen,
-                loader_epoch=loader_epoch_out, loader_batch=loader_batch_out,
-                best_metric=best_metric, best_step=best_step,
-                best_state=best_state, best_metrics=best_metrics,
-                config=cfg, data_manifest_sha256=data_sha,
-                fingerprint=fingerprint)
-            log(f"  state -> {cfg.state_path} (step {step})")
+        due = (step in cfg.save_steps) if cfg.save_steps else (
+            step % cfg.save_every == 0)
+        if due or step == stop_step:
+            state_path = state_path_for(cfg, step)
+            persist(state_path, step, tokens_seen,
+                    loader_epoch_out, loader_batch_out)
 
     stopped_early = step < cfg.max_steps
     if stopped_early:
+        _append_jsonl(cfg.curve_jsonl, {
+            "event": "stopped", "step": step, "tokens_seen": tokens_seen,
+            "reason": "stop_after", "elapsed_s": round(time.time() - t_start, 3)})
         return {"steps": step, "tokens_seen": tokens_seen,
                 "best_metric": best_metric, "best_step": best_step,
-                "stopped_early": True, "checkpoint": None,
-                "state_path": cfg.state_path, "curve_jsonl": cfg.curve_jsonl}
+                "best_tokens_seen": best_tokens_seen,
+                "stopped_early": True, "reason": "stop_after",
+                "checkpoint": None,
+                "state_path": state_path_for(cfg, step),
+                "curve_jsonl": cfg.curve_jsonl}
 
     if best_state is not None:
         model.load_state_dict(best_state)
@@ -324,12 +446,29 @@ def train(cfg: TrainConfig, log=print) -> dict:
         tokenizer=tokenizer_info(manifest),
         selection={"metric": cfg.select_metric, "value": best_metric,
                    "step": best_step, "split": "validation"},
-        metrics=best_metrics, step=best_step or step, tokens_seen=tokens_seen,
+        metrics=best_metrics, step=best_step or step,
+        tokens_seen=best_tokens_seen,
         fingerprint=fingerprint)
+    artifact_sha = sha256_file(cfg.checkpoint)
+    total_wall = time.time() - t_start
+    _append_jsonl(cfg.curve_jsonl, {
+        "event": "run_end", "steps": step, "tokens_seen": tokens_seen,
+        "best_step": best_step, "best_tokens_seen": best_tokens_seen,
+        "best_metric": best_metric, "artifact": cfg.checkpoint,
+        "artifact_sha256": artifact_sha,
+        "artifact_bytes": os.path.getsize(cfg.checkpoint),
+        "total_wall_seconds": round(total_wall, 3),
+        "end_to_end_tokens_per_s": round(tokens_seen / max(total_wall, 1e-9), 1),
+        "time_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+    })
     log(f"best checkpoint -> {cfg.checkpoint} (step {best_step}, "
-        f"{cfg.select_metric} {best_metric:.4f})")
+        f"{cfg.select_metric} {best_metric:.4f}, sha {artifact_sha[:16]})")
     return {"steps": step, "tokens_seen": tokens_seen,
             "best_metric": best_metric, "best_step": best_step,
+            "best_tokens_seen": best_tokens_seen,
             "best_metrics": best_metrics, "stopped_early": False,
-            "checkpoint": cfg.checkpoint, "state_path": cfg.state_path,
+            "checkpoint": cfg.checkpoint,
+            "state_path": state_path_for(cfg, step),
+            "artifact_sha256": artifact_sha,
+            "total_wall_seconds": total_wall,
             "curve_jsonl": cfg.curve_jsonl}

@@ -46,8 +46,10 @@ def iter_source_batches(root: str, split: str, source: str | None,
 
     Documents are concatenated within a source (EOS already terminates each
     document); a sequence never mixes two sources. The character count of a
-    sequence is the proportional share of its documents, so bits/char can be
-    aggregated without decoding. Validation/test data is only read here.
+    sequence is the proportional share of its documents. That is the legacy
+    estimate used only when exact prefix-decode characters are disabled;
+    ``evaluate`` defaults to the exact tokenizer-based span. Validation/test
+    data is only read here.
     """
     manifest = load_manifest(root)
     tokenization = manifest.get("tokenization")

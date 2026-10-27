@@ -71,8 +71,8 @@ def atomic_save(payload, path: str) -> str:
 
 def save_state(path: str, *, model, optimizer, schedule, step: int,
                tokens_seen: int, loader_epoch: int, loader_batch: int,
-               best_metric: float, best_step: int | None, best_state,
-               best_metrics, config, data_manifest_sha256: str,
+               best_metric: float, best_step: int | None, best_tokens_seen: int,
+               best_state, best_metrics, config, data_manifest_sha256: str,
                fingerprint: str) -> str:
     payload = {
         "format": STATE_FORMAT,
@@ -85,6 +85,7 @@ def save_state(path: str, *, model, optimizer, schedule, step: int,
         "loader": {"epoch": int(loader_epoch), "batch": int(loader_batch)},
         "best_metric": float(best_metric),
         "best_step": best_step,
+        "best_tokens_seen": int(best_tokens_seen),
         "best_state": best_state,
         "best_metrics": best_metrics,
         "config": config.to_dict(),

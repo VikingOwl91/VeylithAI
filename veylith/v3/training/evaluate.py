@@ -7,18 +7,28 @@ import math
 import torch
 import torch.nn.functional as F
 
+from .chars import PrefixCharCounter
 from .data import iter_source_batches, load_manifest, source_names, source_tensors
 from .precision import autocast_context
 
 
 @torch.no_grad()
-def evaluate(model, cfg, split: str, *, max_batches: int | None = None) -> dict:
-    """Evaluate one split per source. Validation is for selection; test is final."""
+def evaluate(model, cfg, split: str, *, max_batches: int | None = None,
+             exact_chars: bool | None = None) -> dict:
+    """Evaluate one split per source. Validation is for selection; test is final.
+
+    ``exact_chars`` selects the documented prefix-decode character span. The
+    proportional document-character estimate remains available for older
+    records, but it is not the default.
+    """
     if split not in ("train", "validation", "test"):
         raise ValueError(f"unknown split: {split}")
     manifest = load_manifest(cfg.data_root)
     if split == "test" and cfg.select_metric not in ("macro_main_ce", "token_main_ce"):
         raise ValueError("test evaluation is final, not a selection signal")
+    if exact_chars is None:
+        exact_chars = bool(getattr(cfg, "exact_chars", True))
+    counter = PrefixCharCounter(cfg.data_root, manifest) if exact_chars else None
     device = cfg.device
     sources = source_names(manifest)
     was_training = model.training
@@ -33,6 +43,10 @@ def evaluate(model, cfg, split: str, *, max_batches: int | None = None) -> dict:
                     cfg.data_root, split, source, cfg.seq_len,
                     cfg.eval_batch_size, max_batches=max_batches):
                 x, y, valid, batch_chars = source_tensors(batch, device)
+                if counter is not None:
+                    batch_chars = torch.tensor(
+                        counter.target_chars(batch["tokens"], batch["lengths"]),
+                        dtype=torch.float32, device=device)
                 logits, _, metrics, router = model(
                     x, return_metrics=True, return_router=True)
                 ce = F.cross_entropy(
@@ -54,7 +68,10 @@ def evaluate(model, cfg, split: str, *, max_batches: int | None = None) -> dict:
             if tokens == 0:
                 per_source[source] = {"main_ce": None, "bits_per_char": None,
                                       "tokens": 0, "chars": 0, "nats": 0.0,
-                                      "aux_loss": None}
+                                      "aux_loss": None,
+                                      "chars_protocol": (
+                                          "prefix_decode" if counter is not None
+                                          else "doc_proportional")}
                 continue
             main_ce = nats / tokens
             per_source[source] = {
@@ -64,6 +81,8 @@ def evaluate(model, cfg, split: str, *, max_batches: int | None = None) -> dict:
                 "chars": int(chars),
                 "nats": nats,
                 "aux_loss": aux_weighted / tokens,
+                "chars_protocol": ("prefix_decode" if counter is not None
+                                   else "doc_proportional"),
             }
             total_nats += nats
             total_tokens += tokens
@@ -84,10 +103,14 @@ def evaluate(model, cfg, split: str, *, max_batches: int | None = None) -> dict:
         "nats": total_nats,
         "aux_loss": (sum(entry["aux_loss"] * entry["tokens"] for entry in valid_sources)
                      / total_tokens if total_tokens else None),
+        "chars_protocol": ("prefix_decode" if counter is not None
+                           else "doc_proportional"),
     }
     router = _router_stats(router_counts)
     return {"split": split, "sources": per_source, "overall": overall,
-            "router": router, "max_batches_per_source": max_batches}
+            "router": router, "max_batches_per_source": max_batches,
+            "chars_protocol": ("prefix_decode" if counter is not None
+                               else "doc_proportional")}
 
 
 def _router_stats(counts) -> dict | None:

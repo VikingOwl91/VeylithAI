@@ -193,6 +193,15 @@ def test_resume_matches_uninterrupted_run(corpus, tmp_path):
     for key in state_a["model"]:
         assert torch.allclose(state_a["model"][key], state_b["model"][key], atol=1e-6)
     assert state_a["tokens_seen"] == state_b["tokens_seen"]
+    stopped = torch.load(run_b / "ckpt_state.pt", map_location="cpu",
+                         weights_only=False)
+    lines = [json.loads(line) for line in open(cfg_b.curve_jsonl, encoding="utf-8")]
+    traces = [line for line in lines if "resume_trace" in line]
+    assert len(traces) == 1
+    trace = traces[0]["resume_trace"]
+    assert trace["loader_epoch"] == stopped["loader"]["epoch"]
+    assert trace["loader_batch"] == stopped["loader"]["batch"]
+    assert trace["tokens_seen_before"] == stopped["tokens_seen"]
 
 
 def test_evaluation_reports_sources_and_router(corpus, tmp_path):
@@ -211,6 +220,86 @@ def test_evaluation_reports_sources_and_router(corpus, tmp_path):
     assert 0 < metrics["router"]["mean_entropy_norm"] <= 1.0
     for layer in metrics["router"]["layers"]:
         assert abs(sum(layer["share_pct"]) - 100.0) < 0.1
+
+
+def test_prefix_char_counter_matches_decoded_target_span(corpus):
+    from training.chars import PrefixCharCounter
+
+    manifest = load_manifest(corpus)
+    counter = PrefixCharCounter(corpus, manifest)
+    source = source_names(manifest)[0]
+    batch = next(iter_source_batches(corpus, "validation", source, 16, 2,
+                                     max_batches=1))
+    counts = counter.target_chars(batch["tokens"], batch["lengths"])
+    for row, length in enumerate(batch["lengths"]):
+        ids = [int(value) for value in batch["tokens"][row, :length]]
+        full = len(counter.processor.decode(ids))
+        first = len(counter.processor.decode(ids[:1]))
+        assert counts[row] == full - first
+
+
+def test_evaluation_exact_char_protocol(corpus, tmp_path):
+    cfg = make_config(corpus, tmp_path)
+    model = GPT(cfg.model)
+    exact = evaluate(model, cfg, "validation", max_batches=2, exact_chars=True)
+    approx = evaluate(model, cfg, "validation", max_batches=2,
+                      exact_chars=False)
+    assert exact["chars_protocol"] == "prefix_decode"
+    assert approx["chars_protocol"] == "doc_proportional"
+    assert exact["overall"]["chars"] > 0
+    assert exact["overall"]["bits_per_char"] > 0
+    assert approx["overall"]["bits_per_char"] > 0
+    assert exact["overall"]["tokens"] == approx["overall"]["tokens"]
+
+
+def test_step_suffixed_states_keep_intermediate_checkpoints(corpus, tmp_path):
+    state = str(tmp_path / "ckpt_state_step{step}.pt")
+    cfg = make_config(corpus, tmp_path, max_steps=4, save_steps=(2,),
+                      save_every=1000, eval_interval=1000, state_path=state,
+                      save_initial_state=True)
+    train(cfg, log=lambda *_: None)
+    paths = {step: tmp_path / f"ckpt_state_step{step}.pt" for step in (0, 2, 4)}
+    for path in paths.values():
+        assert path.exists()
+    states = {step: torch.load(path, map_location="cpu", weights_only=False)
+              for step, path in paths.items()}
+    assert states[0]["step"] == 0
+    assert states[2]["step"] == 2
+    assert states[4]["step"] == 4
+    assert states[2]["loader"]["batch"] == 4
+    assert states[4]["loader"]["batch"] == 8
+
+
+def test_single_pass_covers_the_plan_once(corpus, tmp_path):
+    from data_pipeline import loader
+
+    plan = loader.plan_sequences(corpus, split="train", seq_len=16, mode="concat")
+    batches = math.ceil(len(plan["sequences"]) / 2)
+    grad_accum = next(value for value in (2, 3, 5, 7) if batches % value)
+    updates = math.ceil(batches / grad_accum)
+    assert batches % grad_accum != 0
+    state = str(tmp_path / "ckpt_state_step{step}.pt")
+    cfg = make_config(corpus, tmp_path, max_steps=updates, single_pass=True,
+                      grad_accum=grad_accum, state_path=state,
+                      save_every=1000, eval_interval=1000, save_steps=())
+    result = train(cfg, log=lambda *_: None)
+    assert result["steps"] == updates
+    saved = torch.load(tmp_path / f"ckpt_state_step{updates}.pt",
+                       map_location="cpu", weights_only=False)
+    assert saved["tokens_seen"] == plan["tokens"] - len(plan["sequences"])
+    assert saved["loader"] == {"epoch": 1, "batch": 0}
+
+
+def test_artifact_uses_the_selected_step_token_count(corpus, tmp_path):
+    cfg = make_config(corpus, tmp_path, max_steps=4, eval_interval=2,
+                      save_every=1000)
+    train(cfg, log=lambda *_: None)
+    artifact = torch.load(cfg.checkpoint, map_location="cpu", weights_only=False)
+    lines = [json.loads(line) for line in open(cfg.curve_jsonl, encoding="utf-8")]
+    selected = [line for line in lines
+                if line.get("step") == artifact["step"] and "selection" in line]
+    assert selected
+    assert artifact["tokens_seen"] == selected[-1]["tokens_seen"]
 
 
 def test_artifact_has_no_mtp_and_selection_is_validation(corpus, tmp_path):

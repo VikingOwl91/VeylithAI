@@ -36,6 +36,14 @@ def parse_args(argv=None):
     parser.add_argument("--checkpoint", default=None)
     parser.add_argument("--state", default=None)
     parser.add_argument("--curve-jsonl", default=None)
+    parser.add_argument("--single-pass", action="store_true")
+    parser.add_argument("--save-steps", default="")
+    parser.add_argument("--save-initial-state", action="store_true")
+    parser.add_argument("--max-wall-seconds", type=float, default=5400.0)
+    parser.add_argument("--exact-chars", dest="exact_chars",
+                        action="store_true", default=True)
+    parser.add_argument("--no-exact-chars", dest="exact_chars",
+                        action="store_false")
     return parser.parse_args(argv)
 
 
@@ -44,6 +52,11 @@ def main(argv=None) -> int:
     model = get_candidate(args.model)
     model.attention_impl = args.attention
     model.moe_impl = args.moe
+    save_steps = tuple(int(value) for value in args.save_steps.split(",")
+                       if value.strip())
+    state = args.state
+    if state is None and args.single_pass:
+        state = os.path.join(args.out_dir, "ckpt_state_step{step}.pt")
     cfg = TrainConfig(
         data_root=args.data_root, out_dir=args.out_dir, model=model,
         device=args.device, precision=args.precision,
@@ -55,7 +68,11 @@ def main(argv=None) -> int:
         train_gap_batches=args.train_gap_batches,
         save_every=args.save_every, seed=args.seed,
         resume=args.resume, checkpoint=args.checkpoint,
-        state_path=args.state, curve_jsonl=args.curve_jsonl)
+        state_path=state, curve_jsonl=args.curve_jsonl,
+        single_pass=args.single_pass, save_steps=save_steps,
+        save_initial_state=args.save_initial_state,
+        exact_chars=args.exact_chars,
+        max_wall_seconds=args.max_wall_seconds)
     try:
         result = train(cfg)
     except (ValueError, RuntimeError) as exc:

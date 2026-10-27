@@ -61,6 +61,11 @@ class TrainConfig:
     curve_jsonl: str | None = None
     resume: str | None = None
     allow_large_cpu: bool = False
+    single_pass: bool = False
+    save_steps: tuple = ()
+    save_initial_state: bool = False
+    exact_chars: bool = True
+    max_wall_seconds: float | None = 5400.0
 
     def __post_init__(self):
         if self.checkpoint is None:
@@ -100,6 +105,24 @@ class TrainConfig:
         if not self.data_root or not os.path.exists(
                 os.path.join(self.data_root, "corpus", "manifest.json")):
             problems.append(f"no corpus manifest under {self.data_root}")
+        if self.max_wall_seconds is not None and self.max_wall_seconds <= 0:
+            problems.append("max_wall_seconds must be positive or None")
+        if self.save_steps:
+            steps = [int(step) for step in self.save_steps]
+            if steps != sorted(set(steps)):
+                problems.append("save_steps must be sorted and unique")
+            if any(step <= 0 or step > self.max_steps for step in steps):
+                problems.append("save_steps must be in (0, max_steps]")
+            if "{step" not in (self.state_path or ""):
+                problems.append(
+                    "save_steps requires a step-suffixed state_path "
+                    "(for example ckpt_state_step{step}.pt)")
+            if self.save_initial_state and "{step" not in (self.state_path or ""):
+                problems.append("save_initial_state requires a step-suffixed state_path")
+        if self.single_pass and "{step" not in (self.state_path or ""):
+            problems.append(
+                "single_pass requires a step-suffixed state_path "
+                "(for example ckpt_state_step{step}.pt)")
         if problems:
             raise ValueError("; ".join(problems))
 
