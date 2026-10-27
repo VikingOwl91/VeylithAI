@@ -1,0 +1,244 @@
+{
+  "confounders": [
+    "both clean runs use the same intervention, so their agreement is not independent of its side effects on allocation layout",
+    "address reuse requires byte-count matching, not pointer-only matching",
+    "post-loop recompute runs after COMPLETED and is excluded by timestamp",
+    "the product gradient stays unprotected in both runs"
+  ],
+  "cpu_verification": {
+    "drift_guard": "OK",
+    "logits_loss_gradients_bitwise": true,
+    "model_state_182_tensors_bitwise": true,
+    "padded_mul_forward_bitwise_2d_3d_fp32_bf16": true,
+    "padded_mul_gradients_both_operands_bitwise": true,
+    "product_geometry": {
+      "contiguous": true,
+      "no_resize": true,
+      "offset": 0,
+      "slack": 65536
+    },
+    "tests": "122 passed, 2 skipped",
+    "w3_untouched": "46 of 46 still nn.Linear, 0 patched w3 forwards"
+  },
+  "execution": {
+    "command": "v31p5k_plan.py --execute (mode 2)",
+    "completed": true,
+    "core_limit": "0",
+    "distinct_product_shapes": 2775,
+    "exit_code": 0,
+    "faulted": false,
+    "fresh_process": true,
+    "gpu_idle_after": true,
+    "iterations": 100,
+    "kernel_fault_records": 0,
+    "kernel_window": "No entries",
+    "log_lines": 49806,
+    "product_allocations": 5566,
+    "reset_lines": [],
+    "retries": 0,
+    "signal": null,
+    "timeout_s": 120
+  },
+  "gate_a_numerics": {
+    "display_identity": true,
+    "display_values_compared": 2,
+    "displayed_trajectory": {
+      "eval25": "10.4923",
+      "eval99": "10.4908",
+      "iter0": "10.4816",
+      "iter25": "10.4898",
+      "iter50": "10.4882",
+      "iter75": "10.4925",
+      "iter99": "10.4941"
+    },
+    "expert_grad_norm": 0.10111919573910567,
+    "first_loss_against_reference_4dp": true,
+    "first_loss_full_precision": "10.481635093688965",
+    "grad_norm_equal": true,
+    "grads_bitwise_equal": true,
+    "grads_compared": 120,
+    "model_state_unchanged_after_loop": true,
+    "optimizer_state": "AdamW is constructed but --no_optimizer never steps",
+    "padded_recompute_full_precision": 10.481635093688965,
+    "stock_recompute_full_precision": 10.481635093688965,
+    "stock_vs_padded_loss_bitwise": true
+  },
+  "gate_b_operand_identity": {
+    "both_consumers_represented": true,
+    "by_consumer": {
+      "w3_forward": 6259,
+      "w3_weight_grad": 4693
+    },
+    "descriptors": {
+      "compute_scale_epilogue": "COMPUTE_32F, R_32F, EPILOGUE_DEFAULT, a1 b0",
+      "w3_forward": "Adesc 256 682 256, OP_T/OP_N, Cdesc 256 3075 256",
+      "w3_weight_grad": "Adesc 256 3075 256, OP_N/OP_T, Cdesc 256 682 256"
+    },
+    "fallback": "none observed; this build logs no solution id, so not provable",
+    "kernel_identity": "unknown",
+    "matcher": "recorded pointer plus byte count, which survives address reuse",
+    "padded_product_operand_reads": 10952,
+    "prior_5j_figure": "5,419 B-role reads, matched against the first geometry record per pointer; the like-for-like recount is 10,952 in both runs and the conclusion is unchanged",
+    "w3_group_equal": true,
+    "weight_grad_forms": {
+      "product_as_A_transposed": 4054,
+      "product_as_B_direct": 639
+    }
+  },
+  "gate_c_storage": {
+    "all_contiguous": true,
+    "all_offset_zero": true,
+    "all_pointer_preserved": true,
+    "allocations": 5566,
+    "any_resized": false,
+    "mapping_note": "allocation slack recorded; GPU mapping accessibility inferred",
+    "operand_pointers_match_padded_pointers": true,
+    "page_distance_range": [
+      65536,
+      69628
+    ],
+    "slack_bytes": 65536,
+    "slack_ok": true
+  },
+  "gate_d_boundary_exposure": {
+    "exposed": [
+      {
+        "bytes_to_page_rounded_end": 65540,
+        "ptr": "0x7f5926e00000",
+        "shape": [
+          3075,
+          682
+        ],
+        "slack": 65536,
+        "tail": 4
+      },
+      {
+        "bytes_to_page_rounded_end": 65544,
+        "ptr": "0x7f5957000000",
+        "shape": [
+          6150,
+          682
+        ],
+        "slack": 65536,
+        "tail": 8
+      }
+    ],
+    "fault": null,
+    "note": "the stock tail-4 read is the product gradient, consumed by a w1/w2 backward GEMM; it was not protected by this arm",
+    "products_with_tensor_end_within_64B": 2,
+    "reads_by_consumer": {
+      "w3_forward": 2,
+      "w3_weight_grad": 2
+    },
+    "reads_of_exposed_products": 4,
+    "stock_reads_tail_0_count": 5067,
+    "stock_reads_tail_1_64": [
+      {
+        "consumer": "w3_weight_grad",
+        "nbytes": 4194300,
+        "ptr": "0x7f594be00000",
+        "role": "B",
+        "stamp": "2026-10-27 17:10:06",
+        "tail": 4
+      }
+    ],
+    "stock_reads_tail_1_64_count": 1
+  },
+  "integrity": {
+    "backend_switch": "none",
+    "checkpoint_change": "none",
+    "deviations": "none in the run; one 5J figure restated with a more complete matcher, 5J artifacts left as recorded",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "kernel_serialization": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none",
+    "tests": "122 passed, 2 skipped"
+  },
+  "interpretation": {
+    "not_established": [
+      "causality, because both clean runs share one intervention and its allocation-layout side effects",
+      "kernel identity and the over-reading instruction",
+      "that the remaining stock tail-4 gradient read is harmless",
+      "stability beyond these two runs on one device, driver and harness"
+    ],
+    "stock_runs_faulted": [
+      "PERF-5F A",
+      "PERF-5G A",
+      "PERF-5I"
+    ],
+    "supports": "the product storage boundary is associated with the fault in this configuration, and the association reproduces"
+  },
+  "meta": {
+    "budget": {
+      "max_executions": 1,
+      "retries": 0,
+      "used": 1
+    },
+    "classification": 1,
+    "classification_text": "valid clean replication with boundary exposure",
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5K independent padded-operand replication",
+    "git_head_at_preflight": "318cd09",
+    "mode": "rerun of the PERF-5J arm, intervention byte-identical"
+  },
+  "next_experiment": {
+    "alternative": "a third repetition of this arm is stability evidence, not new discrimination",
+    "arm": "pad only the product's gradient with the same PaddedMul mechanism and leave the product stock, covering the last stock tail-4 reader",
+    "if_clean": "leaves the product as the only protected tail-4 operand, the strongest isolation available without kernel identity",
+    "if_faulted": "implicates the gradient consumer and changes the product hypothesis materially"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "constants": {
+      "iterations": 100,
+      "mode": 2,
+      "serialization": null,
+      "slack_bytes": 65536,
+      "timeout_s": 120
+    },
+    "drift_guard": "OK before and after",
+    "gpu": "idle, no foreign KFD process, before and after",
+    "head": "318cd09",
+    "intervention_diff_lines": 0,
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean before the stage"
+  },
+  "replication_comparison": {
+    "displayed_trajectory_identical": true,
+    "distinct_product_shapes": {
+      "perf_5j": 2775,
+      "perf_5k": 2775
+    },
+    "exposure_profile_identical": true,
+    "fault": {
+      "perf_5j": null,
+      "perf_5k": null
+    },
+    "first_loss_full_precision": {
+      "perf_5j": 10.481635093688965,
+      "perf_5k": 10.481635093688965
+    },
+    "grads_compared": {
+      "perf_5j": 120,
+      "perf_5k": 120
+    },
+    "operand_reads": {
+      "perf_5j": 10952,
+      "perf_5k": 10952
+    },
+    "product_allocations": {
+      "perf_5j": 5566,
+      "perf_5k": 5566
+    },
+    "same_intervention": true
+  }
+}
