@@ -1,0 +1,217 @@
+{
+  "backend_isolation": {
+    "ROCBLAS_USE_HIPBLASLT": "present in librocblas and gated in the pinned rocblas_handle.cpp excerpt (sets hipblasltEnvVar=0 for values other than 1)",
+    "conclusion": "no demonstrated non-hipBLASLt path; no backend comparison run",
+    "preferred_blas_library_hipblas": "not independent; PERF-5B saw 23,091 calls delegated to rocblas_gemm_hipblaslt_backend",
+    "verified_in_run": false,
+    "why_not": "would need its own GPU execution and the budget is two reproductions"
+  },
+  "confidence": {
+    "address_correlation": "high, exact and reproduced twice",
+    "kernel_identity": "not established",
+    "store_vs_read": "unresolved",
+    "transfer_to_16E": "not applicable"
+  },
+  "dispatch_to_fault": {
+    "attribution": {
+      "block_bytes": 4194304,
+      "block_end": "0x7fdb92000000",
+      "dispatch": {
+        "A_ptr": "0x7fdb64e4ea00",
+        "B_ptr": "0x7fdb5bbebe00",
+        "C_ptr": "0x7fdb91c00000",
+        "K": 256,
+        "M": 682,
+        "N": 3075,
+        "role": "expert w3 backward input-gradient GEMM for the 3075 routed tokens",
+        "transB": "OP_T"
+      },
+      "fault_page": "0x7fdb92000000",
+      "gap_bytes": 4,
+      "nearest_C": "0x7fdb91c00000",
+      "tensor_end": "0x7fdb91fffffc",
+      "tensor_extent": 4194300
+    },
+    "baseline": {
+      "block_bytes": 4194304,
+      "block_end": "0x7f3b44c00000",
+      "fault_page": "0x7f3b44c00000",
+      "gap_bytes": 4,
+      "nearest_C": "0x7f3b44800000",
+      "tensor_end": "0x7f3b44bffffc",
+      "tensor_extent": 4194300
+    },
+    "buffer_shape": "682 x 3075 x 2 bytes",
+    "method": "match the fault page against every hipBLASLt call's C pointer and extent from the same run's log",
+    "next_nearest_gap_bytes": 7680,
+    "reproduced_in_both_runs": true
+  },
+  "evidence_class": {
+    "candidate_kernels_ranked": [
+      "the expert w3 backward GEMM that writes that C buffer",
+      "the first consumer of that buffer before the next GEMM (elementwise cast, routing-weight multiply or accumulation), if the access was a read"
+    ],
+    "directly_identified_dispatch": null,
+    "rw_flag": "0x0 in the kernel log, suggesting a read, but not conclusive",
+    "strong_correlation": "fault page equals the end of a specific 4 MiB allocation, twice, with different addresses; in the serialized run that allocation is the C output of the last backward GEMM before the abort",
+    "unsupported": [
+      "the historical 16E hipBLASLt K-tail over-read applied to this 8E/top-2 fault; different configuration and a different buffer role"
+    ]
+  },
+  "executions": [
+    {
+      "case": "baseline",
+      "exit_code": 1,
+      "fault_page": "0x00007f3b44c00000",
+      "faulted": true,
+      "gemm_trace_lines": 23091,
+      "gpu_idle_after": true,
+      "instrumentation": "hipBLASLt Trace log, kernel log",
+      "kernel_fault_records": 4,
+      "mode": "hip-illegal-address",
+      "n": 1,
+      "reset": false,
+      "surfacing": "catchable torch.AcceleratorError at the next H2D copy"
+    },
+    {
+      "case": "attribution",
+      "exit_code": -6,
+      "fault_page": "0x7fdb92000000",
+      "faulted": true,
+      "gemm_trace_lines": 23044,
+      "gpu_idle_after": true,
+      "instrumentation": "AMD_SERIALIZE_KERNEL=3 plus torch.profiler",
+      "kernel_fault_records": 4,
+      "mode": "hip-illegal-address",
+      "n": 2,
+      "reset": false,
+      "signal": "SIGABRT",
+      "surfacing": "c10::AcceleratorError at SetDevice inside autograd Engine::thread_main; terminate",
+      "trace_exported": false,
+      "why_no_trace": "process aborted before the finally block could export"
+    }
+  ],
+  "instrumentation_matrix": [
+    {
+      "changes_execution": "heavy, perf counters",
+      "correlation": true,
+      "dispatch_ids": true,
+      "fault_to_dispatch": "in principle",
+      "kernel_names": true,
+      "method": "rocprofv3",
+      "privileges": "user with perf counter access",
+      "safe_on_faulting_run": false,
+      "why": "cannot finalize after a GPU fault; archive attempt hung on 'kernels still active'"
+    },
+    {
+      "changes_execution": "moderate",
+      "correlation": "External id links each kernel to the aten op that launched it",
+      "dispatch_ids": false,
+      "fault_to_dispatch": "ordering only; trace must survive to export",
+      "kernel_names": true,
+      "method": "torch.profiler (CPU+CUDA)",
+      "privileges": "none",
+      "safe_on_faulting_run": true,
+      "why": "SIGABRT loses the trace (observed in this stage)"
+    },
+    {
+      "changes_execution": "file I/O per call",
+      "correlation": "pointers and descriptors",
+      "dispatch_ids": "per-call order",
+      "fault_to_dispatch": "no",
+      "kernel_names": false,
+      "method": "hipBLASLt Trace log (LOG_MASK=10)",
+      "privileges": "none",
+      "safe_on_faulting_run": true,
+      "why": "no kernel names and no sol-idx lines in this build (libhipblaslt has no sol-idx string)"
+    },
+    {
+      "changes_execution": "logging only",
+      "correlation": "backend name per call",
+      "dispatch_ids": false,
+      "fault_to_dispatch": "no",
+      "kernel_names": false,
+      "method": "rocBLAS layer log (ROCBLAS_LAYER=9)",
+      "privileges": "none",
+      "safe_on_faulting_run": true,
+      "why": "useful only to prove backend independence"
+    },
+    {
+      "changes_execution": "none",
+      "correlation": "pid, address, client, permission, RW",
+      "dispatch_ids": false,
+      "fault_to_dispatch": "address only",
+      "kernel_names": false,
+      "method": "amdgpu kernel log",
+      "privileges": "read-only journal access works",
+      "safe_on_faulting_run": true,
+      "why": "this build prints no kernel name on the fault path"
+    },
+    {
+      "changes_execution": "wait per dispatch; changes failure mode to SIGABRT",
+      "correlation": "narrows in-flight dispatches to one",
+      "dispatch_ids": false,
+      "fault_to_dispatch": "indirect",
+      "kernel_names": false,
+      "method": "AMD_SERIALIZE_KERNEL=3",
+      "privileges": "none",
+      "safe_on_faulting_run": true,
+      "why": "supported by libamdhip64"
+    }
+  ],
+  "integrity": {
+    "checkpoint_change": "none",
+    "cpu_tests": "122 passed, 2 skipped",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none"
+  },
+  "limitations": [
+    "no kernel name and no dispatch id were captured",
+    "the profiler trace was lost to the SIGABRT",
+    "the serialized run is not the same condition as the baseline (different failure mode)",
+    "backend independence undemonstrated",
+    "the fault could be a few bytes of over-read by a vectorized consumer of the same buffer"
+  ],
+  "meta": {
+    "budget": {
+      "max_executions": 2,
+      "retries": 0,
+      "used": 2
+    },
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5C faulting kernel attribution",
+    "git_head": "3c8ce42",
+    "mode": "bounded GPU diagnostic, two executions, no production change",
+    "reports_read": [
+      "V3.1-PERF-5A-SPARSE-FORENSICS.md",
+      "V3.1-PERF-5B-KTAIL-ISOLATION.md"
+    ]
+  },
+  "next_experiment": {
+    "also": [
+      "script the address-to-buffer mapping used here",
+      "keep the address evidence as the cross-check"
+    ],
+    "runs": 1,
+    "shape": "torch.profiler with a cycling schedule and on_trace_ready writing trace-<cycle>.json, without AMD_SERIALIZE_KERNEL, so the faulting iteration's trace is on disk before the abort",
+    "success": "the last aten op before the fault names the kernel family touching the boundary buffer"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle before each execution",
+    "head": "3c8ce42",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean"
+  }
+}
