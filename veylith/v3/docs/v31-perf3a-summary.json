@@ -1,0 +1,1099 @@
+{
+  "candidates": [
+    {
+      "assumptions": "1,280 of the 1,400 (4088,512) FP32->BF16 casts are norm consumers; cast time scales with elements; the combine accumulator is kept FP32 and the residual stays FP32; autocast cast equals .to(bfloat16).",
+      "attributable_ms": 19.96,
+      "autograd_risk": "none: no change to graph structure or parameter dtypes.",
+      "complexity": "low: RMSNorm returns a BF16 copy of the same FP32 result; MoE zeros/accumulator made explicitly FP32.",
+      "correctness_test": "unit: RMSNorm FP32 result cast to BF16 equals the old consumer cast; GPU 2-update loss/gradient comparison with bitwise equality as the target.",
+      "expected_update_pct": -2.3,
+      "id": "P1",
+      "max_saving_ms": 18.0,
+      "measured_cluster_ms": 21.83,
+      "name": "Single-cast at RMSNorm output",
+      "numerical_risk": "none expected: the GEMM operands are the same BF16 values as the per-consumer cast; combine and residual unchanged.",
+      "perf_test": "5-update profiler; count copy_ (4088,512) FP32->BF16 and elementwise ms.",
+      "rocm": "none; no new kernels.",
+      "targets": [
+        "BF16 copies",
+        "FP32 binary",
+        "Manual-unroll norm muls"
+      ]
+    },
+    {
+      "assumptions": "Fusion removes the FP32 contribution and d_w intermediates (about 7.5 GB/update each) and kernel launches, keeping FP32 accumulation and separate mul/add rounding.",
+      "attributable_ms": 79.31,
+      "autograd_risk": "custom backward must match three gradient paths exactly.",
+      "complexity": "medium-high: custom autograd function or Triton kernel for forward combine and both gradient paths.",
+      "correctness_test": "synthetic combine at (448 calls, 4088x512) against the reference outputs and d_expert/d_weights; tolerance 0 or documented ulp.",
+      "expected_update_pct": -1.9,
+      "id": "P2",
+      "max_saving_ms": 15.0,
+      "measured_cluster_ms": 79.31,
+      "name": "Fused MoE weighted aggregation",
+      "numerical_risk": "reduction order for d_w and FMA vs separate mul/add; requires an explicit no-FMA or documented-ulp choice.",
+      "perf_test": "isolated combine microbenchmark; kernel count and ms/update.",
+      "rocm": "Triton 3.8 present; deterministic reductions, no atomics.",
+      "targets": [
+        "FP32 binary",
+        "Manual-unroll",
+        "BF16 copies"
+      ]
+    },
+    {
+      "assumptions": "Removing the silu intermediate (7.85 MB BF16 per call, 448 forward and 896 backward paths) saves write+read traffic; same op order and rounding.",
+      "attributable_ms": 58.91,
+      "autograd_risk": "custom backward for silu and w2 paths.",
+      "complexity": "medium: Triton kernel or scoped torch.compile.",
+      "correctness_test": "SwiGLU forward/backward vs reference at (4088,960); tolerance 0.",
+      "expected_update_pct": -1.5,
+      "id": "P3",
+      "max_saving_ms": 14.0,
+      "measured_cluster_ms": 58.91,
+      "name": "SwiGLU activation fusion (silu + mul)",
+      "numerical_risk": "low if the fused kernel preserves silu then multiply and the exact backward expressions.",
+      "perf_test": "isolated SwiGLU microbenchmark; profile ms/update.",
+      "rocm": "Triton 3.8; Inductor path optional.",
+      "targets": [
+        "BF16 expert-weight multiplication",
+        "Manual-unroll"
+      ]
+    },
+    {
+      "assumptions": "Parameter-sized adds are bandwidth-bound; only launch overhead (about 1,832 adds/update) is removed.",
+      "attributable_ms": 15.5,
+      "autograd_risk": "moderate: changing accumulation timing/ownership.",
+      "complexity": "medium: autograd AccumulateGrad is internal; needs a custom buffer or post-backward foreach accumulation.",
+      "correctness_test": "gradient equality against the reference for two microbatches.",
+      "expected_update_pct": -0.9,
+      "id": "P4",
+      "max_saving_ms": 7.0,
+      "measured_cluster_ms": 24.0,
+      "name": "Multi-tensor gradient accumulation",
+      "numerical_risk": "same per-tensor add order, low.",
+      "perf_test": "count add_ launches and parameter-grad ms/update.",
+      "rocm": "foreach kernels already used by AdamW.",
+      "targets": [
+        "FP32 gradient accumulation"
+      ]
+    },
+    {
+      "assumptions": "Fusion succeeds without graph breaks; determinism preserved.",
+      "attributable_ms": null,
+      "autograd_risk": "moderate.",
+      "complexity": "high: topk, one_hot, bincount and .cpu() cause graph breaks; compile time and recompiles.",
+      "correctness_test": "bitwise/ulp comparison on 2 updates.",
+      "expected_update_pct": null,
+      "id": "P5",
+      "max_saving_ms": null,
+      "measured_cluster_ms": null,
+      "name": "Scoped torch.compile / Inductor",
+      "numerical_risk": "Inductor may reorder reductions; needs validation.",
+      "perf_test": "5-update profile after warm compilation.",
+      "rocm": "Triton-based Inductor on gfx1201; unproven for this model.",
+      "targets": [
+        "all elementwise clusters"
+      ]
+    },
+    {
+      "assumptions": "Only as the implementation vehicle for P2/P3 after a numerically neutral prototype.",
+      "attributable_ms": null,
+      "autograd_risk": "high",
+      "complexity": "high",
+      "correctness_test": "per-kernel reference comparison",
+      "expected_update_pct": null,
+      "id": "P6",
+      "max_saving_ms": null,
+      "measured_cluster_ms": null,
+      "name": "Custom Triton kernels (later option)",
+      "numerical_risk": "kernel-specific",
+      "perf_test": "isolated plus end-to-end profile",
+      "rocm": "Triton 3.8",
+      "targets": [
+        "P2",
+        "P3"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "calls_per_update": 1792.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [
+          512,
+          960
+        ]
+      ],
+      "ms_per_update": 72.23020679999992,
+      "op": "aten::mm",
+      "phases": {
+        "backward": 896.0,
+        "forward": 896.0
+      },
+      "source": "",
+      "types": [
+        "c10::BFloat16",
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 2240.0,
+      "dims": [
+        [
+          4088,
+          960
+        ],
+        [
+          960,
+          512
+        ]
+      ],
+      "ms_per_update": 61.007068000000245,
+      "op": "aten::mm",
+      "phases": {
+        "backward": 1792.0,
+        "forward": 448.0
+      },
+      "source": "",
+      "types": [
+        "c10::BFloat16",
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 1792.0,
+      "dims": [
+        [
+          960,
+          4088
+        ],
+        [
+          4088,
+          512
+        ]
+      ],
+      "ms_per_update": 47.105233200000136,
+      "op": "aten::mm",
+      "phases": {
+        "backward": 1792.0
+      },
+      "source": "",
+      "types": [
+        "c10::BFloat16",
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 1344.0,
+      "dims": [
+        [
+          4088,
+          960
+        ],
+        [
+          4088,
+          960
+        ]
+      ],
+      "ms_per_update": 36.66378680000027,
+      "op": "aten::mul",
+      "phases": {
+        "backward": 896.0,
+        "forward": 448.0
+      },
+      "source": "model.py:109 SwiGLU silu(w1(x)) * w2(x)",
+      "types": [
+        "c10::BFloat16",
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 64.0,
+      "dims": [
+        [
+          8,
+          511,
+          8,
+          64
+        ],
+        [
+          8,
+          511,
+          8,
+          64
+        ],
+        [
+          8,
+          511,
+          8,
+          64
+        ],
+        [
+          8,
+          511,
+          8,
+          64
+        ],
+        [
+          8,
+          8,
+          511,
+          511
+        ],
+        [
+          8,
+          511,
+          8,
+          64
+        ],
+        [],
+        [],
+        [],
+        [],
+        [
+          8,
+          8,
+          511
+        ],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "ms_per_update": 36.2710316,
+      "op": "aten::_efficient_attention_backward",
+      "phases": {
+        "backward": 64.0
+      },
+      "source": "",
+      "types": [
+        "c10::BFloat16",
+        "c10::BFloat16",
+        "c10::BFloat16",
+        "c10::BFloat16",
+        "c10::BFloat16",
+        "c10::BFloat16",
+        "",
+        "",
+        "Scalar",
+        "Scalar",
+        "float",
+        "Scalar",
+        "long int",
+        "long int",
+        "Scalar",
+        "Scalar",
+        "",
+        "",
+        "",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 448.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [
+          4088,
+          512
+        ]
+      ],
+      "ms_per_update": 33.690566200000106,
+      "op": "aten::mul",
+      "phases": {
+        "backward": 448.0
+      },
+      "source": "model.py:148 backward: grad * expert output (weight grad)",
+      "types": [
+        "float",
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 896.0,
+      "dims": [
+        [
+          512,
+          4088
+        ],
+        [
+          4088,
+          960
+        ]
+      ],
+      "ms_per_update": 23.414181200000016,
+      "op": "aten::mm",
+      "phases": {
+        "backward": 896.0
+      },
+      "source": "",
+      "types": [
+        "c10::BFloat16",
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 896.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [
+          4088,
+          512
+        ],
+        []
+      ],
+      "ms_per_update": 22.95390800000006,
+      "op": "aten::add_",
+      "phases": {
+        "backward": 896.0
+      },
+      "source": "autograd accumulation of combine output gradient",
+      "types": [
+        "float",
+        "float",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 1400.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [
+          4088,
+          512
+        ],
+        []
+      ],
+      "ms_per_update": 21.830815400000077,
+      "op": "aten::copy_",
+      "phases": {
+        "backward": 448.0,
+        "forward": 952.0
+      },
+      "source": "autocast FP32->BF16 cast / residual promotion",
+      "types": [
+        "c10::BFloat16",
+        "float",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 448.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [
+          4088,
+          512
+        ],
+        []
+      ],
+      "ms_per_update": 16.26966620000003,
+      "op": "aten::add",
+      "phases": {
+        "forward": 448.0
+      },
+      "source": "model.py:149 out = out + contribution (FP32 combine)",
+      "types": [
+        "float",
+        "float",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 448.0,
+      "dims": [
+        [
+          4088,
+          960
+        ],
+        [
+          4088,
+          960
+        ]
+      ],
+      "ms_per_update": 14.453276399999984,
+      "op": "aten::silu_backward",
+      "phases": {
+        "backward": 448.0
+      },
+      "source": "model.py:109 autograd of SwiGLU silu",
+      "types": [
+        "c10::BFloat16",
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 448.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [
+          4088,
+          1
+        ]
+      ],
+      "ms_per_update": 12.28316819999998,
+      "op": "aten::mul",
+      "phases": {
+        "backward": 448.0
+      },
+      "source": "model.py:148 backward: grad * weights",
+      "types": [
+        "float",
+        "float"
+      ]
+    },
+    {
+      "calls_per_update": 408.0,
+      "dims": [
+        [
+          8,
+          511,
+          512
+        ],
+        [
+          8,
+          511,
+          512
+        ]
+      ],
+      "ms_per_update": 11.670417200000017,
+      "op": "aten::mul",
+      "phases": {
+        "backward": 408.0
+      },
+      "source": "",
+      "types": [
+        "float",
+        "float"
+      ]
+    },
+    {
+      "calls_per_update": 952.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [
+          4088,
+          512
+        ],
+        []
+      ],
+      "ms_per_update": 11.080263399999941,
+      "op": "aten::copy_",
+      "phases": {
+        "backward": 952.0
+      },
+      "source": "autocast FP32->BF16 cast / residual promotion",
+      "types": [
+        "float",
+        "c10::BFloat16",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 64.0,
+      "dims": [
+        [
+          8,
+          511,
+          8,
+          64
+        ],
+        [
+          8,
+          511,
+          8,
+          64
+        ],
+        [
+          8,
+          511,
+          8,
+          64
+        ],
+        [
+          8,
+          8,
+          511,
+          511
+        ],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        [],
+        []
+      ],
+      "ms_per_update": 10.561514199999998,
+      "op": "aten::_efficient_attention_forward",
+      "phases": {
+        "forward": 64.0
+      },
+      "source": "",
+      "types": [
+        "c10::BFloat16",
+        "c10::BFloat16",
+        "c10::BFloat16",
+        "c10::BFloat16",
+        "",
+        "",
+        "",
+        "",
+        "Scalar",
+        "Scalar",
+        "Scalar",
+        "",
+        "",
+        ""
+      ]
+    },
+    {
+      "calls_per_update": 448.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [],
+        [],
+        []
+      ],
+      "ms_per_update": 10.301065400000018,
+      "op": "aten::sum",
+      "phases": {
+        "backward": 448.0
+      },
+      "source": "autograd reduction for per-token combine weights",
+      "types": [
+        "float",
+        "ScalarList",
+        "Scalar",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 384.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [
+          512,
+          512
+        ]
+      ],
+      "ms_per_update": 9.72108880000001,
+      "op": "aten::mm",
+      "phases": {
+        "backward": 256.0,
+        "forward": 128.0
+      },
+      "source": "",
+      "types": [
+        "c10::BFloat16",
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 400.0,
+      "dims": [
+        [
+          8,
+          511,
+          512
+        ],
+        [
+          8,
+          511,
+          512
+        ],
+        []
+      ],
+      "ms_per_update": 9.325938999999982,
+      "op": "aten::add_",
+      "phases": {
+        "backward": 400.0
+      },
+      "source": "",
+      "types": [
+        "float",
+        "float",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 2296.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        []
+      ],
+      "ms_per_update": 8.633283999999897,
+      "op": "aten::fill_",
+      "phases": {
+        "backward": 896.0,
+        "forward": 1400.0
+      },
+      "source": "unattributed activation buffer zero-init",
+      "types": [
+        "c10::BFloat16",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 448.0,
+      "dims": [
+        [
+          4088,
+          960
+        ]
+      ],
+      "ms_per_update": 7.795587799999985,
+      "op": "aten::silu",
+      "phases": {
+        "forward": 448.0
+      },
+      "source": "model.py:109 SwiGLU F.silu(w1(x))",
+      "types": [
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 448.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [],
+        []
+      ],
+      "ms_per_update": 7.441500800000023,
+      "op": "aten::native_dropout",
+      "phases": {
+        "forward": 448.0
+      },
+      "source": "model.py:110 SwiGLU expert dropout",
+      "types": [
+        "c10::BFloat16",
+        "Scalar",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 784.0,
+      "dims": [
+        [
+          960,
+          512
+        ],
+        [
+          960,
+          512
+        ],
+        []
+      ],
+      "ms_per_update": 7.171769999999984,
+      "op": "aten::add_",
+      "phases": {
+        "backward": 784.0
+      },
+      "source": "AccumulateGrad expert w1/w2 gradient (FP32)",
+      "types": [
+        "float",
+        "float",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 448.0,
+      "dims": [
+        [
+          4088,
+          1
+        ],
+        [
+          4088,
+          512
+        ]
+      ],
+      "ms_per_update": 6.766097999999985,
+      "op": "aten::mul",
+      "phases": {
+        "forward": 448.0
+      },
+      "source": "model.py:148 weights[:, e] * expert(flat)",
+      "types": [
+        "float",
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 1064.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        []
+      ],
+      "ms_per_update": 6.683596600000022,
+      "op": "aten::fill_",
+      "phases": {
+        "backward": 952.0,
+        "forward": 112.0
+      },
+      "source": "unattributed activation buffer zero-init",
+      "types": [
+        "float",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 448.0,
+      "dims": [
+        [
+          4088,
+          512
+        ],
+        [
+          4088,
+          512
+        ],
+        []
+      ],
+      "ms_per_update": 6.6423586000000165,
+      "op": "aten::native_dropout_backward",
+      "phases": {
+        "backward": 448.0
+      },
+      "source": "model.py:110 teacher-forced dropout backward",
+      "types": [
+        "c10::BFloat16",
+        "bool",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 16.0,
+      "dims": [
+        [
+          8192,
+          4088
+        ],
+        [
+          4088,
+          512
+        ]
+      ],
+      "ms_per_update": 6.3939905999999995,
+      "op": "aten::mm",
+      "phases": {
+        "backward": 16.0
+      },
+      "source": "",
+      "types": [
+        "c10::BFloat16",
+        "c10::BFloat16"
+      ]
+    },
+    {
+      "calls_per_update": 72.0,
+      "dims": [
+        [
+          8,
+          511,
+          512
+        ],
+        [
+          8,
+          511,
+          512
+        ],
+        []
+      ],
+      "ms_per_update": 6.242467199999995,
+      "op": "aten::add",
+      "phases": {
+        "forward": 72.0
+      },
+      "source": "",
+      "types": [
+        "float",
+        "c10::BFloat16",
+        "Scalar"
+      ]
+    },
+    {
+      "calls_per_update": 128.0,
+      "dims": [
+        [
+          [
+            8,
+            8,
+            511,
+            32
+          ],
+          [
+            8,
+            8,
+            511,
+            32
+          ]
+        ],
+        []
+      ],
+      "ms_per_update": 5.561520600000004,
+      "op": "aten::cat",
+      "phases": {
+        "backward": 64.0,
+        "forward": 64.0
+      },
+      "source": "",
+      "types": [
+        "TensorList",
+        "Scalar"
+      ]
+    }
+  ],
+  "integrity": {
+    "code_changes": "none",
+    "drift_guard": "OK",
+    "gpu_work": "none",
+    "kfd": "idle"
+  },
+  "meta": {
+    "experiment": "v3.1-PERF-3A elementwise and dtype fusion audit",
+    "git_head": "5a72192",
+    "mode": "read-only; no GPU workloads, no benchmarks, no code changes",
+    "trace": "~/veylith-perf1-20261027/profile/trace2/trace.json",
+    "trace_updates": 5
+  },
+  "perf1_context": {
+    "copies_ms": 81.8,
+    "elementwise_ms": 309.1,
+    "gemm_ms": 245.0,
+    "kernels_per_update": 41016
+  },
+  "perf1_items": [
+    {
+      "actual": "Mixture of parameter-gradient adds (about 15-16 ms), activation-gradient adds (about 35 ms) and combine/residual FP32 adds (about 24 ms).",
+      "avoidable": "launch overhead only for parameter adds; activation adds are required reductions",
+      "item": "FP32 gradient accumulation",
+      "perf1_ms": 71.3,
+      "source": "autograd AccumulateGrad plus model.py:149/181"
+    },
+    {
+      "actual": "SwiGLU silu(w1) * w2 at (4088,960), 448 forward and 896 backward calls; not the router weighting.",
+      "avoidable": "fusable activation; ~12-18 ms",
+      "item": "BF16 expert-weight multiplication",
+      "perf1_ms": 36.7,
+      "source": "model.py:109"
+    },
+    {
+      "actual": "Combine adds 16.27 ms, RMSNorm muls 7.9 ms, attention RoPE and softmax muls, residual adds.",
+      "avoidable": "depends on the sub-op",
+      "item": "FP32 binary operations",
+      "perf1_ms": 32.8,
+      "source": "model.py:149, 25, 36"
+    },
+    {
+      "actual": "FP32->BF16 autocast casts of norm outputs to every Linear (21.83 ms, 1400 calls), CE boundary 3.78 ms, attention reshapes.",
+      "avoidable": "~18 ms",
+      "item": "BF16 copies",
+      "perf1_ms": 35.4,
+      "source": "precision.py autocast plus model.py RMSNorm"
+    },
+    {
+      "actual": "Residual/combine promotions 11.08 ms, weight-gradient casts to FP32 8.4 ms, CE cast 3.17 ms.",
+      "avoidable": "only if the residual is kept in BF16 (numerical change)",
+      "item": "BF16-to-FP32 conversion",
+      "perf1_ms": 27.4,
+      "source": "model.py:181, autograd"
+    },
+    {
+      "actual": "Broadcast multiplies: router weights (12.28 + 6.77 ms), RMSNorm weight mul (7.9 ms), RoPE/attention muls.",
+      "avoidable": "fusable with the combine or norm changes",
+      "item": "Manual-unroll operations",
+      "perf1_ms": 27.5,
+      "source": "model.py:148, 25, 36"
+    }
+  ],
+  "promotion_finding": {
+    "blocks": 8,
+    "evidence": [
+      "aten::pow/mean/rsqrt on (8,511,512) and (8,511,1) with type float",
+      "aten::embedding_dense_backward output type float",
+      "aten::add (8,511,512) with float, bfloat16 operands in forward",
+      "aten::copy_ (4088,512) bf16<-float: 1400 calls/update, 21.83 ms",
+      "aten::copy_ (4088,512) float<-bf16: 952 calls/update, 11.08 ms"
+    ],
+    "microbatches": 8,
+    "norm_consumer_casts_per_update": 1280,
+    "norm_consumers_per_block": 20,
+    "single_cast_replacement_per_update": 128,
+    "summary": "The residual stream is FP32: the embedding output is FP32, RMSNorm multiplies by an FP32 weight and returns FP32, and the MoE dense combine accumulates in FP32. Autocast therefore casts FP32 activations to BF16 before every Linear."
+  },
+  "ranking": [
+    {
+      "id": "P1",
+      "rank": 1,
+      "why": "largest purely avoidable cluster, numerically neutral, lowest complexity"
+    },
+    {
+      "id": "P2",
+      "rank": 2,
+      "why": "largest measured cluster but only 15 ms avoidable and precision-sensitive"
+    },
+    {
+      "id": "P3",
+      "rank": 3,
+      "why": "clear middle cluster, exact fusion possible"
+    },
+    {
+      "id": "P4",
+      "rank": 4,
+      "why": "small launch-overhead-only gain"
+    },
+    {
+      "id": "P5",
+      "rank": 5,
+      "why": "uncertain payoff, high complexity"
+    },
+    {
+      "id": "P6",
+      "rank": 6,
+      "why": "implementation vehicle, not a first step"
+    }
+  ],
+  "selected": {
+    "bounded_prototype": "PERF-3B: change RMSNorm to return a BF16 cast of the same FP32 result, force the MoE accumulator to FP32, then run a 2-update numerical equivalence check and a 5-update profile.",
+    "expected_update_ms": -18.0,
+    "expected_update_pct": -2.3,
+    "id": "P1",
+    "name": "Single-cast at RMSNorm output",
+    "rationale": "18 ms of measured cast traffic is pure overhead; the GEMM operands remain the same BF16 values, the combine and residual stay FP32, and no new kernels or dependencies are required."
+  },
+  "top_kernels": [
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::CUDAFunctor_add<float>, std::array<char*, 3ul> >(int, at::native::CUDAFunctor_",
+      "ms_per_update": 69.82913439999997
+    },
+    {
+      "kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FD",
+      "ms_per_update": 49.08682280000029
+    },
+    {
+      "kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_FD",
+      "ms_per_update": 47.105233200000136
+    },
+    {
+      "kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB0_EPS0_",
+      "ms_per_update": 40.9434658000002
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::BinaryFunctor<c10::BFloat16, c10::BFloat16, c10::BFloat16, at::native::binary_",
+      "ms_per_update": 37.570561000000104
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::bfloat16_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda(float)#1}, std::ar",
+      "ms_per_update": 37.214224400000106
+    },
+    {
+      "kernel": "void at::native::vectorized_templated_elementwise_kernel<4, at::native::BinaryFunctor<float, float, float, at::native::binary_internal::MulF",
+      "ms_per_update": 33.690566200000106
+    },
+    {
+      "kernel": "void at::native::elementwise_kernel_manual_unroll<128, 4, at::native::gpu_kernel_impl_nocast<at::native::BinaryFunctor<float, float, float, ",
+      "ms_per_update": 28.068529600000115
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::bfloat16tofloat32_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda(c10::BFlo",
+      "ms_per_update": 27.634864800000475
+    },
+    {
+      "kernel": "Cijk_Ailk_Bjlk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x64_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR1_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_FD",
+      "ms_per_update": 23.414181200000016
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::FillFunctor<float>, std::array<char*, 1ul> >(int, at::native::FillFunctor<floa",
+      "ms_per_update": 23.290791400000867
+    },
+    {
+      "kernel": "Cijk_Ailk_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT64x64x32_MI16x16x1_SN_LDSB1_AFC1_AFEM1_AFEM1_ASEM32_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS1_F",
+      "ms_per_update": 23.14338399999999
+    },
+    {
+      "kernel": "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs_MT128x128x32_MI16x16x1_SN_LDSB0_AFC1_AFEM1_AFEM1_ASEM1_CLR0_CADS0_DTLA0_DTLB0_DTVA0_DTVB1_EPS0_",
+      "ms_per_update": 21.731087800000033
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul> >(int, at::native::FillFunc",
+      "ms_per_update": 19.970115999999972
+    },
+    {
+      "kernel": "bwd_kernel_dk_dv.kd",
+      "ms_per_update": 17.812706000000002
+    },
+    {
+      "kernel": "bwd_kernel_dq.kd",
+      "ms_per_update": 17.61031060000002
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<8, at::native::(anonymous namespace)::silu_backward_kernel(at::TensorIteratorBase&)::{lambda(",
+      "ms_per_update": 14.878159599999988
+    },
+    {
+      "kernel": "void at::native::reduce_kernel<512, 1, at::native::ReduceOp<float, at::native::func_wrapper_t<float, at::native::sum_functor<float, float, f",
+      "ms_per_update": 14.32313960000002
+    },
+    {
+      "kernel": "void at::native::vectorized_elementwise_kernel<4, at::native::BinaryFunctor<float, float, float, at::native::binary_internal::MulFunctor<flo",
+      "ms_per_update": 12.400136799999945
+    },
+    {
+      "kernel": "attn_fwd.kd",
+      "ms_per_update": 10.561514199999998
+    }
+  ],
+  "unknowns": [
+    "About 120 of the 1,400 FP32->BF16 (4088,512) casts are not attributed to the 20 norm consumers per block; they may be attention or CE boundary casts.",
+    "aten::fill_ (4088,512) at 8.63 ms BF16 and 6.68 ms FP32 per update has no stack trace; its source is not provable from this trace.",
+    "Op-to-source mapping uses shape, dtype, phase and model semantics; the trace has no stacks (with_stack=False).",
+    "The 309/82/245 category figures come from PERF-1 kernel attribution; op-level sums can double count nested ops.",
+    "Savings assume the elementwise stream is the critical path and that removing casts does not shift time into the GEMMs."
+  ]
+}
