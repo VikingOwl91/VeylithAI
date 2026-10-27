@@ -1,0 +1,191 @@
+{
+  "census": {
+    "attribution": {
+      "consumers": "observed from the dispatch record",
+      "lifetime": "partial: allocation precedes consumption and no reuse recorded, but both addresses were evicted from the bounded history, so the free state is unknown",
+      "phase": "observed: one forward product, one backward linear-output gradient",
+      "producer": "observed for both tail-4 candidates from the tag registry"
+    },
+    "operand_pointers_4194300_bytes": 5,
+    "tagged_producers": [
+      [
+        "?.mul",
+        "forward"
+      ],
+      [
+        "grad_of:?.mul",
+        "backward"
+      ],
+      [
+        "grad_of:torch._C._nn.linear",
+        "backward"
+      ],
+      [
+        "grad_of:torch.nn.functional.silu",
+        "backward"
+      ],
+      [
+        "torch._C._nn.linear",
+        "forward"
+      ],
+      [
+        "torch.nn.functional.silu",
+        "forward"
+      ]
+    ],
+    "tail4_candidates": [
+      {
+        "grid_2mib_dist": 4,
+        "lifetime": {
+          "confidence": "lifetime unknown: not retained in the bounded history",
+          "detail": [],
+          "intervals_at_addr": 0
+        },
+        "op_n_reads": 1,
+        "op_t_reads": 1,
+        "page_dist": 4,
+        "producer_observed": "?.mul",
+        "producer_phase": "forward",
+        "provenance": "observed",
+        "ptr": "0x7fbef0e00000",
+        "reads": 2,
+        "shapes": [
+          "C[256, 3075] ['OP_T', 'OP_N']",
+          "C[682, 256] ['OP_N', 'OP_T']"
+        ]
+      },
+      {
+        "grid_2mib_dist": 4,
+        "lifetime": {
+          "confidence": "lifetime unknown: not retained in the bounded history",
+          "detail": [],
+          "intervals_at_addr": 0
+        },
+        "op_n_reads": 0,
+        "op_t_reads": 1,
+        "page_dist": 4,
+        "producer_observed": "grad_of:torch._C._nn.linear",
+        "producer_phase": "backward",
+        "provenance": "observed",
+        "ptr": "0x7fbecc600000",
+        "reads": 1,
+        "shapes": [
+          "C[256, 682] ['OP_N', 'OP_T']"
+        ]
+      }
+    ]
+  },
+  "execution": {
+    "arm": "stock sparse reproducer, no padding, 100 iterations",
+    "completed": true,
+    "exit_code": 0,
+    "faulted": false,
+    "first_loss_full_precision": null,
+    "first_loss_note": "the stock child entry point does not print the full-precision first loss; display value only, recorded as a harness gap rather than reconstructed",
+    "gpu_idle_after": true,
+    "kernel_fault_records": 0,
+    "losses": {
+      "eval25": "10.4923",
+      "eval99": "10.4908",
+      "iter0": "10.4816",
+      "iter25": "10.4898",
+      "iter50": "10.4882",
+      "iter75": "10.4925",
+      "iter99": "10.4941"
+    },
+    "reset_lines": []
+  },
+  "four_byte_gap": {
+    "allocator_frames": [
+      "torch::unwind::unwind()",
+      "torch::CapturedTraceback::gather(bool, bool, bool)",
+      "torch::cuda::(anonymous namespace)::gather_with_cpp()"
+    ],
+    "block_sizes": [
+      4194304,
+      4713984
+    ],
+    "blocks_with_requested_size_4194300": 8,
+    "frames_note": "the captured frames are the traceback machinery, not the allocating operator, so layer 1 alone cannot name a producer on this build",
+    "observation": "a 4,194,300-byte request is satisfied with a 4,194,304-byte block, so a 2 MiB aligned block ends 4 bytes after the tensor"
+  },
+  "instrumentation": {
+    "cpu_gates": {
+      "backward_gradient_tagged": true,
+      "consumers_recorded": true,
+      "drift_guard": "OK",
+      "forward_producers_tagged": true,
+      "gate_result": "all true",
+      "numerics_bitwise": true,
+      "persistence_and_fault_handler": true,
+      "reuse_join_semantics": true,
+      "size_filter_only_target_bytes": true,
+      "tests": "122 passed, 2 skipped"
+    },
+    "join": "keyed on (pointer, byte count, lifetime); a pointer alone never decides",
+    "layer_1": "allocator history: enabled all, context all, stacks all, max_entries 50000; rotating snapshot every 25 batches plus fault and exit dumps",
+    "layer_2": "TorchFunctionMode on a small operator allowlist recording only BF16 tensors of exactly 4,194,300 bytes, plus tensor hooks to tag their gradients"
+  },
+  "integrity": {
+    "backend_switch": "none",
+    "checkpoint_change": "none",
+    "deviations": "full-precision first loss not captured",
+    "gpu_reset": "none",
+    "kernel_serialization": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none"
+  },
+  "interpretation": {
+    "earlier_2x2": "not a controlled discrimination; it reflected which run happened to fault, not a property of the padding arms",
+    "not_settled": [
+      "why three earlier runs faulted at the same geometry",
+      "whether this run's cleanliness is intermittency or instrumentation suppression",
+      "which kernel instance over-reads when the fault occurs"
+    ],
+    "settled": "the SwiGLU product itself reached page_dist 4 and grid 2 MiB distance 4 and was read by both the OP_N and OP_T formulations in a stock unpadded run without a fault, so that geometry and those roles are not sufficient to cause the fault"
+  },
+  "meta": {
+    "classification": 3,
+    "classification_text": "no fault, with the critical geometry present and read in this run",
+    "experiment": "v3.1-PERF-5P stock BF16 operand provenance",
+    "git_head": "7b87373",
+    "gpu_executions": 1
+  },
+  "next_experiment": {
+    "arm": "repeat the same instrumented stock run, with the full-precision first loss printed at capture time",
+    "gates": [
+      "display losses identical and full-precision first loss equal to 10.481635093688965",
+      "at least one tail-4 operand read per run",
+      "fault handler leaves parseable events and a snapshot"
+    ],
+    "runs": 2,
+    "stop": "stop after the first fault and analyse it instead of running the second",
+    "why": "the fault's base rate under this configuration has been high, so two further runs with the registry armed separate intermittent from suppressed"
+  },
+  "overhead": {
+    "alloc_history": "recording",
+    "events": 32,
+    "get_batch_calls": 120,
+    "snapshot_bytes": [
+      10390509,
+      16787303
+    ],
+    "snapshots": 5,
+    "tagged_producers": 15,
+    "truncated": false
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "drift_guard": "OK before and after",
+    "gpu": "idle, no foreign KFD process, before and after",
+    "head": "7b87373",
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean"
+  }
+}
