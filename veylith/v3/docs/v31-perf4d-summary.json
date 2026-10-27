@@ -1,0 +1,229 @@
+{
+  "checkpoint_compatibility": {
+    "artifact_format": 1,
+    "existing_states_resume": "verified: the step-250 fixture loaded and reproduced PERF-4C digests",
+    "fingerprint": "1212c3d134911dee2745d5deb2b91454296eaf86954d21013d4d641c0aefd260 unchanged",
+    "historical_checkpoints_unmodified": [
+      "6efff0086ab0497b",
+      "ab259ebf78166d3f",
+      "865946d66664399b"
+    ],
+    "load_state_validation": "kind, format and fingerprint only; provenance is not validated",
+    "new_state_files": "carry one extra provenance key, so file sha256 differs from older states; loading unaffected",
+    "state_format": 1
+  },
+  "cpu_tests": {
+    "added_to_test_training": [
+      "default-mode log and provenance with restoration",
+      "debug-override log and provenance with restoration",
+      "invalid env aborts before any state is written",
+      "evaluate() leaves the flag untouched and metrics identical"
+    ],
+    "new_file": "veylith/v3/tests/test_prefill_policy.py",
+    "new_file_covers": [
+      "default mode",
+      "debug override",
+      "explicit 0 and empty",
+      "unset is disabled",
+      "ten invalid values rejected",
+      "invalid env fails resolution",
+      "deterministic algorithms remain enabled",
+      "restoration after normal exit",
+      "restoration after exception",
+      "restoration when policy application never runs",
+      "startup log wording",
+      "fingerprint unchanged by policy",
+      "env var absent from config dict"
+    ],
+    "suite": {
+      "new_tests": 26,
+      "passed": 122,
+      "previous": {
+        "passed": 96,
+        "skipped": 2
+      },
+      "skipped": 2
+    }
+  },
+  "gpu_integration": {
+    "arms": {
+      "debug": {
+        "env": "1",
+        "peak_reserved_GiB": 5.598,
+        "wall_seconds": 37.0
+      },
+      "default": {
+        "env": null,
+        "peak_reserved_GiB": 5.598,
+        "wall_seconds": 34.3
+      }
+    },
+    "cross_check": "model and optimizer digests match the PERF-4C gate at the same step",
+    "deterministic_after": {
+      "debug": true,
+      "default": true
+    },
+    "flag_restored": {
+      "debug": true,
+      "default": true
+    },
+    "method": "production train() resumed from ckpt_state_step250.pt, two matched updates, one process per policy mode, idle-gated",
+    "per_update_identical": {
+      "step251": {
+        "ce": 5.935148593730889,
+        "grad_norm": 0.4273534417152405
+      },
+      "step252": {
+        "ce": 5.958611355835678,
+        "grad_norm": 0.367633193731308
+      }
+    },
+    "provenance_differs_by_design": {
+      "debug": {
+        "effective": true,
+        "env": "1"
+      },
+      "default": {
+        "effective": false,
+        "env": null
+      }
+    },
+    "router_statistics_identical": true,
+    "state_digests_identical": {
+      "best_metric": 5.900742817369685,
+      "best_step": 252,
+      "fingerprint": "1212c3d134911dee",
+      "loader": {
+        "batch": 2016,
+        "epoch": 0
+      },
+      "model": "f0c31013ae80e324",
+      "optimizer": "73488f7735897875",
+      "rng": "61494ebdc9f33395",
+      "scheduler": "c225fbeb93689526",
+      "step": 252,
+      "tokens_seen": 8241408
+    },
+    "validation_identical": true
+  },
+  "implementation": {
+    "changed_files": [
+      {
+        "changes": [
+          "import the policy helpers",
+          "@restores_prefill_state on train",
+          "apply the policy immediately after use_deterministic_algorithms",
+          "one startup log line"
+        ],
+        "lines_added": 8,
+        "path": "veylith/v3/training/train.py"
+      },
+      {
+        "changes": [
+          "versions.environment.deterministic_prefill provenance entry",
+          "import PREFILL_ENV"
+        ],
+        "lines_added": 7,
+        "path": "veylith/v3/training/checkpoint.py"
+      }
+    ],
+    "new_module": {
+      "lines": 97,
+      "path": "veylith/v3/training/determinism.py",
+      "provides": [
+        "PREFILL_ENV",
+        "parse_prefill_policy",
+        "resolve_prefill_policy",
+        "current_prefill_state",
+        "apply_prefill_policy",
+        "restore_prefill_state",
+        "restores_prefill_state",
+        "describe_prefill_policy"
+      ]
+    },
+    "scope_expansion": "none; the policy lives in train(), so evaluation-only paths are untouched",
+    "untouched": [
+      "model forward and backward",
+      "routing",
+      "optimizer",
+      "precision",
+      "dataset",
+      "schedule",
+      "checkpoint formats",
+      "configuration fingerprint",
+      "training/evaluate.py"
+    ]
+  },
+  "integrity": {
+    "branch": "v3/data-pipeline",
+    "drift_guard": "OK",
+    "gpu_work": "four bounded idle-gated runs",
+    "main_diff_prefix": "056540dab24662e4",
+    "main_entries": 42,
+    "parent_head": "64c93a2",
+    "push": "none",
+    "tag_v2": "b89d0f0",
+    "tag_v31a": "3aff73e",
+    "worktree_after_commit": "clean"
+  },
+  "meta": {
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-4D controlled prefill integration",
+    "git_head_parent": "64c93a2",
+    "reports_read": [
+      "V3.1-PERF-4A-HOST-AUDIT.md",
+      "V3.1-PERF-4B-PREFILL.md",
+      "V3.1-PERF-4C-RESUME-AB.md"
+    ],
+    "scope": "runtime prefill policy and its tests only; no architecture, numerical or unrelated performance change"
+  },
+  "policy": {
+    "applied_after": "torch.use_deterministic_algorithms",
+    "deterministic_algorithms": "still enabled with warn_only False in both modes",
+    "env_var": "VEYLITH_DETERMINISTIC_PREFILL",
+    "fingerprint_field": false,
+    "parsing": "exact match, no strip or lowercase",
+    "restoration": "decorator snapshots the flag and restores it in a finally; covers normal return, policy ValueError and exceptions during training",
+    "values": {
+      "": {
+        "prefill": false,
+        "source": "default"
+      },
+      "0": {
+        "prefill": false,
+        "source": "environment"
+      },
+      "1": {
+        "prefill": true,
+        "source": "environment"
+      },
+      "anything else": {
+        "result": "ValueError before training work",
+        "silent_interpretation": false
+      },
+      "unset": {
+        "prefill": false,
+        "source": "default"
+      }
+    }
+  },
+  "provenance_and_logging": {
+    "additive": true,
+    "shape": {
+      "effective": "bool read from PyTorch at save time",
+      "env": "raw environment value or null"
+    },
+    "startup_log": [
+      "deterministic prefill enabled (VEYLITH_DETERMINISTIC_PREFILL='1')",
+      "deterministic prefill disabled (VEYLITH_DETERMINISTIC_PREFILL unset)"
+    ],
+    "state_field": "versions.environment.deterministic_prefill"
+  },
+  "safety_limitations": [
+    "the prefill is a diagnostic; with the default policy an unwritten-memory read would be silent instead of NaN",
+    "bitwise identity is evidence, not proof of memory safety; priming covered at most 3.0 GiB of 5.18 GiB and no driver or library memory",
+    "the policy is process-global; sequential train() calls restore it, concurrent loops in one process would conflict",
+    "runs with different policies share a fingerprint by design; provenance is the discriminator",
+    "the measured benefit (6.26 percent update, 3.28 percent energy) is PERF-4C's and was not re-measured here"
+  ]
+}

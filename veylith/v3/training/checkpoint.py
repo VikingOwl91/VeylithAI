@@ -12,6 +12,8 @@ import sys
 import numpy as np
 import torch
 
+from .determinism import PREFILL_ENV
+
 STATE_FORMAT = 1
 ARTIFACT_FORMAT = 1
 
@@ -38,6 +40,11 @@ def environment_provenance() -> dict:
         "hip": getattr(torch.version, "hip", None),
         "fingerprint_path": path,
         "fingerprint_sha256": _file_sha256(path),
+        "deterministic_prefill": {
+            "effective": bool(
+                torch.utils.deterministic.fill_uninitialized_memory),
+            "env": os.environ.get(PREFILL_ENV),
+        },
     }
 
 

@@ -21,7 +21,7 @@ from training.config import TrainConfig
 from training.data import iter_source_batches, load_manifest, source_names
 from training.evaluate import evaluate
 from training.schedule import lr_at
-from training.train import train
+from training.train import train, state_path_for
 import support
 
 
@@ -426,3 +426,62 @@ def test_max_vram_must_be_positive(corpus, tmp_path):
     cfg.max_vram_gb = 0
     with pytest.raises(ValueError, match="max_vram_gb"):
         cfg.validate()
+
+
+def test_prefill_policy_default_mode_logs_and_records(corpus, tmp_path,
+                                                      monkeypatch):
+    monkeypatch.delenv("VEYLITH_DETERMINISTIC_PREFILL", raising=False)
+    before = torch.utils.deterministic.fill_uninitialized_memory
+    logs = []
+    cfg = make_config(corpus, tmp_path / "prefill-default", max_steps=2,
+                      save_every=2)
+    train(cfg, log=logs.append)
+    assert any("deterministic prefill disabled" in line for line in logs)
+    state = torch.load(state_path_for(cfg, 2), map_location="cpu",
+                       weights_only=False)
+    assert state["versions"]["environment"]["deterministic_prefill"] == {
+        "effective": False, "env": None}
+    assert torch.utils.deterministic.fill_uninitialized_memory == before
+    assert torch.are_deterministic_algorithms_enabled() is True
+
+
+def test_prefill_policy_debug_override_logs_and_records(corpus, tmp_path,
+                                                        monkeypatch):
+    monkeypatch.setenv("VEYLITH_DETERMINISTIC_PREFILL", "1")
+    before = torch.utils.deterministic.fill_uninitialized_memory
+    logs = []
+    cfg = make_config(corpus, tmp_path / "prefill-debug", max_steps=2,
+                      save_every=2)
+    train(cfg, log=logs.append)
+    assert any("deterministic prefill enabled" in line for line in logs)
+    state = torch.load(state_path_for(cfg, 2), map_location="cpu",
+                       weights_only=False)
+    assert state["versions"]["environment"]["deterministic_prefill"] == {
+        "effective": True, "env": "1"}
+    assert torch.utils.deterministic.fill_uninitialized_memory == before
+
+
+def test_prefill_policy_rejects_invalid_env_before_training(corpus, tmp_path,
+                                                            monkeypatch):
+    monkeypatch.setenv("VEYLITH_DETERMINISTIC_PREFILL", "yes")
+    cfg = make_config(corpus, tmp_path / "prefill-invalid", max_steps=2,
+                      save_every=2)
+    with pytest.raises(ValueError, match="VEYLITH_DETERMINISTIC_PREFILL"):
+        train(cfg, log=lambda *_: None)
+    assert not os.path.exists(state_path_for(cfg, 2))
+
+
+def test_evaluate_only_path_ignores_the_prefill_policy(corpus, tmp_path):
+    torch.manual_seed(0)
+    cfg = make_config(corpus, tmp_path / "prefill-eval", max_steps=1)
+    model = GPT(cfg.model)
+    torch.use_deterministic_algorithms(True, warn_only=False)
+    torch.utils.deterministic.fill_uninitialized_memory = True
+    first = evaluate(model, cfg, "validation", max_batches=1,
+                     exact_chars=False)
+    assert torch.utils.deterministic.fill_uninitialized_memory is True
+    torch.utils.deterministic.fill_uninitialized_memory = False
+    second = evaluate(model, cfg, "validation", max_batches=1,
+                      exact_chars=False)
+    assert torch.utils.deterministic.fill_uninitialized_memory is False
+    assert first["overall"]["main_ce"] == second["overall"]["main_ce"]

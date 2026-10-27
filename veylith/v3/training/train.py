@@ -20,6 +20,8 @@ from .checkpoint import (load_state, move_optimizer_state, restore_rng,
                          save_artifact, save_state)
 from .config import TrainConfig, sha256_file
 from .data import load_manifest, tokenizer_info
+from .determinism import (apply_prefill_policy, describe_prefill_policy,
+                          resolve_prefill_policy, restores_prefill_state)
 from .evaluate import evaluate
 from .precision import autocast_context
 from .schedule import CosineSchedule
@@ -120,6 +122,7 @@ def _select_score(metrics: dict, cfg: TrainConfig) -> float:
     return float(value)
 
 
+@restores_prefill_state
 def train(cfg: TrainConfig, log=print) -> dict:
     cfg.validate()
     manifest = load_manifest(cfg.data_root)
@@ -140,6 +143,10 @@ def train(cfg: TrainConfig, log=print) -> dict:
     if cfg.deterministic:
         torch.set_num_threads(1)
         torch.use_deterministic_algorithms(True, warn_only=False)
+    # Runtime policy, not a config field: the prefill never enters the
+    # fingerprint, so resume compatibility is unaffected.
+    prefill_policy = resolve_prefill_policy()
+    apply_prefill_policy(prefill_policy)
     data_sha = sha256_file(os.path.join(cfg.data_root, "corpus", "manifest.json"))
     dataset_info = {
         "manifest_sha256": data_sha,
@@ -221,6 +228,7 @@ def train(cfg: TrainConfig, log=print) -> dict:
     log(f"model {cfg.model.name}: {total_params/1e6:.2f}M total; "
         f"device {cfg.device}; seq {cfg.seq_len}; microbatch {cfg.batch_size} x "
         f"accum {cfg.grad_accum}; fingerprint {fingerprint[:16]}")
+    log(describe_prefill_policy(prefill_policy))
     step = start_step
     tokens_seen = int(tokens_seen)
     loader_epoch_out, loader_batch_out = loader_epoch, loader_batch
