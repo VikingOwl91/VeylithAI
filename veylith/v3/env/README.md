@@ -286,4 +286,6 @@ authorization. The v3.1-J isolated reproducer then reproduced the known
 Sparse-MoE fault; see `../docs/V3.1-J-SPARSE-REPRODUCER.md`. The first dense
 training attempt (v3.1-K) stopped after 3 updates on the 6 GiB peak-reserved
 VRAM guard at 6.105 GiB; no GPU fault, OOM or checkpoint. See
-`../docs/V3.1-K-DENSE-RUN.md`.
+`../docs/V3.1-K-DENSE-RUN.md`. The v3.1-L rerun with a 12 GiB reserved target
+completed 500 updates in 511 s at a 6.107 GiB reserved peak, with seven
+verified step-suffixed states; see `../docs/V3.1-L-DENSE-RUN.md`.

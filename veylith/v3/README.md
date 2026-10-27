@@ -305,8 +305,9 @@ further training. See `docs/V3.1-E-PARTIAL-RUN-RESULTS.md` and
 
 The isolated GPU training environment (v3.1-H) is at
 `~/veylith-v31-isolated`. Its pinned lock, launcher, fingerprint baseline and
-read-only drift guard are under `env/`; CPU validation passes 90 tests with
-1 skip. The isolated GPU smoke (v3.1-I) then passed on gfx1201: BF16, SDPA
+read-only drift guard are under `env/`; the CPU suite in that environment
+passes 97 tests with 1 skip. The isolated GPU smoke (v3.1-I) then passed on
+gfx1201: BF16, SDPA
 causal and sliding-window attention, Dense-Combined MoE, and a checkpoint
 forward, with 0 `/opt/rocm` libraries, peak allocation 0.7445 GB and 6.7 s
 total. See `docs/V3.1-I-ISOLATED-GPU-SMOKE.md`. Training remains pending
@@ -319,3 +320,10 @@ The first isolated Dense-Combined training attempt (v3.1-K) stopped after 3
 optimizer updates on the 6 GiB peak-reserved-VRAM guard at 6.105 GiB. It was
 not a GPU fault or OOM, but it produced no checkpoint, no final validation and
 no stability result. See `docs/V3.1-K-DENSE-RUN.md`.
+
+The v3.1-L run raised that guard to 12 GiB and completed the full 500-update
+horizon with exit 0 in 511 s. Peak reserved memory was 6.107 GiB, so the
+v3.1-K limit sat just below the allocator's steady state. Validation macro CE
+fell from 9.1168 to 5.4001, seven step-suffixed states were written and
+structurally restored, and no GPU fault occurred. Router balance is healthy
+but close to uniform. See `docs/V3.1-L-DENSE-RUN.md`.

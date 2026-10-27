@@ -1,0 +1,19 @@
+(null): No such file or directory
+(null): No such file or directory
+OK: isolated environment matches the accepted baseline
+(null): No such file or directory
+(null): No such file or directory
+model v3.1-a-primary: 98.34M total; device cuda; seq 512; microbatch 8 x accum 8; fingerprint 1212c3d134911dee
+initial validation: macro 9.1168 token 9.1158
+  state -> ~/veylith-v31l-dense-20261027/ckpt_state_step0.pt (step 0, 0.79 GB, sha 6efff0086ab0497b, free 359.2 GB)
+  state -> ~/veylith-v31l-dense-20261027/ckpt_state_step10.pt (step 10, 1.57 GB, sha acf6134814a1cbb6, free 359.2 GB)
+  state -> ~/veylith-v31l-dense-20261027/ckpt_state_step25.pt (step 25, 1.57 GB, sha 6d9c3e75ec30cf80, free 355.3 GB)
+  state -> ~/veylith-v31l-dense-20261027/ckpt_state_step50.pt (step 50, 1.57 GB, sha df8f78586a1efabb, free 354.1 GB)
+step 100: train 7.1335 | val macro 7.1035 token 7.0542 | best 7.1035 @ 100
+  state -> ~/veylith-v31l-dense-20261027/ckpt_state_step100.pt (step 100, 1.57 GB, sha 7a5f84eef9bb9ecd, free 352.1 GB)
+step 250: train 6.0168 | val macro 5.9088 token 5.9058 | best 5.9088 @ 250
+  state -> ~/veylith-v31l-dense-20261027/ckpt_state_step250.pt (step 250, 1.57 GB, sha ab259ebf78166d3f, free 350.6 GB)
+step 500: train 5.5949 | val macro 5.4001 token 5.4232 | best 5.4001 @ 500
+  state -> ~/veylith-v31l-dense-20261027/ckpt_state_step500.pt (step 500, 1.57 GB, sha 865946d66664399b, free 349.0 GB)
+best checkpoint -> ~/veylith-v31l-dense-20261027/ckpt_best.pt (step 500, macro_main_ce 5.4001, sha 6bce407b64b124ba)
+steps=500 tokens=16352000 best_step=500 best=5.4000937836071925

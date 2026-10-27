@@ -1,0 +1,880 @@
+{
+  "budgets": {
+    "hard_wall_seconds": 1800,
+    "max_updates": 500,
+    "max_vram_gb": 12.0,
+    "max_wall_seconds": 1680
+  },
+  "checkpoints": [
+    {
+      "bytes": 786917247,
+      "free_bytes": 359218241536,
+      "path": "~/veylith-v31l-dense-20261027/ckpt_state_step0.pt",
+      "sha256": "6efff0086ab0497b780c8f6e72f5cf70d319ae71656041d00b7c0e34e0c5fa38",
+      "step": 0,
+      "time_utc": "2026-10-27T08:43:28Z",
+      "tokens_seen": 0
+    },
+    {
+      "bytes": 1573847721,
+      "free_bytes": 359218241536,
+      "path": "~/veylith-v31l-dense-20261027/ckpt_state_step10.pt",
+      "sha256": "acf6134814a1cbb6488f6d5a8ebbf4fc9d5342dad73d46e2c780623cfb0195a7",
+      "step": 10,
+      "time_utc": "2026-10-27T08:43:41Z",
+      "tokens_seen": 327040
+    },
+    {
+      "bytes": 1573847721,
+      "free_bytes": 355284275200,
+      "path": "~/veylith-v31l-dense-20261027/ckpt_state_step25.pt",
+      "sha256": "6d9c3e75ec30cf8019c9f16c5db9062ecb91d8764066ca00a32c12aa47d1ad46",
+      "step": 25,
+      "time_utc": "2026-10-27T08:43:56Z",
+      "tokens_seen": 817600
+    },
+    {
+      "bytes": 1573847721,
+      "free_bytes": 354124369920,
+      "path": "~/veylith-v31l-dense-20261027/ckpt_state_step50.pt",
+      "sha256": "df8f78586a1efabb68fa6720b6ab4c6f0702df55f724271fd0d645d60c251d79",
+      "step": 50,
+      "time_utc": "2026-10-27T08:44:18Z",
+      "tokens_seen": 1635200
+    },
+    {
+      "bytes": 1573848874,
+      "free_bytes": 352134533120,
+      "path": "~/veylith-v31l-dense-20261027/ckpt_state_step100.pt",
+      "sha256": "7a5f84eef9bb9ecdc3659ddeb2e1ee091032602b7a0133a9a23a80d33c0c9e24",
+      "step": 100,
+      "time_utc": "2026-10-27T08:45:25Z",
+      "tokens_seen": 3270400
+    },
+    {
+      "bytes": 1573848874,
+      "free_bytes": 350559580160,
+      "path": "~/veylith-v31l-dense-20261027/ckpt_state_step250.pt",
+      "sha256": "ab259ebf78166d3f5a2b87f4d1f60acb71f19a0ba3cddd257f899a6a0871d33d",
+      "step": 250,
+      "time_utc": "2026-10-27T08:47:48Z",
+      "tokens_seen": 8176000
+    },
+    {
+      "bytes": 1573848874,
+      "free_bytes": 348986929152,
+      "path": "~/veylith-v31l-dense-20261027/ckpt_state_step500.pt",
+      "sha256": "865946d66664399bd1f8d14619dd231937a14ade3ca9676283554f9554d894cc",
+      "step": 500,
+      "time_utc": "2026-10-27T08:51:28Z",
+      "tokens_seen": 16352000
+    }
+  ],
+  "classification": "bounded_dense_combined_run_completed_without_gpu_fault",
+  "code": {
+    "branch": "v3/data-pipeline",
+    "changes_committed_before_run": [
+      "log every update for updates 1-10, then the configured interval",
+      "monotonic clock for the wall deadline and elapsed durations",
+      "refuse validation with less than 120 s or a checkpoint with less than 60 s remaining"
+    ],
+    "executed_head": "ae00feb",
+    "executed_head_note": "The authorized minimal telemetry and time-budget changes to veylith/v3/training/train.py were committed as ae00feb before the GPU run. No other code differs from 6ba3558.",
+    "preflight_head_actual": "6ba3558",
+    "preflight_head_expected": "6ba3558"
+  },
+  "config": {
+    "allow_large_cpu": false,
+    "allow_unsafe_sparse": false,
+    "batch_size": 8,
+    "beta1": 0.9,
+    "beta2": 0.999,
+    "checkpoint": "~/veylith-v31l-dense-20261027/ckpt_best.pt",
+    "curve_jsonl": "~/veylith-v31l-dense-20261027/curve.jsonl",
+    "data_root": "~/veylith-v3-data/multi-100m-20261026",
+    "deterministic": true,
+    "device": "cuda",
+    "eps": 1e-08,
+    "eval_batch_size": 8,
+    "eval_interval": 250,
+    "eval_max_batches": null,
+    "eval_steps": [
+      100,
+      250,
+      500
+    ],
+    "exact_chars": true,
+    "grad_accum": 8,
+    "grad_clip": 1.0,
+    "log_every": 10,
+    "lr": 0.0003,
+    "max_steps": 500,
+    "max_vram_gb": 12.0,
+    "max_wall_seconds": 1680.0,
+    "min_lr_ratio": 0.1,
+    "model": {
+      "attention_impl": "sdpa",
+      "block_size": 512,
+      "dropout": 0.1,
+      "expert_ffn_dim": 960,
+      "first_k_dense": 1,
+      "full_attn_every": 4,
+      "moe_aux_weight": 0.01,
+      "moe_impl": "dense",
+      "n_embd": 512,
+      "n_experts": 8,
+      "n_experts_per_tok": 2,
+      "n_head": 8,
+      "n_kv_head": 2,
+      "n_layer": 8,
+      "name": "v3.1-a-primary",
+      "rope_theta": 10000.0,
+      "shared_expert": false,
+      "shared_ffn_dim": 0,
+      "sliding_window": 256,
+      "tie_embeddings": false,
+      "vocab_size": 8192
+    },
+    "out_dir": "~/veylith-v31l-dense-20261027",
+    "precision": "bf16",
+    "resume": null,
+    "save_every": 500,
+    "save_initial_state": true,
+    "save_steps": [
+      10,
+      25,
+      50,
+      100,
+      250,
+      500
+    ],
+    "seed": 0,
+    "select_metric": "macro_main_ce",
+    "seq_len": 512,
+    "single_pass": false,
+    "state_path": "~/veylith-v31l-dense-20261027/ckpt_state_step{step}.pt",
+    "stop_after": null,
+    "train_gap_batches": 8,
+    "warmup_steps": 15,
+    "weight_decay": 0.01
+  },
+  "dataset": {
+    "data_root": "~/veylith-v3-data/multi-100m-20261026",
+    "manifest_digest": "7a6e7991dd83244ced4c9c13627028e1824f00b0f58735cc665323ff111bdcf0",
+    "manifest_sha256": "4200d524075adf5773bb4634003bfe6296d735bd62118f740ad944bfe881e7b9",
+    "plan": {
+      "expected_tokens_seen_500": 16352000,
+      "first_4000_batches_ce_targets": 16352000,
+      "first_4000_batches_positions": 16384000,
+      "sequences": 187405,
+      "tokens": 95951233,
+      "verify_problems": []
+    },
+    "tokenizer_sha256": "411227a8e5289d6f4b450059b744ed278532a4624d3895f1a4979600c49ae034",
+    "train_tokens": 95951233
+  },
+  "environment": {
+    "baseline_sha256": "a69e1e740289e0e74df4d91c0506ba2b5b9977902d5f4d765a9327b6032f4ee2",
+    "config_fingerprint": "1212c3d134911dee2745d5deb2b91454296eaf86954d21013d4d641c0aefd260",
+    "executable": "~/veylith-v31-isolated/bin/python",
+    "gpu": {
+      "allocated_gb": 0.0,
+      "arch": "gfx1201",
+      "capability": [
+        12,
+        0
+      ],
+      "device_count": 1,
+      "free_gb": 16.97,
+      "headroom_gb": 4.085,
+      "headroom_ok": true,
+      "name": "AMD Radeon Graphics",
+      "reserved_gb": 0.0,
+      "target_reserved_decimal_gb": 12.885,
+      "target_reserved_gb": 12.0,
+      "total_gb": 17.096,
+      "used_gb": 0.126
+    },
+    "hip": "7.2.53211",
+    "manifest_digest_valid": true,
+    "postrun_drift_guard": "OK",
+    "prefix": "~/veylith-v31-isolated",
+    "preflight_drift_guard": "OK",
+    "python": "3.14.8",
+    "run_fingerprint_sha256": "8571e96cee409cc705bc83a4a8e2375236126f67fd3a46e12b11c01bc5ee28d5",
+    "tokenizer_match": true,
+    "torch": "2.14.1+rocm7.2",
+    "torch_file": "~/veylith-v31-isolated/lib/python3.14/site-packages/torch/__init__.py",
+    "user_site": false
+  },
+  "memory": {
+    "current_allocated_gb": 1.772,
+    "current_reserved_gb": 6.107,
+    "guard_exceeded": false,
+    "peak_allocated_gb": 5.568,
+    "peak_reserved_gb": 6.107,
+    "preflight_free_gb": 16.97,
+    "preflight_total_gb": 17.096,
+    "preflight_used_gb": 0.126,
+    "target_reserved_gb": 12.0
+  },
+  "next_action": "Await further instructions. No additional GPU run was started.",
+  "result": {
+    "artifact": "~/veylith-v31l-dense-20261027/ckpt_best.pt",
+    "artifact_bytes": 393463308,
+    "artifact_sha256": "6bce407b64b124ba6e28b4a3fbcad36dff70ba99b05351680192f29f1bbad266",
+    "best_metric": 5.4000937836071925,
+    "best_step": 500,
+    "ce_targets": 16352000,
+    "completed_updates": 500,
+    "elapsed_at_last_update_s": 481.102,
+    "ended_utc": "2026-10-27T08:51:30Z",
+    "exit_code": 0,
+    "external_wall_seconds": 518,
+    "internal_total_wall_seconds": 511.165,
+    "positions": 16384000,
+    "post_last_update_overhead_s": 30.063,
+    "started_utc": "2026-10-27T08:42:52Z",
+    "stop_reason": "reached the 500-update horizon with exit 0; no GPU fault, HIP error, OOM, reset or non-finite value"
+  },
+  "resume_verification": {
+    "cpu_suites": {
+      "isolated": "97 passed, 1 skipped",
+      "project": "96 passed, 2 skipped",
+      "system": "97 passed, 1 skipped"
+    },
+    "method": "CPU-only structural restore of steps 10, 100, 250 and 500",
+    "not_verified": "GPU numerical resume parity was not tested. No second GPU process was started and no additional training tokens were consumed.",
+    "verified": [
+      "sha256 and byte size match checkpoints.jsonl for all seven states and the artifact",
+      "strict model state_dict load into Architecture A (98,340,864 parameters)",
+      "optimizer state restores with the recorded update count",
+      "schedule state restores with the same step and the recorded learning rate",
+      "python, numpy, torch and cuda RNG states restore and re-draw identically",
+      "loader cursor equals step x 8 microbatches",
+      "dataset and environment blocks match the manifest, tokenizer and env fingerprint"
+    ]
+  },
+  "router": {
+    "final_mean_entropy_norm": 0.9992782652690145,
+    "final_share_pct_max": 14.09,
+    "final_share_pct_min": 10.62,
+    "max_collapse_streak": 0,
+    "train_mean_entropy_max": 0.9994977970280159,
+    "train_mean_entropy_min": 0.8170675768491936,
+    "unused_experts_any_validation": false
+  },
+  "run": "v3.1-l-dense-20261027",
+  "schema_version": 1,
+  "status": "completed",
+  "throughput": {
+    "end_to_end_ce_targets_per_s": 31989.7,
+    "max_update_seconds": 2.7614,
+    "max_update_step": 1,
+    "mean_ce_targets_per_s": 42895.8,
+    "mean_logged_update_seconds": 0.7882,
+    "measured_updates_logged": 59,
+    "median_ce_targets_per_s": 43887.5,
+    "median_update_seconds": 0.7452,
+    "min_update_seconds": 0.7275,
+    "note": "Throughput is CE-target throughput. Only 59 of 500 updates carry a timing record because the log interval is 10 after update 10; medians are over those records. End-to-end includes four validations and seven checkpoint writes."
+  },
+  "validation": {
+    "protocol": "exact prefix-decode characters, validation split only",
+    "records": [
+      {
+        "aux_sum": 7.744246284116059,
+        "bits_per_char": 3.3517600497667264,
+        "chars": 8311337,
+        "macro_main_ce": 9.11676785956257,
+        "router_mean_entropy_norm": 0.9601729811502298,
+        "router_per_layer": [
+          {
+            "entropy_norm": 0.9279998672569726,
+            "layer": 0,
+            "share_pct": [
+              15.1,
+              30.16,
+              9.78,
+              9.01,
+              7.56,
+              13.14,
+              4.21,
+              11.04
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9492792233206776,
+            "layer": 1,
+            "share_pct": [
+              6.13,
+              21.2,
+              13.49,
+              8.0,
+              8.3,
+              18.85,
+              6.27,
+              17.77
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9833860200540858,
+            "layer": 2,
+            "share_pct": [
+              10.68,
+              13.51,
+              14.24,
+              13.65,
+              16.44,
+              6.81,
+              8.86,
+              15.8
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9595884366888973,
+            "layer": 3,
+            "share_pct": [
+              4.65,
+              13.67,
+              10.6,
+              6.46,
+              13.11,
+              13.0,
+              18.6,
+              19.9
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9555292448356829,
+            "layer": 4,
+            "share_pct": [
+              16.13,
+              20.45,
+              13.27,
+              10.71,
+              18.85,
+              6.05,
+              5.46,
+              9.08
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9655195450416526,
+            "layer": 5,
+            "share_pct": [
+              12.01,
+              22.92,
+              12.81,
+              8.26,
+              6.63,
+              17.01,
+              10.4,
+              9.96
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9799085308536398,
+            "layer": 6,
+            "share_pct": [
+              12.34,
+              9.85,
+              9.22,
+              11.05,
+              8.48,
+              16.34,
+              12.43,
+              20.3
+            ],
+            "unused_experts": []
+          }
+        ],
+        "sources": {
+          "cosmopedia-v2": {
+            "aux_loss": 7.675202391473312,
+            "bits_per_char": 3.0295449255906286,
+            "chars": 1348670,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 9.120183854429992,
+            "nats": 2832099.8125,
+            "tokens": 310531
+          },
+          "fineweb-edu": {
+            "aux_loss": 7.759057081892682,
+            "bits_per_char": 3.3304565763042118,
+            "chars": 5119638,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 9.115107676642486,
+            "nats": 11818666.84375,
+            "tokens": 1296602
+          },
+          "wikipedia": {
+            "aux_loss": 7.748622281250614,
+            "bits_per_char": 3.646724450106197,
+            "chars": 1843029,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 9.115012047615227,
+            "nats": 4658655.3125,
+            "tokens": 511097
+          }
+        },
+        "step": 0,
+        "token_main_ce": 9.115828766824189,
+        "tokens": 2118230
+      },
+      {
+        "aux_sum": 7.268305550066942,
+        "bits_per_char": 2.593719727529698,
+        "chars": 8311337,
+        "macro_main_ce": 7.103513125365573,
+        "router_mean_entropy_norm": 0.9653794119397995,
+        "router_per_layer": [
+          {
+            "entropy_norm": 0.9790780839601736,
+            "layer": 0,
+            "share_pct": [
+              8.27,
+              13.17,
+              19.02,
+              10.71,
+              14.3,
+              8.08,
+              9.86,
+              16.59
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9136164995449135,
+            "layer": 1,
+            "share_pct": [
+              1.92,
+              9.93,
+              8.83,
+              6.31,
+              14.84,
+              13.18,
+              16.6,
+              28.38
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9588207061354457,
+            "layer": 2,
+            "share_pct": [
+              10.51,
+              7.39,
+              5.57,
+              13.17,
+              12.36,
+              12.58,
+              13.64,
+              24.78
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9646189292266344,
+            "layer": 3,
+            "share_pct": [
+              15.43,
+              19.11,
+              6.52,
+              19.9,
+              9.03,
+              9.76,
+              7.66,
+              12.59
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9810735413305844,
+            "layer": 4,
+            "share_pct": [
+              11.8,
+              11.09,
+              20.16,
+              10.18,
+              16.74,
+              10.98,
+              8.52,
+              10.53
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9868183351449051,
+            "layer": 5,
+            "share_pct": [
+              17.57,
+              15.09,
+              12.3,
+              11.35,
+              8.53,
+              10.96,
+              14.99,
+              9.21
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9736297882359404,
+            "layer": 6,
+            "share_pct": [
+              11.12,
+              8.37,
+              20.32,
+              16.79,
+              7.65,
+              14.23,
+              8.55,
+              12.96
+            ],
+            "unused_experts": []
+          }
+        ],
+        "sources": {
+          "cosmopedia-v2": {
+            "aux_loss": 7.415838561859957,
+            "bits_per_char": 2.4120031661406744,
+            "chars": 1348670,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 7.261127619152758,
+            "nats": 2254805.220703125,
+            "tokens": 310531
+          },
+          "fineweb-edu": {
+            "aux_loss": 7.24061969745453,
+            "bits_per_char": 2.561557545769876,
+            "chars": 5119638,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 7.010712289640055,
+            "nats": 9090103.576171875,
+            "tokens": 1296602
+          },
+          "wikipedia": {
+            "aux_loss": 7.248904063037791,
+            "bits_per_char": 2.8160354929077935,
+            "chars": 1843029,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 7.038699467303907,
+            "nats": 3597458.181640625,
+            "tokens": 511097
+          }
+        },
+        "step": 100,
+        "token_main_ce": 7.054175881993752,
+        "tokens": 2118230
+      },
+      {
+        "aux_sum": 7.111270369426862,
+        "bits_per_char": 2.171491457503565,
+        "chars": 8311337,
+        "macro_main_ce": 5.908816941075098,
+        "router_mean_entropy_norm": 0.9988669319060509,
+        "router_per_layer": [
+          {
+            "entropy_norm": 0.9991818239501308,
+            "layer": 0,
+            "share_pct": [
+              12.25,
+              14.09,
+              12.91,
+              11.69,
+              11.93,
+              12.93,
+              12.31,
+              11.9
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9987512940474709,
+            "layer": 1,
+            "share_pct": [
+              14.06,
+              12.43,
+              11.88,
+              10.72,
+              12.57,
+              12.47,
+              12.79,
+              13.08
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9985098304056594,
+            "layer": 2,
+            "share_pct": [
+              14.74,
+              12.19,
+              11.34,
+              12.51,
+              13.25,
+              12.32,
+              11.78,
+              11.86
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9992290618515677,
+            "layer": 3,
+            "share_pct": [
+              12.56,
+              12.49,
+              11.47,
+              13.83,
+              13.21,
+              12.08,
+              12.59,
+              11.78
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9988492095033621,
+            "layer": 4,
+            "share_pct": [
+              12.5,
+              12.82,
+              12.87,
+              12.18,
+              14.26,
+              11.41,
+              12.63,
+              11.33
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9981703366528563,
+            "layer": 5,
+            "share_pct": [
+              12.82,
+              13.43,
+              11.58,
+              10.58,
+              11.41,
+              13.08,
+              13.35,
+              13.76
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9993769669313097,
+            "layer": 6,
+            "share_pct": [
+              12.8,
+              13.39,
+              11.58,
+              12.76,
+              11.82,
+              12.72,
+              11.8,
+              13.14
+            ],
+            "unused_experts": []
+          }
+        ],
+        "sources": {
+          "cosmopedia-v2": {
+            "aux_loss": 7.122585070497481,
+            "bits_per_char": 1.9705964556804378,
+            "chars": 1348670,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 5.932310766175519,
+            "nats": 1842166.39453125,
+            "tokens": 310531
+          },
+          "fineweb-edu": {
+            "aux_loss": 7.06328787209697,
+            "bits_per_char": 2.158204073072689,
+            "chars": 5119638,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 5.90677646248015,
+            "nats": 7658738.1748046875,
+            "tokens": 1296602
+          },
+          "wikipedia": {
+            "aux_loss": 7.226122611887242,
+            "bits_per_char": 2.3554102457384314,
+            "chars": 1843029,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 5.887363594569622,
+            "nats": 3009013.87109375,
+            "tokens": 511097
+          }
+        },
+        "step": 250,
+        "token_main_ce": 5.90583574041992,
+        "tokens": 2118230
+      },
+      {
+        "aux_sum": 7.091008476025496,
+        "bits_per_char": 1.994022729979442,
+        "chars": 8311337,
+        "macro_main_ce": 5.4000937836071925,
+        "router_mean_entropy_norm": 0.9992782652690145,
+        "router_per_layer": [
+          {
+            "entropy_norm": 0.9990498559293687,
+            "layer": 0,
+            "share_pct": [
+              11.15,
+              13.32,
+              13.52,
+              11.75,
+              12.06,
+              13.26,
+              12.61,
+              12.32
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9987007311481172,
+            "layer": 1,
+            "share_pct": [
+              13.48,
+              12.01,
+              12.38,
+              10.62,
+              12.81,
+              11.98,
+              13.52,
+              13.19
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9995870150755635,
+            "layer": 2,
+            "share_pct": [
+              13.06,
+              12.08,
+              11.92,
+              12.76,
+              12.32,
+              12.61,
+              11.85,
+              13.4
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9995536504412961,
+            "layer": 3,
+            "share_pct": [
+              12.31,
+              11.93,
+              12.04,
+              13.73,
+              12.63,
+              12.06,
+              12.75,
+              12.56
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9991783842971135,
+            "layer": 4,
+            "share_pct": [
+              11.83,
+              12.01,
+              12.48,
+              12.67,
+              14.09,
+              13.11,
+              11.92,
+              11.88
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9993043902526456,
+            "layer": 5,
+            "share_pct": [
+              12.23,
+              12.69,
+              11.47,
+              11.61,
+              12.31,
+              13.22,
+              13.14,
+              13.32
+            ],
+            "unused_experts": []
+          },
+          {
+            "entropy_norm": 0.9995738297389973,
+            "layer": 6,
+            "share_pct": [
+              12.14,
+              12.34,
+              12.74,
+              13.19,
+              12.67,
+              11.72,
+              11.93,
+              13.26
+            ],
+            "unused_experts": []
+          }
+        ],
+        "sources": {
+          "cosmopedia-v2": {
+            "aux_loss": 7.118921129683966,
+            "bits_per_char": 1.775162665668053,
+            "chars": 1348670,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 5.343974187560984,
+            "nats": 1659469.6484375,
+            "tokens": 310531
+          },
+          "fineweb-edu": {
+            "aux_loss": 7.055904088829123,
+            "bits_per_char": 1.9905763741909674,
+            "chars": 5119638,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 5.447997166041989,
+            "nats": 7063884.021484375,
+            "tokens": 1296602
+          },
+          "wikipedia": {
+            "aux_loss": 7.163105699046514,
+            "bits_per_char": 2.163750985471371,
+            "chars": 1843029,
+            "chars_protocol": "prefix_decode",
+            "main_ce": 5.4083099972186055,
+            "nats": 2764171.0146484375,
+            "tokens": 511097
+          }
+        },
+        "step": 500,
+        "token_main_ce": 5.4231715557660465,
+        "tokens": 2118230
+      }
+    ]
+  },
+  "warnings": [
+    "The run used commit ae00feb, which adds the authorized telemetry and monotonic time-budget changes on top of 6ba3558.",
+    "The steady-state reserved memory is 6.107 GiB, so the v3.1-K 6.000 GiB guard could never pass; that stop was a threshold artifact, not a memory problem.",
+    "The 12 GiB limit was never approached: 6.107 GiB reserved peak leaves about 6 GiB unused.",
+    "Router entropy rises to 0.9993 normalized at step 500 with 10.6 to 14.1 percent expert share. Balance is healthy, but the routing is close to uniform, so this run does not demonstrate expert specialization.",
+    "Training loss at update 400 (5.4837) is lower than at update 500 (5.5243). Validation improved monotonically; the training point is a single 64-sequence mean and is noisy.",
+    "The `(null): No such file or directory` import diagnostic is still printed and remains non-fatal.",
+    "Full-run stability, convergence and generalization are not established by 500 updates on 16.35M CE targets."
+  ]
+}
