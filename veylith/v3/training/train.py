@@ -307,6 +307,8 @@ def train(cfg: TrainConfig, log=print) -> dict:
             raise RuntimeError(
                 f"token budget exhausted: {tokens_seen} + {total_valid} > "
                 f"{max_tokens}")
+        if cfg.device == "cuda":
+            torch.cuda.synchronize()
         step_start = time.perf_counter()
         optimizer.zero_grad(set_to_none=True)
         window_ce = window_aux = 0.0
@@ -345,6 +347,8 @@ def train(cfg: TrainConfig, log=print) -> dict:
                 f"token budget exceeded at update {step + 1}: {tokens_seen} > "
                 f"{max_tokens}")
         step += 1
+        if cfg.device == "cuda":
+            torch.cuda.synchronize()
         step_seconds = time.perf_counter() - step_start
         if step_seconds > 120:
             raise RuntimeError(f"optimizer update {step} exceeded 120 s: {step_seconds:.1f}s")
