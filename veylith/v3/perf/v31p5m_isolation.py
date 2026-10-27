@@ -1,8 +1,9 @@
-"""PERF-5M CPU isolation probe for the front-padded product arm (mode 3).
+"""CPU isolation probe for the front-padded product arms (modes 3 and 4).
 
 Checks on the real debug model that:
-  * every tensor the w3 linears receive is a front-padded view: offset 65,536
-    bytes, zero trailing bytes, ending at its backing storage end,
+  * every tensor the w3 linears receive is a front-padded view: offset equal to
+    the padding (65,536 or 2,097,152 bytes), zero trailing bytes, ending at its
+    backing storage end,
   * those products are bitwise identical to the stock products of the same seed
     and input,
   * the product gradient stays a stock allocation (no w3_grad records exist),
@@ -13,6 +14,7 @@ Read-only: it imports the harness and records what autograd does.
 
 from __future__ import annotations
 
+import argparse
 import json
 import sys
 
@@ -24,6 +26,7 @@ import sparse_moe_v2_train as impl  # noqa: E402
 import v31p5g_pad as harness  # noqa: E402
 
 SLACK = 65536
+FRONT_2MIB = 2 << 20
 
 
 def cfg():
@@ -80,6 +83,11 @@ def collect(model, backward: bool):
 
 
 def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--mode", type=int, choices=(3, 4), default=3)
+    ap.add_argument("--slack", type=int, default=SLACK)
+    args = ap.parse_args()
+    mode, slack = args.mode, args.slack
     torch.manual_seed(1)
     stock = impl.GPT(cfg())
     harness.GEOMETRY.clear()
@@ -88,7 +96,7 @@ def main() -> int:
     torch.manual_seed(1)
     front = impl.GPT(cfg())
     harness.GEOMETRY.clear()
-    harness.apply_mode(front, 3)
+    harness.apply_mode(front, mode)
     front_products, front_grads, front_loss = collect(front, backward=True)
 
     same_count = len(stock_products) == len(front_products)
@@ -96,14 +104,14 @@ def main() -> int:
         torch.equal(a["clone"], b["clone"])
         for a, b in zip(stock_products, front_products)))
     report = {
-        "mode": 3,
+        "mode": mode, "expected_offset": slack,
         "stock_products": len(stock_products),
         "front_products": len(front_products),
         "products_bitwise_vs_stock": products_bitwise,
         "loss_bitwise_vs_stock": stock_loss == front_loss,
         "padded_records": len(harness.GEOMETRY),
         "kinds_recorded": sorted({r.get("kind") for r in harness.GEOMETRY}),
-        "all_offsets_65536": all(r["offset_bytes"] == SLACK
+        "all_offsets_match": all(r["offset_bytes"] == slack
                                  for r in harness.GEOMETRY),
         "all_end_at_storage_end": all(r.get("ends_at_storage_end") is True
                                       for r in harness.GEOMETRY),
@@ -113,8 +121,8 @@ def main() -> int:
         "all_pointer_preserved": all(r.get("pointer_preserved")
                                      for r in harness.GEOMETRY),
         "any_resize": any(r.get("resized_by_out") for r in harness.GEOMETRY),
-        "products_seen_as_front_padded": sum(1 for p in front_products
-                                             if p["kind"] == "swiglu_product_front"),
+        "products_seen_as_front_padded": sum(
+            1 for p in front_products if str(p["kind"]).startswith("swiglu_product_front")),
         "gradients_captured": len(front_grads),
         "gradients_padded": sum(1 for g in front_grads if g["padded"]),
         "w3_modules_patched": sum(1 for m in front.modules()
@@ -126,9 +134,10 @@ def main() -> int:
     report["isolation_ok"] = bool(
         report["products_bitwise_vs_stock"] and report["loss_bitwise_vs_stock"]
         and report["front_products"] == report["stock_products"] > 0
-        and report["kinds_recorded"] == ["swiglu_product_front"]
+        and len(report["kinds_recorded"]) == 1
+        and str(report["kinds_recorded"][0]).startswith("swiglu_product_front")
         and report["products_seen_as_front_padded"] == report["front_products"]
-        and report["all_offsets_65536"] and report["all_end_at_storage_end"]
+        and report["all_offsets_match"] and report["all_end_at_storage_end"]
         and report["all_zero_trailing_bytes"] and report["all_contiguous"]
         and report["all_pointer_preserved"] and not report["any_resize"]
         and report["gradients_padded"] == 0

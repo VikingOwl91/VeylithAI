@@ -1,0 +1,228 @@
+{
+  "cpu_gates": {
+    "drift_guard": "OK",
+    "ends_at_storage_end": true,
+    "forward_and_both_gradients_bitwise_2d_3d_fp32_bf16": true,
+    "model_state_logits_loss_gradients_bitwise_mode4": true,
+    "offset_bytes_all": [
+      2097152
+    ],
+    "product_gradients_padded": 0,
+    "products_bitwise_vs_stock": "38 of 38",
+    "tests": "122 passed, 2 skipped",
+    "trailing_bytes_all": [
+      0
+    ],
+    "w3_modules_patched": 0
+  },
+  "execution": {
+    "command": "v31p5n_plan.py --execute (mode 4)",
+    "core_limit": "0",
+    "display_identity": true,
+    "exit_code": 1,
+    "fault_mode": "hip-illegal-address",
+    "fault_page": [
+      "0x00007f505b600000"
+    ],
+    "faulted": true,
+    "first_loss_full_precision": "10.481635093688965",
+    "fresh_process": true,
+    "front_padded_products": 2622,
+    "gpu_idle_after": true,
+    "iterations_printed": [
+      0,
+      25
+    ],
+    "kernel_fault_records": 4,
+    "padded_gradient_records": 0,
+    "reset_lines": [],
+    "retries": 0,
+    "signal": null,
+    "timeout_s": 120
+  },
+  "fault_attribution": {
+    "mapping_accessibility": "unknown",
+    "padded_containment": 0,
+    "page": [
+      "0x00007f505b600000"
+    ],
+    "page_exact": [
+      {
+        "bytes": 8388608,
+        "grid_2mib_dist": 0,
+        "kind": "stock dense activation (16384,256)",
+        "page_dist": 0,
+        "ptr": "0x7f505ae00000",
+        "reads": 212,
+        "verdict": "ends exactly on the page, no straddle"
+      },
+      {
+        "bytes": 4194300,
+        "consumers": [
+          "weight_grad shape C 256x682 transB OP_T",
+          "forward shape C 256x3075 transB OP_N"
+        ],
+        "grid_2mib_dist": 4,
+        "kind": "stock (3075,682) bf16",
+        "page_dist": 4,
+        "ptr": "0x7f505b200000",
+        "reads": 4,
+        "verdict": "the fault geometry; not a padded product, so a SwiGLU backward derivative"
+      }
+    ]
+  },
+  "gate_a_numerics": {
+    "anchor_matches_reference_4dp": true,
+    "display_identity": true,
+    "first_loss_full_precision": "10.481635093688965",
+    "post_check_note": "the loop faulted before the recompute",
+    "post_check_ran": false
+  },
+  "gate_b_isolation": {
+    "all_end_at_storage_end": true,
+    "kinds_recorded": [
+      "swiglu_product_front2mib"
+    ],
+    "offset_bytes_set": [
+      2097152
+    ],
+    "padded_gradient_records": 0,
+    "trailing_bytes_set": [
+      0
+    ]
+  },
+  "gate_c_descriptors": {
+    "changed_fields": "none; pointer value and address shift only",
+    "kernel_identity": "unknown",
+    "w3_forward": "Adesc 256 682 256, OP_T/OP_N, Cdesc 256 3075 256",
+    "w3_group_equal": true,
+    "w3_weight_grad": "Adesc 256 3075 256, OP_N/OP_T, Cdesc 256 682 256"
+  },
+  "gate_d_critical_geometry": {
+    "allocator_block": "not observable in the record; the 2 MiB grid is not treated as a proven mapping boundary",
+    "critical_geometry_present": false,
+    "min_grid_dist_product_read": 36876,
+    "product_operand_reads": 4502,
+    "products_with_page_dist_4": 4,
+    "products_with_page_dist_4_and_grid_4": 0,
+    "verdict": "the mission's discriminator did not occur: the closest product read came 36,876 bytes from a 2 MiB line"
+  },
+  "implementation": {
+    "allocator": "padded_front2mib_like: storage tensor_bytes + 2,097,152, view at offset 2,097,152, so the view ends at its storage end",
+    "function": "PaddedMulFront2MiB",
+    "gradient": "not padded",
+    "w3": "untouched",
+    "why_2mib": "2 MiB is a multiple of both the page size and the block granularity, so a 4-byte tail to a 2 MiB line is preserved"
+  },
+  "integrity": {
+    "backend_switch": "none",
+    "checkpoint_change": "none",
+    "deviations": "none",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "kernel_serialization": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none",
+    "tests": "122 passed, 2 skipped"
+  },
+  "interpretation": {
+    "consequence": "the earlier claim that padding the product prevents the fault is not supported; the 5I and 5L attribution to the product is not unique",
+    "established": [
+      "the product's critical geometry never occurred in this run",
+      "the fault occurred at a stock (3075,682) bf16 GEMM operand with page_dist 4 and grid 4, which is not any padded product",
+      "the same descriptor-level geometry appears on a stock tensor in the two clean runs, so geometry alone does not determine the outcome"
+    ],
+    "not_established": [
+      "which (M,682) tensor faulted",
+      "whether the mapping beyond the logical end was open or closed",
+      "whether the trigger is the over-read, the kernel or the address layout"
+    ]
+  },
+  "meta": {
+    "budget": {
+      "max_executions": 1,
+      "retries": 0,
+      "used": 1
+    },
+    "classification": 4,
+    "classification_text": "fault elsewhere",
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5N 2 MiB front-padding boundary control",
+    "git_head_at_preflight": "537a139",
+    "mode": "mode 4: product at offset 2,097,152 in a storage 2 MiB larger"
+  },
+  "next_experiment": {
+    "if_fault_moves_again": "any unprotected (M,682) operand can fault and per-tensor padding is not a workaround",
+    "options": [
+      "pad the derivative: extend PaddedMul.backward so the gradients to silu(w1(x)) and w2(x) land in padded storage, product stock",
+      "force the product geometry: choose the front offset from the observed base with a bounded retry until a product lands at page_dist 4 and grid 4, and require the census to confirm it"
+    ]
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle, no foreign KFD process, before and after",
+    "head": "537a139",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean before the stage"
+  },
+  "series_reconciliation": {
+    "descriptor_ambiguity": "the same descriptor pairs are produced by the w3 forward/weight-grad pair reading the product and by the w1/w2 input-grad/weight-grad pair reading the product derivative, so a log alone cannot name which (M,682) tensor was read",
+    "note": "every tight-boundary tensor in the series is a 2 MiB aligned (M,682) bf16 GEMM operand ending 4 bytes before a 2 MiB line; three of these runs faulted and two did not, so the geometry alone does not separate them",
+    "tensors": {
+      "PERF-5I": {
+        "arm": "mode 1, product stock, gradient padded",
+        "faulted": true,
+        "grid_2mib_dist": 4,
+        "is_padded_product_in_that_arm": false,
+        "page_dist": 4,
+        "ptr": "0x7ff321000000",
+        "ptr_mod_2mib": 0
+      },
+      "PERF-5J": {
+        "arm": "mode 2, product back-padded, gradient stock",
+        "faulted": false,
+        "grid_2mib_dist": 4,
+        "is_padded_product_in_that_arm": false,
+        "page_dist": 4,
+        "ptr": "0x7fdf79800000",
+        "ptr_mod_2mib": 0
+      },
+      "PERF-5K": {
+        "arm": "mode 2 replication",
+        "faulted": false,
+        "grid_2mib_dist": 4,
+        "is_padded_product_in_that_arm": false,
+        "page_dist": 4,
+        "ptr": "0x7f594be00000",
+        "ptr_mod_2mib": 0
+      },
+      "PERF-5L": {
+        "arm": "mode 1 replication",
+        "faulted": true,
+        "grid_2mib_dist": 4,
+        "is_padded_product_in_that_arm": false,
+        "page_dist": 4,
+        "ptr": "0x7fcccde00000",
+        "ptr_mod_2mib": 0
+      },
+      "PERF-5N": {
+        "arm": "mode 4, product front-padded by 2 MiB",
+        "faulted": true,
+        "grid_2mib_dist": 4,
+        "is_padded_product_in_that_arm": false,
+        "page_dist": 4,
+        "ptr": "0x7f505b200000",
+        "ptr_mod_2mib": 0
+      }
+    }
+  }
+}

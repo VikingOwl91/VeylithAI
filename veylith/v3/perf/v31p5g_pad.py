@@ -111,6 +111,19 @@ def padded_front_like(tensor, kind: str = "swiglu_product_front",
     return view
 
 
+FRONT_2MIB = 2 << 20
+
+
+def padded_front2mib_like(tensor, kind: str = "swiglu_product_front2mib"):
+    """View at offset 2 MiB in a storage of tensor_bytes + 2 MiB.
+
+    2 MiB is a multiple of both the page size and the block granularity, so a
+    product that ends 4 bytes before a 2 MiB line keeps that distance exactly
+    while the allocation doubles and the address shifts.
+    """
+    return padded_front_like(tensor, kind=kind, slack=FRONT_2MIB)
+
+
 def _mul_into_padded(ctx, a, b, allocate):
     ctx.save_for_backward(a, b)
     out = allocate(a)
@@ -151,6 +164,14 @@ class PaddedMulFront(PaddedMul):
     @staticmethod
     def forward(ctx, a, b):
         return _mul_into_padded(ctx, a, b, padded_front_like)
+
+
+class PaddedMulFront2MiB(PaddedMul):
+    """Same multiplication, view 2 MiB into an allocation 2 MiB larger."""
+
+    @staticmethod
+    def forward(ctx, a, b):
+        return _mul_into_padded(ctx, a, b, padded_front2mib_like)
 
 
 class PaddedW3(torch.autograd.Function):
@@ -242,6 +263,12 @@ def _padded_product_front_forward(self, x):
     return self.drop(self.w3(PaddedMulFront.apply(F.silu(self.w1(x)), self.w2(x))))
 
 
+def _padded_product_front2mib_forward(self, x):
+    """SwiGLU with the product 2 MiB into a 2 MiB larger allocation."""
+    return self.drop(self.w3(PaddedMulFront2MiB.apply(F.silu(self.w1(x)),
+                                                      self.w2(x))))
+
+
 def _is_swiglu(module) -> bool:
     return hasattr(module, "w1") and hasattr(module, "w2") and hasattr(module, "w3")
 
@@ -286,6 +313,27 @@ def unapply_product_front_padding(model) -> int:
     return removed
 
 
+def apply_product_front2mib_padding(model) -> int:
+    """Front-pad the product by one 2 MiB page; w3 and its gradient stay stock."""
+    patched = 0
+    for module in model.modules():
+        if _is_swiglu(module) and "forward" not in module.__dict__:
+            module.forward = types.MethodType(_padded_product_front2mib_forward, module)
+            patched += 1
+    return patched
+
+
+def unapply_product_front2mib_padding(model) -> int:
+    removed = 0
+    for module in model.modules():
+        if (_is_swiglu(module) and "forward" in module.__dict__
+                and module.__dict__["forward"].__func__
+                is _padded_product_front2mib_forward):
+            del module.__dict__["forward"]
+            removed += 1
+    return removed
+
+
 def apply_mode(model, mode: int) -> int:
     if mode == 1:
         return apply_padding(model)
@@ -293,6 +341,8 @@ def apply_mode(model, mode: int) -> int:
         return apply_product_padding(model)
     if mode == 3:
         return apply_product_front_padding(model)
+    if mode == 4:
+        return apply_product_front2mib_padding(model)
     return 0
 
 
@@ -303,6 +353,8 @@ def unapply_mode(model, mode: int) -> int:
         return unapply_product_padding(model)
     if mode == 3:
         return unapply_product_front_padding(model)
+    if mode == 4:
+        return unapply_product_front2mib_padding(model)
     return 0
 
 
@@ -469,10 +521,13 @@ def full_model_gate(mode: int = 1):
     }
 
 
-def padded_mul_gate(front: bool = False):
-    """PaddedMul(PaddedMulFront) against stock mul: forward, both gradients,
+def padded_mul_gate(variant: str = "back"):
+    """Product-padding variants against stock mul: forward, both gradients,
     2-D and 3-D, both dtypes, and the storage geometry of each variant."""
-    mul_cls = PaddedMulFront if front else PaddedMul
+    mul_cls = {"back": PaddedMul, "front": PaddedMulFront,
+               "front2mib": PaddedMulFront2MiB}[variant]
+    front = variant != "back"
+    front_slack = FRONT_2MIB if variant == "front2mib" else SLACK_BYTES
     torch.manual_seed(3)
     cases = []
     direct_out_rejected = None
@@ -517,11 +572,12 @@ def padded_mul_gate(front: bool = False):
         "grad_a_bitwise": all(c["grad_a_bitwise"] for c in cases),
         "grad_b_bitwise": all(c["grad_b_bitwise"] for c in cases),
         "no_resize": all(c["no_resize"] and c["pointer_preserved"] for c in cases),
-        "geometry_ok": (all(c["offset_bytes"] == SLACK_BYTES
+        "geometry_ok": (all(c["offset_bytes"] == front_slack
                             and c["slack_after_tensor"] == 0
                             and c["ends_at_storage_end"] is True
                             and c["contiguous"]
-                            and c["storage_offset"] == SLACK_BYTES // (4 if "float32" in c["dtype"] else 2)
+                            and c["storage_offset"] == front_slack
+                            // (4 if "float32" in c["dtype"] else 2)
                             for c in cases) if front else
                         all(c["slack_after_tensor"] >= SLACK_BYTES and c["contiguous"]
                             and c["storage_offset"] == 0 for c in cases)),
@@ -529,6 +585,8 @@ def padded_mul_gate(front: bool = False):
         "offset_bytes_all": sorted({c["offset_bytes"] for c in cases}),
         "slack_after_all": sorted({c["slack_after_tensor"] for c in cases}),
         "front": front,
+        "variant": variant,
+        "front_slack": front_slack if front else None,
     }
     return out
 
@@ -637,14 +695,14 @@ def selftest() -> int:
     report["storage_preserved"] = out_storage_preserved
     report["out_wrote_into_view"] = out_wrote_into_view
     report["out_returned_same_object"] = out_returned_same_object
-    mul_gate = padded_mul_gate()
+    mul_gate = padded_mul_gate("back")
     report["padded_mul"] = mul_gate
     mul_ok = all(mul_gate[k] for k in ("forward_bitwise_2d", "forward_bitwise_3d",
                                        "grad_a_bitwise", "grad_b_bitwise",
                                        "geometry_ok", "no_resize"))
     report["padded_mul_ok"] = mul_ok
 
-    front_gate = padded_mul_gate(front=True)
+    front_gate = padded_mul_gate("front")
     report["padded_mul_front"] = front_gate
     front_ok = all(front_gate[k] for k in ("forward_bitwise_2d", "forward_bitwise_3d",
                                            "grad_a_bitwise", "grad_b_bitwise",
@@ -671,6 +729,14 @@ def selftest() -> int:
                 and model["modules_patched"] > 0)
     report["full_model_ok"] = model_ok
 
+    front2_gate = padded_mul_gate("front2mib")
+    report["padded_mul_front2mib"] = front2_gate
+    front2_ok = all(front2_gate[k] for k in ("forward_bitwise_2d",
+                                             "forward_bitwise_3d",
+                                             "grad_a_bitwise", "grad_b_bitwise",
+                                             "geometry_ok", "no_resize"))
+    report["padded_mul_front2mib_ok"] = front2_ok
+
     front_model = full_model_gate(mode=3)
     report["full_model_front"] = front_model
     front_model_ok = (front_model["names_equal"]
@@ -680,6 +746,17 @@ def selftest() -> int:
                       and front_model["all_w3_still_linear"]
                       and front_model["modules_patched"] > 0)
     report["full_model_front_ok"] = front_model_ok
+
+    front2_model = full_model_gate(mode=4)
+    report["full_model_front2mib"] = front2_model
+    front2_model_ok = (front2_model["names_equal"]
+                       and front2_model["state_bitwise_identical"]
+                       and front2_model["logits_bitwise"]
+                       and front2_model["loss_bitwise"]
+                       and front2_model["grads_bitwise"]
+                       and front2_model["all_w3_still_linear"]
+                       and front2_model["modules_patched"] > 0)
+    report["full_model_front2mib_ok"] = front2_model_ok
 
     product_model = full_model_gate(mode=2)
     report["full_model_product"] = product_model
@@ -705,17 +782,22 @@ def selftest() -> int:
                                      "out_returned_same_object", "mixed_dtype_ok",
                                      "full_model_ok", "full_model_product_ok",
                                      "padded_mul_ok", "padded_mul_front_ok",
-                                     "full_model_front_ok", "post_check_ok")})
+                                     "full_model_front_ok",
+                                     "padded_mul_front2mib_ok",
+                                     "full_model_front2mib_ok", "post_check_ok")})
           + " " + json.dumps(report["cases"]))
     print("MIXED " + json.dumps(report["mixed_dtype"], sort_keys=True))
     print("MODEL " + json.dumps(model, sort_keys=True))
     print("MUL " + json.dumps(mul_gate, sort_keys=True))
     print("MULFRONT " + json.dumps(front_gate, sort_keys=True))
     print("MODEL-FRONT " + json.dumps(front_model, sort_keys=True))
+    print("MULFRONT2 " + json.dumps(front2_gate, sort_keys=True))
+    print("MODEL-FRONT2 " + json.dumps(front2_model, sort_keys=True))
     print("MODEL-PRODUCT " + json.dumps(product_model, sort_keys=True))
     print("POST " + json.dumps(post, sort_keys=True))
     ok = (report["all_bitwise"] and report["geometry_ok"] and mixed_ok and model_ok
-          and product_ok and mul_ok and front_ok and front_model_ok and post_ok
+          and product_ok and mul_ok and front_ok and front_model_ok
+          and front2_ok and front2_model_ok and post_ok
           and report["pointer_preserved"] and report["storage_preserved"]
           and report["out_wrote_into_view"] and report["out_returned_same_object"])
     return 0 if ok else 1
@@ -801,9 +883,9 @@ def repro(pad: int, out_path: str, repro_args) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--mode", choices=("selftest", "repro"), required=True)
-    parser.add_argument("--pad", type=int, choices=(0, 1, 2, 3), default=0,
+    parser.add_argument("--pad", type=int, choices=(0, 1, 2, 3, 4), default=0,
                         help="0 none, 1 w3 input gradient, 2 SwiGLU product, "
-                             "3 front-padded SwiGLU product")
+                             "3 front-padded SwiGLU product, 4 front-padded by 2 MiB")
     parser.add_argument("--out", default="geometry.json")
     parser.add_argument("--repro-args", nargs=argparse.REMAINDER, default=[])
     args = parser.parse_args()
