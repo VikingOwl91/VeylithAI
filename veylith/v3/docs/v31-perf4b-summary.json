@@ -1,0 +1,343 @@
+{
+  "allocator_invariance": {
+    "coverage_limit": [
+      "3.0 GiB primed against a 5.19 GiB peak allocation footprint",
+      "parameters, optimizer state and the data plan are allocated before priming",
+      "driver-side and library-side memory (hipBLASLt workspace, attention path, allocator metadata) not covered",
+      "a read of a region overwritten identically in both runs would not be detected"
+    ],
+    "interpretation": "strong negative result for uninitialized reads within the covered envelope, not a proof of memory safety",
+    "method": "prime 3.0 GiB byte buffer with 0xAA or 0x55, free it to the caching allocator, run the same two gated updates",
+    "result": "bitwise identical to unprimed and to each other"
+  },
+  "change": {
+    "also_provided": "prefill_disabled() scoped context manager for harness-controlled paths",
+    "files": [
+      "veylith/v3/perf/v31p4b_nofill.py",
+      "veylith/v3/perf/v31p4b_harness.py"
+    ],
+    "mechanism": "DeterminismShim wraps torch.use_deterministic_algorithms so kernel determinism stays on and fill_uninitialized_memory is cleared for the run, then restores wrapper and flag",
+    "state_evidence": {
+      "fill_flag_after_run": "True in all four production arms (pre-run value restored)",
+      "fill_flag_in_effect": {
+        "prefill_off": false,
+        "prefill_on": true
+      },
+      "kernel_determinism_after_run": "True in all arms",
+      "shim_interceptions": {
+        "prefill_off": [
+          1,
+          1
+        ],
+        "prefill_on": [
+          0,
+          0
+        ]
+      }
+    },
+    "unchanged": [
+      "model",
+      "parameters",
+      "forward and backward math",
+      "BF16/FP32 boundaries",
+      "optimizer",
+      "lr",
+      "schedule",
+      "dataset",
+      "batch size",
+      "microbatch count",
+      "RNG seeds",
+      "routing",
+      "dropout",
+      "checkpoint format"
+    ]
+  },
+  "decision": {
+    "abort_condition_from_perf4a": "wall improvement below 10 ms",
+    "host_bound_model": "holds",
+    "measured_improvement_ms": 51.0,
+    "next_experiment": {
+      "gates": "two-update gate plus allocator priming at the resume point; curve identity across the full horizon",
+      "measure": "wall, CE targets per second, VRAM, power",
+      "shape": "paired arms of 150 updates, interleaved, resumed from a mid-run state",
+      "why": "exercise non-zero AdamW moments and a non-zero step counter; extend curve identity across validation and checkpoint phases"
+    },
+    "option": 1,
+    "policy_note": "removing the prefill trades a loud NaN signal for silence; the invariance evidence covers gated steps only and says nothing about future code. The production change needs separate authorization.",
+    "rationale": "bitwise inert on the real graph over 60 updates, one quarter of all launches removed, 6.6 percent throughput gain, no VRAM cost",
+    "verdict": "proceed to a short paired A/B training experiment"
+  },
+  "gate1_correctness": {
+    "arms": [
+      "baseline_a",
+      "baseline_b",
+      "variant",
+      "variant_prime_aa",
+      "variant_prime_55"
+    ],
+    "digests_identical_across_all_five_arms": {
+      "grad": "ffe4e4b449542029",
+      "logits": "5b39534159178a7a",
+      "model": "525afc2a393952a1",
+      "optimizer": "ff7bcedf47c7830a",
+      "router": "a22dd8f474237253"
+    },
+    "fields_compared": [
+      "logits_digest",
+      "main_ce",
+      "aux_sum",
+      "loss",
+      "grad_norm",
+      "lr",
+      "router_digest",
+      "grad_digest",
+      "model_digest",
+      "optimizer_digest"
+    ],
+    "mismatches": {
+      "baseline_a_vs_baseline_b": 0,
+      "prefill_on_vs_off": 0,
+      "prime_0x55_vs_unprimed": 0,
+      "prime_0xaa_vs_prime_0x55": 0,
+      "prime_0xaa_vs_unprimed": 0
+    },
+    "peak_reserved_GiB": {
+      "baseline": 5.664,
+      "primed": 5.711,
+      "variant": 5.664
+    },
+    "reference_match": "matches PERF-3B and PERF-3D baseline digests",
+    "result": "pass",
+    "separate_process_per_arm": true,
+    "updates_per_arm": 2,
+    "values": {
+      "ce_step1": 9.121862960188356,
+      "ce_step2": 9.091102196978962,
+      "grad_norm_step1": 1.484588623046875,
+      "grad_norm_step2": 1.5635069608688354
+    }
+  },
+  "gate2_kernels": {
+    "delta": {
+      "device_ms": -46.18,
+      "device_pct": -6.34,
+      "fill_kernels": -10552,
+      "fill_ms": -42.26,
+      "fill_pct": -91.4,
+      "kernels": -10552,
+      "kernels_pct": -25.75
+    },
+    "method": "5 profiled updates per condition, kernel events only",
+    "note": "GEMM and elementwise kernel counts identical; only prefills removed",
+    "prefill_off": {
+      "device_ms": 681.99,
+      "elementwise": {
+        "kernels": 20342,
+        "ms": 310.5
+      },
+      "fill_kernels": 993,
+      "fill_ms": 4.09,
+      "gemm": {
+        "kernels": 5064,
+        "ms": 247.4
+      },
+      "kernels": 30423,
+      "other": {
+        "kernels": 4024,
+        "ms": 120.0
+      }
+    },
+    "prefill_on": {
+      "device_ms": 728.17,
+      "elementwise": {
+        "kernels": 20342,
+        "ms": 315.1
+      },
+      "fill_kernels": 11545,
+      "fill_ms": 46.35,
+      "gemm": {
+        "kernels": 5064,
+        "ms": 245.7
+      },
+      "kernels": 40975,
+      "other": {
+        "kernels": 4024,
+        "ms": 121.0
+      }
+    },
+    "residual_fills": "993 explicit zero-initialisations (new_zeros per MoE layer, auxiliary accumulator), not prefill"
+  },
+  "gate2_timing": {
+    "arms": [
+      {
+        "ce_targets_per_s": 41952,
+        "median_ms": 779.7,
+        "prefill": "on",
+        "stdev_ms": 4.1,
+        "tag": "b1",
+        "trimmed_ms": 779.6,
+        "wall_s": 109.9
+      },
+      {
+        "ce_targets_per_s": 44787,
+        "median_ms": 724.6,
+        "prefill": "off",
+        "stdev_ms": 17.7,
+        "tag": "n1",
+        "trimmed_ms": 727.8,
+        "wall_s": 104.3
+      },
+      {
+        "ce_targets_per_s": 45084,
+        "median_ms": 724.9,
+        "prefill": "off",
+        "stdev_ms": 3.9,
+        "tag": "n2",
+        "trimmed_ms": 725.3,
+        "wall_s": 104.0
+      },
+      {
+        "ce_targets_per_s": 42362,
+        "median_ms": 771.8,
+        "prefill": "on",
+        "stdev_ms": 3.2,
+        "tag": "b2",
+        "trimmed_ms": 772.0,
+        "wall_s": 108.5
+      }
+    ],
+    "long_horizon_equality": {
+      "note": "60 updates x 8 microbatches of full forward and backward with zero divergence",
+      "result": "all four arms produced identical training curves for all 60 updates",
+      "step1_ce": 9.121862960188356,
+      "step60_ce": 7.407413370689
+    },
+    "memory": {
+      "delta": 0.0,
+      "peak_allocated_GiB": 5.186,
+      "peak_reserved_GiB": 5.688
+    },
+    "method": "production train() path, PERF-1 configuration, 4 interleaved arms, 60 updates each, first 10 discarded as warmup",
+    "paired": {
+      "ce_targets_per_s": 6.59,
+      "median_ms": [
+        -51.0,
+        -6.57
+      ],
+      "trimmed_ms": [
+        -49.2,
+        -6.34
+      ]
+    },
+    "power": {
+      "max_W": {
+        "prefill_off": [
+          327,
+          325
+        ],
+        "prefill_on": [
+          313,
+          318
+        ]
+      },
+      "mean_W": {
+        "prefill_off": [
+          210.7,
+          210.6
+        ],
+        "prefill_on": [
+          204.0,
+          207.0
+        ]
+      },
+      "note": "whole-arm averages including validation and checkpoint phases; context only"
+    },
+    "process_cpu_s": {
+      "caveat": "magnitude far exceeds what 10552 fewer launches can explain and includes two full validation passes and two 1.57 GB checkpoint writes per arm; observed, mechanism not claimed",
+      "delta_pct": -39.8,
+      "prefill_off": [
+        129.3,
+        128.8
+      ],
+      "prefill_on": [
+        215.5,
+        213.0
+      ]
+    }
+  },
+  "harness_defect_found_and_fixed": {
+    "cpu_confirmation": "with that hook the Linear output has requires_grad=False and grad_fn=None; with a None-returning hook it keeps AddmmBackward0",
+    "fix": "def with no return (setdefault only for its side effect)",
+    "lesson": "a bitwise gate comparing two equally broken runs cannot detect harness damage; comparing against a known reference digest did",
+    "prior_stage_impact": "none; PERF-3D used a def with no return, and the fixed gate reproduces its digests",
+    "root_cause": "head capture hook was 'lambda m, i, o: captured.setdefault(\"logits\", o.detach())'; setdefault returns the value, and a non-None forward-hook return replaces the module output, so the head output became detached and the graph was severed",
+    "status": "all five gate arms re-run after the fix; values now reproduce the reference exactly",
+    "symptom": "first gate run was self-consistent (0 mismatches) but produced main_ce 9.120014944655088 and grad norm 0.09972061216831, not the PERF-3B/3D reference 9.121862960188356 and 1.484588623046875 on the same step-0 state"
+  },
+  "integrity": {
+    "checkpoint_change": "none",
+    "cpu_tests": "96 passed, 2 skipped",
+    "drift_guard": "OK before and after",
+    "environment_change": "none",
+    "gpu_work": "bounded and supervised: 5 gate arms, 2 profile arms, 4 production arms, plus diagnostics",
+    "production_change": "none",
+    "push": "none"
+  },
+  "meta": {
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-4B deterministic prefill elimination",
+    "git_head": "bca2455",
+    "mode": "bounded experimental prototype, production path unmodified",
+    "reports_read": [
+      "V3.1-PERF-4A-HOST-AUDIT.md",
+      "V3.1-PERF-3D-SWIGLU-PROTOTYPE.md"
+    ],
+    "single_variable": "torch.utils.deterministic.fill_uninitialized_memory"
+  },
+  "prediction_check": [
+    {
+      "measured": "11545 to 993",
+      "predicted": "11545 to about 64",
+      "quantity": "prefill kernels",
+      "verdict": "within the model's explicit zeros"
+    },
+    {
+      "measured": "728 to 682",
+      "predicted": "715 to 671",
+      "quantity": "device ms",
+      "verdict": "same -46 ms delta"
+    },
+    {
+      "measured": "775.7 to 724.8",
+      "predicted": "780 to 720-750",
+      "quantity": "wall ms",
+      "verdict": "inside range"
+    },
+    {
+      "measured": "42157 to 44935",
+      "predicted": "41773 to 43500-45400",
+      "quantity": "ce targets/s",
+      "verdict": "inside range"
+    }
+  ],
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "ckpt_step0_sha256_prefix": "6efff0086ab0497b",
+    "ckpt_step500_sha256_prefix": "865946d66664399b",
+    "drift_guard": "OK",
+    "head": "bca2455",
+    "kfd": "idle before every arm",
+    "main_diff_prefix": "056540dab24662e4",
+    "main_entries": 42,
+    "tag_v2": "b89d0f0",
+    "tag_v31a": "3aff73e",
+    "worktree": "clean"
+  },
+  "unknowns": [
+    "only 60 updates from step 0 with empty optimizer state; resume paths untested beyond two per arm",
+    "allocator priming covers at most 3.0 GiB of a 5.19 GiB footprint and no driver or library memory",
+    "the 39.8 percent process CPU drop is unexplained in magnitude",
+    "loss of the NaN diagnostic is a real reduction in debuggability",
+    "validation and checkpoint prefill cost not measured separately"
+  ]
+}
