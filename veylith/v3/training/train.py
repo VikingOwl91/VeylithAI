@@ -224,7 +224,12 @@ def train(cfg: TrainConfig, log=print) -> dict:
     step = start_step
     tokens_seen = int(tokens_seen)
     loader_epoch_out, loader_batch_out = loader_epoch, loader_batch
-    t_start = time.time()
+    t_start = time.monotonic()
+
+    def remaining_seconds():
+        if cfg.max_wall_seconds is None:
+            return None
+        return cfg.max_wall_seconds - (time.monotonic() - t_start)
 
     def persist(path, step_value, tokens_value, epoch_value, batch_value):
         save_state(
@@ -271,14 +276,14 @@ def train(cfg: TrainConfig, log=print) -> dict:
                   if cfg.single_pass else None)
     collapse_streak = 0
     while step < stop_step:
-        if cfg.max_wall_seconds is not None and time.time() - t_start > cfg.max_wall_seconds:
+        if cfg.max_wall_seconds is not None and time.monotonic() - t_start > cfg.max_wall_seconds:
             partial_path = state_path_for(cfg, step)
             persist(partial_path, step, tokens_seen,
                     loader_epoch_out, loader_batch_out)
             _append_jsonl(cfg.curve_jsonl, {
                 "event": "stopped", "step": step,
                 "tokens_seen": tokens_seen, "reason": "wall_clock",
-                "elapsed_s": round(time.time() - t_start, 3)})
+                "elapsed_s": round(time.monotonic() - t_start, 3)})
             log(f"wall-clock limit reached at step {step}; partial state written")
             return {"steps": step, "tokens_seen": tokens_seen,
                     "best_metric": best_metric, "best_step": best_step,
@@ -381,7 +386,7 @@ def train(cfg: TrainConfig, log=print) -> dict:
             "tokens_per_s": round(total_valid / max(step_seconds, 1e-9), 1),
             "router": router_summary,
             "router_collapse_streak": collapse_streak,
-            "elapsed_s": round(time.time() - t_start, 3),
+            "elapsed_s": round(time.monotonic() - t_start, 3),
         }
         if step == start_step + 1 and start_step > 0:
             record["resume_trace"] = {
@@ -397,6 +402,11 @@ def train(cfg: TrainConfig, log=print) -> dict:
         eval_due = ((step in cfg.eval_steps) if cfg.eval_steps
                     else (step % cfg.eval_interval == 0))
         if eval_due or step == stop_step:
+            left = remaining_seconds()
+            if left is not None and left < 120:
+                raise RuntimeError(
+                    f"insufficient time budget before validation at update "
+                    f"{step}: {left:.1f}s remaining")
             val = evaluate(model, cfg, "validation",
                            max_batches=cfg.eval_max_batches,
                            exact_chars=cfg.exact_chars)
@@ -430,12 +440,17 @@ def train(cfg: TrainConfig, log=print) -> dict:
                 torch.cuda.max_memory_allocated() / 1e9, 3)
             record["vram_peak_reserved_gb"] = round(
                 torch.cuda.max_memory_reserved() / 1e9, 3)
-        if (step % cfg.log_every == 0 or "val" in record
+        if (step <= 10 or step % cfg.log_every == 0 or "val" in record
                 or "resume_trace" in record):
             _append_jsonl(cfg.curve_jsonl, record)
         due = (step in cfg.save_steps) if cfg.save_steps else (
             step % cfg.save_every == 0)
         if due or step == stop_step:
+            left = remaining_seconds()
+            if left is not None and left < 60:
+                raise RuntimeError(
+                    f"insufficient time budget before checkpoint at update "
+                    f"{step}: {left:.1f}s remaining")
             state_path = state_path_for(cfg, step)
             persist(state_path, step, tokens_seen,
                     loader_epoch_out, loader_batch_out)
@@ -450,7 +465,7 @@ def train(cfg: TrainConfig, log=print) -> dict:
     if stopped_early:
         _append_jsonl(cfg.curve_jsonl, {
             "event": "stopped", "step": step, "tokens_seen": tokens_seen,
-            "reason": "stop_after", "elapsed_s": round(time.time() - t_start, 3)})
+            "reason": "stop_after", "elapsed_s": round(time.monotonic() - t_start, 3)})
         return {"steps": step, "tokens_seen": tokens_seen,
                 "best_metric": best_metric, "best_step": best_step,
                 "best_tokens_seen": best_tokens_seen,
@@ -470,7 +485,7 @@ def train(cfg: TrainConfig, log=print) -> dict:
         tokens_seen=best_tokens_seen,
         fingerprint=fingerprint)
     artifact_sha = sha256_file(cfg.checkpoint)
-    total_wall = time.time() - t_start
+    total_wall = time.monotonic() - t_start
     _append_jsonl(cfg.curve_jsonl, {
         "event": "run_end", "steps": step, "tokens_seen": tokens_seen,
         "best_step": best_step, "best_tokens_seen": best_tokens_seen,
