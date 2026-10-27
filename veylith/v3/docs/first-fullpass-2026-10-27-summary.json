@@ -85,13 +85,13 @@
   },
   "progress": {
     "checkpoint_after_step_0": false,
+    "completed_updates_basis": "last log at step 60; no step-70 record; the 19.9 s gap is consistent with a slow or hung update, so 61-69 are possible but not confirmed",
     "confirmed_completed_updates": 60,
-    "estimate_basis": "elapsed 49.061 s at step 10 to 95.103 s at step 60; fault at 115 s",
-    "estimated_completed_updates": 81.6,
     "last_logged_step": 60,
     "last_logged_tokens": 1962240,
     "planned_tokens": 95763828,
-    "planned_updates": 2929
+    "planned_updates": 2929,
+    "upper_bound_completed_updates": 69
   },
   "router": {
     "collapse_streak": 0,
