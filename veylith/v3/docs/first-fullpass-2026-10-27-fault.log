@@ -1,0 +1,5 @@
+Memory access fault by GPU node-1 (Agent handle: 0x55de2df771b0) on address 0x7fb466000000. Reason: Page not present or supervisor privilege.
+Failed to write segment data to pipe: Bad address
+GPU coredump: handler exited with error (status: 1)
+GPU core dump failed
+timeout: the monitored command dumped core

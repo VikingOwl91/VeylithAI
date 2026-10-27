@@ -1,0 +1,281 @@
+{
+  "authorization": "single pass, max 2929 updates, 90 min",
+  "checkpoint_step0": {
+    "bytes": 786916415,
+    "fingerprint_prefix": "8b4158a9b4727eb2",
+    "loaded": true,
+    "no_mtp": true,
+    "sha256": "7fa59228c101d333dee8a5768be3e07d5b967fbdde8ab8dea88c2698872eb4be",
+    "step": 0,
+    "tokens_seen": 0
+  },
+  "fault": {
+    "coredump": "handler exited with error (status: 1); no core file",
+    "exit_code": 134,
+    "message": "Memory access fault by GPU node-1 ... Page not present or supervisor privilege",
+    "retry_attempted": false,
+    "signal": "SIGABRT",
+    "utc_fault": "2026-10-27T07:07:19Z",
+    "utc_start": "2026-10-27T07:05:24Z",
+    "wall_seconds": 115.0
+  },
+  "final_test": "not run; run did not complete and test split was not read",
+  "final_validation": "not reached",
+  "initial_validation": {
+    "chars_protocol": "prefix_decode",
+    "overall": {
+      "aux_loss": 7.744250961219258,
+      "bits_per_char": 3.3517565293152276,
+      "chars": 8311337,
+      "chars_protocol": "prefix_decode",
+      "macro_main_ce": 9.116758007853344,
+      "main_ce": 9.115819192202924,
+      "nats": 19309401.6875,
+      "split": "validation",
+      "tokens": 2118230
+    },
+    "router_mean_entropy": 0.9601730548570802,
+    "sources": {
+      "cosmopedia-v2": {
+        "aux_loss": 7.675206866804351,
+        "bits_per_char": 3.0295415827254337,
+        "chars": 1348670,
+        "chars_protocol": "prefix_decode",
+        "main_ce": 9.120173791022474,
+        "nats": 2832096.6875,
+        "tokens": 310531
+      },
+      "fineweb-edu": {
+        "aux_loss": 7.7590653047503375,
+        "bits_per_char": 3.330453229973161,
+        "chars": 5119638,
+        "chars_protocol": "prefix_decode",
+        "main_ce": 9.115098518088049,
+        "nats": 11818654.96875,
+        "tokens": 1296602
+      },
+      "wikipedia": {
+        "aux_loss": 7.748618085721399,
+        "bits_per_char": 3.646720316024105,
+        "chars": 1843029,
+        "chars_protocol": "prefix_decode",
+        "main_ce": 9.115001714449507,
+        "nats": 4658650.03125,
+        "tokens": 511097
+      }
+    }
+  },
+  "last_logged_training": {
+    "elapsed_s": 95.103,
+    "grad_norm": 0.2655077576637268,
+    "router_collapse_streak": 0,
+    "step": 60,
+    "step_seconds": 0.8974,
+    "tokens_per_s": 36442.4,
+    "tokens_seen": 1962240,
+    "train_aux": 7.030981242656708,
+    "train_aux_per_layer": 1.004425891808101,
+    "train_aux_weighted": 0.07030981242656707,
+    "train_loss": 7.488429537842418,
+    "train_main_ce": 7.418119725415851,
+    "vram_allocated_gb": 1.772,
+    "vram_reserved_gb": 4.043
+  },
+  "progress": {
+    "checkpoint_after_step_0": false,
+    "confirmed_completed_updates": 60,
+    "estimate_basis": "elapsed 49.061 s at step 10 to 95.103 s at step 60; fault at 115 s",
+    "estimated_completed_updates": 81.6,
+    "last_logged_step": 60,
+    "last_logged_tokens": 1962240,
+    "planned_tokens": 95763828,
+    "planned_updates": 2929
+  },
+  "router": {
+    "collapse_streak": 0,
+    "initial_mean_entropy": 0.9601730548570802,
+    "last_layers": [
+      {
+        "entropy_norm": 0.9951576592301422,
+        "layer": 0,
+        "share_pct": [
+          16.09,
+          11.91,
+          14.71,
+          12.33,
+          11.01,
+          11.41,
+          10.41,
+          12.12
+        ]
+      },
+      {
+        "entropy_norm": 0.9757685644820703,
+        "layer": 1,
+        "share_pct": [
+          19.82,
+          10.83,
+          12.19,
+          13.18,
+          12.01,
+          9.4,
+          6.04,
+          16.52
+        ]
+      },
+      {
+        "entropy_norm": 0.985165467215013,
+        "layer": 2,
+        "share_pct": [
+          14.7,
+          10.71,
+          12.78,
+          14.31,
+          6.92,
+          16.57,
+          9.49,
+          14.51
+        ]
+      },
+      {
+        "entropy_norm": 0.9922458782959342,
+        "layer": 3,
+        "share_pct": [
+          14.69,
+          13.6,
+          13.23,
+          14.68,
+          13.7,
+          8.19,
+          11.89,
+          10.02
+        ]
+      },
+      {
+        "entropy_norm": 0.9781553397107443,
+        "layer": 4,
+        "share_pct": [
+          17.84,
+          11.69,
+          6.4,
+          11.85,
+          18.32,
+          13.37,
+          9.63,
+          10.89
+        ]
+      },
+      {
+        "entropy_norm": 0.9858184280127887,
+        "layer": 5,
+        "share_pct": [
+          9.77,
+          15.91,
+          11.73,
+          10.95,
+          13.33,
+          16.49,
+          14.57,
+          7.24
+        ]
+      },
+      {
+        "entropy_norm": 0.9936156627825062,
+        "layer": 6,
+        "share_pct": [
+          15.27,
+          13.31,
+          11.24,
+          13.67,
+          9.69,
+          14.44,
+          12.91,
+          9.46
+        ]
+      }
+    ],
+    "last_mean_entropy": 0.9865609999613142
+  },
+  "run_id": "v31-e-fullpass-20261027",
+  "status": "partial_gpu_fault",
+  "training_records": [
+    {
+      "elapsed_s": 49.061,
+      "grad_norm": 1.9329895973205566,
+      "step": 10,
+      "step_seconds": 0.916,
+      "tokens_per_s": 35701.7,
+      "tokens_seen": 327040,
+      "train_aux": 8.110897958278656,
+      "train_loss": 8.933778951145898,
+      "train_main_ce": 8.852669971563111,
+      "vram_allocated_gb": 1.762,
+      "vram_reserved_gb": 4.043
+    },
+    {
+      "elapsed_s": 58.315,
+      "grad_norm": 1.2847871780395508,
+      "step": 20,
+      "step_seconds": 0.8965,
+      "tokens_per_s": 36480.8,
+      "tokens_seen": 654080,
+      "train_aux": 7.645924806594849,
+      "train_loss": 8.460308509624166,
+      "train_main_ce": 8.383849261558218,
+      "vram_allocated_gb": 1.761,
+      "vram_reserved_gb": 4.043
+    },
+    {
+      "elapsed_s": 67.477,
+      "grad_norm": 1.0444600582122803,
+      "step": 30,
+      "step_seconds": 0.8994,
+      "tokens_per_s": 36361.8,
+      "tokens_seen": 981120,
+      "train_aux": 7.1519423723220825,
+      "train_loss": 8.116822081654972,
+      "train_main_ce": 8.045302657931751,
+      "vram_allocated_gb": 1.771,
+      "vram_reserved_gb": 4.043
+    },
+    {
+      "elapsed_s": 76.755,
+      "grad_norm": 0.7761483788490295,
+      "step": 40,
+      "step_seconds": 0.9,
+      "tokens_per_s": 36336.9,
+      "tokens_seen": 1308160,
+      "train_aux": 7.064884901046753,
+      "train_loss": 7.7304276604708395,
+      "train_main_ce": 7.659778811460372,
+      "vram_allocated_gb": 1.776,
+      "vram_reserved_gb": 4.043
+    },
+    {
+      "elapsed_s": 85.927,
+      "grad_norm": 0.32118862867355347,
+      "step": 50,
+      "step_seconds": 0.9062,
+      "tokens_per_s": 36088.2,
+      "tokens_seen": 1635200,
+      "train_aux": 7.040529429912567,
+      "train_loss": 7.542647795216444,
+      "train_main_ce": 7.472242500917319,
+      "vram_allocated_gb": 1.773,
+      "vram_reserved_gb": 4.043
+    },
+    {
+      "elapsed_s": 95.103,
+      "grad_norm": 0.2655077576637268,
+      "step": 60,
+      "step_seconds": 0.8974,
+      "tokens_per_s": 36442.4,
+      "tokens_seen": 1962240,
+      "train_aux": 7.030981242656708,
+      "train_loss": 7.488429537842418,
+      "train_main_ce": 7.418119725415851,
+      "vram_allocated_gb": 1.772,
+      "vram_reserved_gb": 4.043
+    }
+  ]
+}

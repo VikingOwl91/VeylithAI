@@ -289,4 +289,16 @@ The first real-data training run (v3.1-D) completed 100 updates on the
 verified corpus: validation macro main CE 9.1168 -> 7.4325, bits/char
 3.3452 -> 2.7085, all three sources improved, router healthy, 36.5k
 tokens/s, 1.77 GB allocated / 4.12 GB reserved, no fault. See
-`docs/V3.1-FIRST-RUN-RESULTS.md`; checkpoints stay outside Git.
+`docs/V3.1-FIRST-RUN-RESULTS.md`; checkpoints stay outside Git. The v3.1-D
+bits/char values use the older proportional document-share estimate; they
+are not directly comparable to the exact prefix-decode values below.
+
+The v3.1-E single-pass attempt (commit `b97a73d`) implemented the exact
+prefix-decode bits/char protocol, saved the step-0 state and the initial
+validation, and trained through at least 60 updates with stable loss and
+routing (main CE 8.85 -> 7.42, grad norm 1.93 -> 0.27, router entropy
+0.89 -> 0.99, 36.4k tokens/s, 1.78 GB allocated / 4.04 GB reserved). It then
+aborted with a GPU memory access fault at about 115 s, before the step-100
+checkpoint. There was no retry, no dense fallback, no test evaluation and no
+further training. See `docs/V3.1-E-PARTIAL-RUN-RESULTS.md` and
+`docs/V3.1-FULL-RUN-PLAN.md`.
