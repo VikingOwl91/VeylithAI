@@ -80,6 +80,16 @@
     ],
     "executed_head": "ae00feb",
     "executed_head_note": "The authorized minimal telemetry and time-budget changes to veylith/v3/training/train.py were committed as ae00feb before the GPU run. No other code differs from 6ba3558.",
+    "post_run_commits": [
+      {
+        "change": "documentation for this run",
+        "commit": "13c7d01"
+      },
+      {
+        "change": "explicit torch.cuda.synchronize() at both timing boundaries; measurement only, added after the run",
+        "commit": "99e45cb"
+      }
+    ],
     "preflight_head_actual": "6ba3558",
     "preflight_head_expected": "6ba3558"
   },
@@ -277,7 +287,8 @@
     "median_ce_targets_per_s": 43887.5,
     "median_update_seconds": 0.7452,
     "min_update_seconds": 0.7275,
-    "note": "Throughput is CE-target throughput. Only 59 of 500 updates carry a timing record because the log interval is 10 after update 10; medians are over those records. End-to-end includes four validations and seven checkpoint writes."
+    "note": "Throughput is CE-target throughput. Only 59 of 500 updates carry a timing record because the log interval is 10 after update 10; medians are over those records. End-to-end includes four validations and seven checkpoint writes.",
+    "timer_caveat": "The run used the pre-existing timer without explicit GPU synchronization at the timing boundaries. Loss and gradient-norm reductions already synchronize. 481.102 s elapsed minus two in-run milestones and the initial validation leaves about 0.758 s per update, within about 2 percent of the 0.7452 s median. The explicit synchronize fix landed as 99e45cb after the run."
   },
   "validation": {
     "protocol": "exact prefix-decode characters, validation split only",
@@ -869,6 +880,7 @@
     ]
   },
   "warnings": [
+    "Per-update timings come from a timer without explicit GPU synchronization; the wall-clock arithmetic agrees within about 2 percent. The fix is 99e45cb, after the run.",
     "The run used commit ae00feb, which adds the authorized telemetry and monotonic time-budget changes on top of 6ba3558.",
     "The steady-state reserved memory is 6.107 GiB, so the v3.1-K 6.000 GiB guard could never pass; that stop was a threshold artifact, not a memory problem.",
     "The 12 GiB limit was never approached: 6.107 GiB reserved peak leaves about 6 GiB unused.",
