@@ -1,0 +1,229 @@
+{
+  "attribution": {
+    "A_confirmed_dispatch": false,
+    "B_strong_tensor_operation_correlation": false,
+    "C_candidate_operation_only": true,
+    "D_inconclusive_for_this_run": true,
+    "candidate": "w3 backward GEMM epilogue (store past the output end, or a Tensile operand over-read)",
+    "consumer_excluded_as_over_reader": true,
+    "why_consumer_excluded": [
+      "the shipped template masks the remainder block elementwise in load and store",
+      "the copy input is contiguous, i.e. on that masked path",
+      "10729 copies read an input whose storage ends exactly at a 2 MiB page and none faulted"
+    ],
+    "why_no_conclusion_on_gemm": [
+      "the run did not fault, so nothing can be tied to a page",
+      "no 682-column output ended at a page in this run, which explains the clean outcome consistently with the K-tail precondition rather than demonstrating it"
+    ]
+  },
+  "cpu_analysis": {
+    "boundary_buffer": {
+      "block_bytes": 4194304,
+      "cols": 3075,
+      "dtype": "bf16",
+      "extent_bytes": 4194300,
+      "layout": "column-major, ld=682 (transposed w3 input-gradient output)",
+      "rows": 682,
+      "tensor_end_to_page_bytes": 4
+    },
+    "copy_is_contiguous": "the observed kernel is vectorized_elementwise_kernel<4, ...>, which PyTorch selects only for vectorizable (contiguous, aligned) iterators",
+    "prior_traces": {
+      "batch_only": 1,
+      "cycles": 57,
+      "full_iterations": 56,
+      "note": "traces had no shapes or pointers, so they could not prove which allocation a copy read",
+      "tail_pattern": "aten::silu_backward -> aten::mm -> aten::copy_ in 46 of 56"
+    },
+    "record_shapes_sufficiency": "insufficient: shapes identify the operand class but not the allocation, so a pointer-level recorder was added",
+    "tail_masking_source": {
+      "consequence": "the remainder block reads exactly `remaining` elements and cannot cross the allocation end",
+      "files": [
+        "torch/include/ATen/native/cuda/CUDALoops.cuh",
+        "torch/include/ATen/native/cuda/MemoryAccess.cuh"
+      ],
+      "rocm_branch": "if (remaining < bws) { policies::unroll(data, remaining, ...) } else { policies::vectorized(...) }",
+      "unroll_guards": "load and store guard each element with if (thread_idx < remaining); scalar LoadWithoutCast"
+    }
+  },
+  "execution": {
+    "copies_recorded": 83040,
+    "cycles": 121,
+    "exit_code": 0,
+    "faulted": false,
+    "gpu_idle_after": true,
+    "iterations": 100,
+    "kernel_fault_records": 0,
+    "mm_recorded": 45860,
+    "note": "this run did not reproduce the fault; PERF-5C and PERF-5D faulted within 26-46 iterations on the same reproducer, so the instrumentation (shapes plus dispatch recorder) plausibly changed host timing and allocator layout",
+    "ops_recorded": 128900,
+    "record_shapes": true,
+    "serialization": "none",
+    "timeout_reached": false,
+    "wall_seconds": 79
+  },
+  "integrity": {
+    "checkpoint_change": "none",
+    "cpu_tests": "122 passed, 2 skipped",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none"
+  },
+  "meta": {
+    "budget": {
+      "max_executions": 1,
+      "retries": 0,
+      "used": 1
+    },
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5E BF16 consumer attribution",
+    "git_head": "3c0c0ab",
+    "mode": "one bounded GPU execution plus CPU source and trace analysis; no serialization, no backend switch",
+    "reports_read": [
+      "V3.1-PERF-5C-KERNEL-ATTRIBUTION.md",
+      "V3.1-PERF-5D-ROLLING-TRACE.md"
+    ]
+  },
+  "perf5f_proposal": {
+    "arms": [
+      {
+        "arm": "reference reproduction with the 5D rolling profiler only",
+        "changes": "none; re-establishes the fault under minimal instrumentation",
+        "n": 1
+      },
+      {
+        "arm": "storage padding so the tensor end is >= 64 KiB from any page",
+        "changes": "allocator placement; a clean result tests the boundary condition, not the kernel",
+        "n": 2
+      },
+      {
+        "arm": "standalone bf16->fp32 cast on a boundary-placed 682x3075 buffer",
+        "changes": "tensor lifetime and op sequence; isolates the consumer; the masked-tail source predicts clean",
+        "n": 3
+      },
+      {
+        "arm": "GEMM without the cast, consuming the output in bf16",
+        "changes": "kernel selection and possibly numerics; an ablation, not a control",
+        "n": 4
+      }
+    ],
+    "containment": "fresh process, idle gate, ulimit -c 0, 120 s timeout, kernel-log capture, abort on a second unexpected fault or any reset, no retry",
+    "order": "1, then 3, then 2, then 4 only if the GEMM stays the sole candidate",
+    "status": "designed, not executed"
+  },
+  "persistence_hardening": {
+    "added_sync": "none",
+    "atomic_publication": "temporary file plus os.replace retained",
+    "coverage": "recorded, iterations 0..119",
+    "cycles_exported": 121,
+    "cycles_jsonl": "appended and flushed at every cycle before anything else",
+    "fields": [
+      "cycle",
+      "covered_iteration",
+      "path",
+      "bytes",
+      "utc"
+    ],
+    "rows_in_this_run": 121,
+    "serialization": "none"
+  },
+  "precondition_frequency": {
+    "copies_of_input_storage_ending_at_2mib": 10729,
+    "copies_whose_range_reaches_the_page": 10729,
+    "examples_copy": [
+      {
+        "in_dtype": "torch.float32",
+        "in_shape": [
+          64,
+          256,
+          256
+        ],
+        "seq": 203,
+        "slack_bytes": 0,
+        "storage_end": "0x7f10fd400000",
+        "tensor_reaches_page": true
+      },
+      {
+        "in_dtype": "torch.float32",
+        "in_shape": [
+          64,
+          256,
+          256
+        ],
+        "seq": 206,
+        "slack_bytes": 0,
+        "storage_end": "0x7f10fd400000",
+        "tensor_reaches_page": true
+      },
+      {
+        "in_dtype": "torch.float32",
+        "in_shape": [
+          64,
+          256,
+          256
+        ],
+        "seq": 209,
+        "slack_bytes": 0,
+        "storage_end": "0x7f10fd400000",
+        "tensor_reaches_page": true
+      }
+    ],
+    "examples_mm": [
+      {
+        "out_shape": [
+          16384,
+          256
+        ],
+        "seq": 204,
+        "slack_bytes": 0,
+        "storage_end": "0x7f1103600000",
+        "tensor_bytes": 8388608
+      },
+      {
+        "out_shape": [
+          16384,
+          64
+        ],
+        "seq": 207,
+        "slack_bytes": 0,
+        "storage_end": "0x7f10e5800000",
+        "tensor_bytes": 2097152
+      },
+      {
+        "out_shape": [
+          16384,
+          64
+        ],
+        "seq": 210,
+        "slack_bytes": 0,
+        "storage_end": "0x7f10e5a00000",
+        "tensor_bytes": 2097152
+      }
+    ],
+    "mm_outputs_ending_at_2mib": 3401,
+    "mm_with_slack_under_16_bytes": 3401,
+    "note": "counts from a run that did NOT fault; they measure how ordinary the boundary condition is"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle before the run",
+    "head": "3c0c0ab",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean"
+  },
+  "remaining_explanations": [
+    "the GEMM epilogue itself (store past the end, or a Tensile operand over-read)",
+    "another kernel reading the reused 4 MiB block after the allocator hands it out again",
+    "a dispatch on the faulting iteration that this run never issued",
+    "instrumentation-induced avoidance of the fault"
+  ]
+}
