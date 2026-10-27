@@ -1,0 +1,155 @@
+{
+  "confounders": [
+    "the wrapper replaces an ATen backward node with a custom Function, so the autograd graph differs in node type even when gradients are bitwise identical",
+    "the padded allocation changes the backward's allocation pattern",
+    "kernel identity must be verified from the padded run's descriptors, not assumed"
+  ],
+  "cpu_gate": {
+    "forward_bitwise_bf16": true,
+    "forward_bitwise_fp32": true,
+    "geometry": {
+      "contiguous": true,
+      "slack_bytes": 65536,
+      "storage_offset": 0
+    },
+    "grad_input_bitwise_both": true,
+    "grad_weight_bitwise_both": true,
+    "mixed_dtype_autocast_shape_bitwise": true,
+    "out_returned_same_object": true,
+    "out_wrote_into_view": true,
+    "pointer_preserved": true,
+    "storage_preserved": true,
+    "tests": "veylith/v3/tests suite 122 passed, 2 skipped; harness self-test passes"
+  },
+  "executions": [
+    {
+      "case": "A",
+      "exit_code": 1,
+      "fault_mode": "hip-illegal-address",
+      "faulted": true,
+      "gpu_idle_after": true,
+      "pad": false,
+      "valid": true,
+      "wide_calls": 6,
+      "wide_descriptors": [
+        [
+          256,
+          3075,
+          256
+        ],
+        [
+          682,
+          3075,
+          682
+        ]
+      ],
+      "wide_min_gap_to_page": 4
+    },
+    {
+      "case": "B",
+      "error": {
+        "message": "expected mat1 and mat2 to have the same dtype, but got: c10::BFloat16 != float",
+        "type": "RuntimeError"
+      },
+      "exit_code": 1,
+      "faulted": false,
+      "gpu_idle_after": true,
+      "invalid_because": "the wrapper's backward passed an fp32 master weight to a bf16 mm and raised before any GEMM; no padded GEMM ran, so the arm tests nothing",
+      "pad": true,
+      "padded_allocs": 1,
+      "padded_sample": [
+        {
+          "bytes_from_tensor_end_to_page_end": 67568,
+          "contiguous": true,
+          "data_ptr": "0x7f92c8f3c200",
+          "dtype": "torch.bfloat16",
+          "page_rounded_storage_end": "0x7f92c931d000",
+          "shape": [
+            2932,
+            682
+          ],
+          "slack_after_tensor": 65536,
+          "storage_bytes": 4064784,
+          "storage_offset": 0,
+          "storage_ptr": "0x7f92c8f3c200",
+          "stride": [
+            682,
+            1
+          ],
+          "tensor_bytes": 3999248
+        }
+      ],
+      "padded_slack_min": 65536,
+      "valid": false,
+      "wide_calls": 0
+    }
+  ],
+  "feasibility": {
+    "allocated_by": "ATen's linear backward node; no Python hook supplies an output buffer",
+    "buffer": "input gradient of the expert w3 linear (hidden 682 -> embd 256, no bias); shape (3075, 682) bf16",
+    "mechanism": "custom autograd Function computing grad_input = mm(grad_output, weight_cast, out=padded_view) and grad_weight = mm(grad_output.t(), x).to(weight.dtype)",
+    "out_equals_autograd": false,
+    "post_gemm_copy": "none; the GEMM writes directly into the padded view",
+    "silent_resize_caught": "the first version allocated the wrong shape and mm(out=) silently resized it; the gate now checks pointer, storage and no-resize",
+    "weight_cast": "weight.to(grad_output.dtype), mirroring autocast",
+    "why": "torch.mm(out=) does not participate in autograd, so the node must be replaced by a custom Function"
+  },
+  "integrity": {
+    "checkpoint_change": "none",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none"
+  },
+  "interpretation": {
+    "1_boundary_dependence_supported": false,
+    "2_boundary_dependence_contradicted": false,
+    "3_fault_reproduced_manipulation_invalid": true,
+    "4_fault_not_reproduced": false,
+    "5_inconclusive_causal": true
+  },
+  "meta": {
+    "budget": {
+      "max_executions": 2,
+      "retries": 0,
+      "used": 2
+    },
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5G controlled GEMM output boundary",
+    "git_head": "aeef998",
+    "mode": "experimental wrapper for the w3 input-gradient allocation; two GPU executions",
+    "reports_read": [
+      "V3.1-PERF-5C-KERNEL-ATTRIBUTION.md",
+      "V3.1-PERF-5D-ROLLING-TRACE.md",
+      "V3.1-PERF-5E-CONSUMER-ATTRIBUTION.md",
+      "V3.1-PERF-5F-BOUNDARY-DISCRIMINATION.md"
+    ]
+  },
+  "next_experiment": {
+    "gates_before_fault_interpretation": [
+      "descriptor equivalence with (682,3075,682) and (256,3075,256)",
+      "every padded allocation shows slack >= 64 KiB and > 44 bytes to the page-rounded storage end",
+      "first-iteration loss and gradient norms bitwise equal to the reference"
+    ],
+    "limit": "a clean padded run still would not identify the faulty dispatch",
+    "needs": "fresh authorization because the two-run budget is spent",
+    "runs": 1,
+    "then": "fault versus clean, which would support or contradict boundary dependence with one controlled comparison"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle before each execution",
+    "head": "aeef998",
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean"
+  }
+}
