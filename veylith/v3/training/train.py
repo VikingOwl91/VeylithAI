@@ -141,6 +141,13 @@ def train(cfg: TrainConfig, log=print) -> dict:
         torch.set_num_threads(1)
         torch.use_deterministic_algorithms(True, warn_only=False)
     data_sha = sha256_file(os.path.join(cfg.data_root, "corpus", "manifest.json"))
+    dataset_info = {
+        "manifest_sha256": data_sha,
+        "manifest_digest": manifest.get("digest"),
+        "tokenizer_sha256": tokenization["tokenizer"]["sha256"],
+        "train_tokens": tokenization["splits"]["train"]["tokens"],
+        "vocab_size": tokenization["vocab_size"],
+    }
     fingerprint = cfg.fingerprint(data_sha)
 
     model = GPT(cfg.model).to(cfg.device)
@@ -228,7 +235,7 @@ def train(cfg: TrainConfig, log=print) -> dict:
             best_tokens_seen=best_tokens_seen,
             best_state=best_state, best_metrics=best_metrics,
             config=cfg, data_manifest_sha256=data_sha,
-            fingerprint=fingerprint)
+            dataset=dataset_info, fingerprint=fingerprint)
         return _record_checkpoint(cfg, path, step_value, tokens_value, log)
 
     if step == 0 and cfg.eval_interval > 0:
@@ -387,7 +394,9 @@ def train(cfg: TrainConfig, log=print) -> dict:
         if cfg.device == "cuda":
             record["vram_allocated_gb"] = round(torch.cuda.memory_allocated() / 1e9, 3)
             record["vram_reserved_gb"] = round(torch.cuda.memory_reserved() / 1e9, 3)
-        if step % cfg.eval_interval == 0 or step == stop_step:
+        eval_due = ((step in cfg.eval_steps) if cfg.eval_steps
+                    else (step % cfg.eval_interval == 0))
+        if eval_due or step == stop_step:
             val = evaluate(model, cfg, "validation",
                            max_batches=cfg.eval_max_batches,
                            exact_chars=cfg.exact_chars)
@@ -416,6 +425,11 @@ def train(cfg: TrainConfig, log=print) -> dict:
             log(f"step {step}: train {train_loss:.4f} | val macro "
                 f"{val['overall']['macro_main_ce']:.4f} token "
                 f"{val['overall']['main_ce']:.4f} | best {best_metric:.4f} @ {best_step}")
+        if cfg.device == "cuda":
+            record["vram_peak_allocated_gb"] = round(
+                torch.cuda.max_memory_allocated() / 1e9, 3)
+            record["vram_peak_reserved_gb"] = round(
+                torch.cuda.max_memory_reserved() / 1e9, 3)
         if (step % cfg.log_every == 0 or "val" in record
                 or "resume_trace" in record):
             _append_jsonl(cfg.curve_jsonl, record)
@@ -425,6 +439,12 @@ def train(cfg: TrainConfig, log=print) -> dict:
             state_path = state_path_for(cfg, step)
             persist(state_path, step, tokens_seen,
                     loader_epoch_out, loader_batch_out)
+        if cfg.device == "cuda" and cfg.max_vram_gb is not None:
+            peak_vram = torch.cuda.max_memory_reserved() / 1e9
+            if peak_vram > cfg.max_vram_gb:
+                raise RuntimeError(
+                    f"peak VRAM {peak_vram:.3f} GiB exceeds the "
+                    f"{cfg.max_vram_gb:.3f} GiB target at update {step}")
 
     stopped_early = step < cfg.max_steps
     if stopped_early:
@@ -443,7 +463,7 @@ def train(cfg: TrainConfig, log=print) -> dict:
         model.load_state_dict(best_state)
     save_artifact(
         cfg.checkpoint, model=model, config=cfg, data_manifest_sha256=data_sha,
-        tokenizer=tokenizer_info(manifest),
+        dataset=dataset_info, tokenizer=tokenizer_info(manifest),
         selection={"metric": cfg.select_metric, "value": best_metric,
                    "step": best_step, "split": "validation"},
         metrics=best_metrics, step=best_step or step,

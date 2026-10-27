@@ -28,6 +28,7 @@ def parse_args(argv=None):
     parser.add_argument("--lr", type=float, default=3e-4)
     parser.add_argument("--warmup", type=int, default=100)
     parser.add_argument("--eval-interval", type=int, default=50)
+    parser.add_argument("--eval-steps", default="")
     parser.add_argument("--eval-max-batches", type=int, default=None)
     parser.add_argument("--train-gap-batches", type=int, default=8)
     parser.add_argument("--save-every", type=int, default=50)
@@ -40,6 +41,8 @@ def parse_args(argv=None):
     parser.add_argument("--save-steps", default="")
     parser.add_argument("--save-initial-state", action="store_true")
     parser.add_argument("--max-wall-seconds", type=float, default=5400.0)
+    parser.add_argument("--max-vram-gb", type=float, default=None)
+    parser.add_argument("--allow-unsafe-sparse", action="store_true")
     parser.add_argument("--exact-chars", dest="exact_chars",
                         action="store_true", default=True)
     parser.add_argument("--no-exact-chars", dest="exact_chars",
@@ -54,6 +57,8 @@ def main(argv=None) -> int:
     model.moe_impl = args.moe
     save_steps = tuple(int(value) for value in args.save_steps.split(",")
                        if value.strip())
+    eval_steps = tuple(int(value) for value in args.eval_steps.split(",")
+                       if value.strip())
     state = args.state
     if state is None and args.single_pass:
         state = os.path.join(args.out_dir, "ckpt_state_step{step}.pt")
@@ -63,7 +68,7 @@ def main(argv=None) -> int:
         batch_size=args.batch_size, grad_accum=args.grad_accum,
         seq_len=args.seq_len, max_steps=args.max_steps,
         stop_after=args.stop_after, lr=args.lr, warmup_steps=args.warmup,
-        eval_interval=args.eval_interval,
+        eval_interval=args.eval_interval, eval_steps=eval_steps,
         eval_max_batches=args.eval_max_batches,
         train_gap_batches=args.train_gap_batches,
         save_every=args.save_every, seed=args.seed,
@@ -72,7 +77,9 @@ def main(argv=None) -> int:
         single_pass=args.single_pass, save_steps=save_steps,
         save_initial_state=args.save_initial_state,
         exact_chars=args.exact_chars,
-        max_wall_seconds=args.max_wall_seconds)
+        max_wall_seconds=args.max_wall_seconds,
+        max_vram_gb=args.max_vram_gb,
+        allow_unsafe_sparse=args.allow_unsafe_sparse)
     try:
         result = train(cfg)
     except (ValueError, RuntimeError) as exc:

@@ -66,6 +66,9 @@ class TrainConfig:
     save_initial_state: bool = False
     exact_chars: bool = True
     max_wall_seconds: float | None = 5400.0
+    eval_steps: tuple = ()
+    allow_unsafe_sparse: bool = False
+    max_vram_gb: float | None = None
 
     def __post_init__(self):
         if self.checkpoint is None:
@@ -107,6 +110,23 @@ class TrainConfig:
             problems.append(f"no corpus manifest under {self.data_root}")
         if self.max_wall_seconds is not None and self.max_wall_seconds <= 0:
             problems.append("max_wall_seconds must be positive or None")
+        if self.max_vram_gb is not None and self.max_vram_gb <= 0:
+            problems.append("max_vram_gb must be positive or None")
+        if self.eval_steps:
+            steps = [int(step) for step in self.eval_steps]
+            if steps != sorted(set(steps)):
+                problems.append("eval_steps must be sorted and unique")
+            if any(step <= 0 or step > self.max_steps for step in steps):
+                problems.append("eval_steps must be in (0, max_steps]")
+        if (self.device == "cuda" and self.precision == "bf16"
+                and self.model.moe_impl == "sparse"
+                and not self.allow_unsafe_sparse):
+            problems.append(
+                "refusing bf16 sparse-MoE training on the known-affected "
+                "PyTorch 2.14.1/ROCm stack; use --moe dense, or for a "
+                "separately authorized research run set "
+                "--allow-unsafe-sparse (see "
+                "veylith/v3/docs/V3.1-J-SPARSE-REPRODUCER.md)")
         if self.save_steps:
             steps = [int(step) for step in self.save_steps]
             if steps != sorted(set(steps)):

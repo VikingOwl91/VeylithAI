@@ -101,7 +101,7 @@ def save_state(path: str, *, model, optimizer, schedule, step: int,
                tokens_seen: int, loader_epoch: int, loader_batch: int,
                best_metric: float, best_step: int | None, best_tokens_seen: int,
                best_state, best_metrics, config, data_manifest_sha256: str,
-               fingerprint: str) -> str:
+               dataset: dict, fingerprint: str) -> str:
     payload = {
         "format": STATE_FORMAT,
         "kind": "train_state",
@@ -119,6 +119,7 @@ def save_state(path: str, *, model, optimizer, schedule, step: int,
         "config": config.to_dict(),
         "model_config": config.model.to_dict(),
         "data_manifest_sha256": data_manifest_sha256,
+        "dataset": dataset,
         "fingerprint": fingerprint,
         "rng": capture_rng(),
         "versions": versions(),
@@ -151,8 +152,9 @@ def move_optimizer_state(optimizer, device) -> None:
 
 
 def save_artifact(path: str, *, model, config, data_manifest_sha256: str,
-                  tokenizer: dict, selection: dict, metrics: dict,
-                  step: int, tokens_seen: int, fingerprint: str) -> str:
+                  dataset: dict, tokenizer: dict, selection: dict,
+                  metrics: dict, step: int, tokens_seen: int,
+                  fingerprint: str) -> str:
     payload = {
         "format": ARTIFACT_FORMAT,
         "kind": "model",
@@ -161,6 +163,7 @@ def save_artifact(path: str, *, model, config, data_manifest_sha256: str,
         "train_config": config.to_dict(),
         "tokenizer": tokenizer,
         "data_manifest_sha256": data_manifest_sha256,
+        "dataset": dataset,
         "fingerprint": fingerprint,
         "selection": selection,
         "metrics": metrics,

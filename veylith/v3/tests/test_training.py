@@ -362,3 +362,67 @@ def test_cpu_guard_refuses_the_real_0_1b_model(corpus, tmp_path):
                       max_steps=1, eval_interval=1, save_every=1)
     with pytest.raises(ValueError, match="refusing"):
         train(cfg, log=lambda *_: None)
+
+
+def test_sparse_bf16_gpu_training_is_rejected(corpus, tmp_path):
+    cfg = make_config(corpus, tmp_path)
+    cfg.device = "cuda"
+    cfg.precision = "bf16"
+    cfg.model.moe_impl = "sparse"
+    with pytest.raises(ValueError, match="sparse"):
+        cfg.validate()
+
+
+def test_sparse_bf16_gpu_training_requires_explicit_override(corpus, tmp_path):
+    cfg = make_config(corpus, tmp_path)
+    cfg.device = "cuda"
+    cfg.precision = "bf16"
+    cfg.model.moe_impl = "sparse"
+    cfg.allow_unsafe_sparse = True
+    cfg.validate()
+
+
+def test_dense_bf16_gpu_training_is_allowed(corpus, tmp_path):
+    cfg = make_config(corpus, tmp_path)
+    cfg.device = "cuda"
+    cfg.precision = "bf16"
+    cfg.model.moe_impl = "dense"
+    cfg.validate()
+
+
+def test_sparse_cpu_training_is_allowed(corpus, tmp_path):
+    cfg = make_config(corpus, tmp_path)
+    cfg.device = "cpu"
+    cfg.precision = "fp32"
+    cfg.model.moe_impl = "sparse"
+    cfg.validate()
+
+
+def test_eval_steps_are_honored(corpus, tmp_path):
+    cfg = make_config(corpus, tmp_path, max_steps=4, eval_interval=1000,
+                      eval_steps=(2,), save_every=1000)
+    train(cfg, log=lambda *_: None)
+    lines = [json.loads(line) for line in open(cfg.curve_jsonl, encoding="utf-8")]
+    assert [line["step"] for line in lines if "val" in line] == [0, 2, 4]
+
+
+def test_state_and_artifact_record_dataset_hashes(corpus, tmp_path):
+    manifest = load_manifest(corpus)
+    cfg = make_config(corpus, tmp_path, max_steps=1)
+    train(cfg, log=lambda *_: None)
+    state = torch.load(cfg.state_path, map_location="cpu", weights_only=False)
+    artifact = torch.load(cfg.checkpoint, map_location="cpu", weights_only=False)
+    for payload in (state, artifact):
+        dataset = payload["dataset"]
+        assert dataset["manifest_digest"] == manifest["digest"]
+        assert dataset["tokenizer_sha256"] == (
+            manifest["tokenization"]["tokenizer"]["sha256"])
+        assert dataset["train_tokens"] == (
+            manifest["tokenization"]["splits"]["train"]["tokens"])
+
+
+def test_max_vram_must_be_positive(corpus, tmp_path):
+    cfg = make_config(corpus, tmp_path)
+    cfg.max_vram_gb = 0
+    with pytest.raises(ValueError, match="max_vram_gb"):
+        cfg.validate()
