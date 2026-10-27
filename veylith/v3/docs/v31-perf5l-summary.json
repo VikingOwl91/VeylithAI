@@ -1,0 +1,326 @@
+{
+  "comparison": {
+    "arm_matrix": [
+      {
+        "arm": "PERF-5I",
+        "fault_page_matches_stock_product": true,
+        "faults": 1,
+        "forward_product": "stock",
+        "product_gradient": "padded",
+        "runs": 1
+      },
+      {
+        "arm": "PERF-5L",
+        "fault_page_matches_stock_product": true,
+        "faults": 1,
+        "forward_product": "stock",
+        "product_gradient": "padded",
+        "runs": 1
+      },
+      {
+        "arm": "PERF-5J",
+        "faults": 0,
+        "forward_product": "padded",
+        "product_gradient": "stock",
+        "runs": 1
+      },
+      {
+        "arm": "PERF-5K",
+        "faults": 0,
+        "forward_product": "padded",
+        "product_gradient": "stock",
+        "runs": 1
+      }
+    ],
+    "reading": "2 of 2 fault with the product stock, 0 of 2 with the product padded, both stock-product faults page-exact with its 4-byte tail"
+  },
+  "cpu_gates": {
+    "all_gradients_bitwise": true,
+    "drift_guard": "OK",
+    "isolation_probe": {
+      "grad_contiguous": 38,
+      "grad_kind_w3_grad": 38,
+      "grad_offset_zero": 38,
+      "grad_padded": 38,
+      "grad_product_kind_present": 0,
+      "grad_slack_ok": 38,
+      "grad_stock": 0,
+      "isolation_ok": true,
+      "kinds_recorded": [
+        "w3_grad"
+      ],
+      "product_padded": 0,
+      "product_stock": 38,
+      "product_storage_exact": 38,
+      "w3_calls": 38
+    },
+    "logits_loss_bitwise": true,
+    "model_state_182_tensors_bitwise": true,
+    "padded_mul_and_full_model_gates_pass": true,
+    "tests": "122 passed, 2 skipped"
+  },
+  "execution": {
+    "command": "v31p5l_plan.py --execute (mode 1)",
+    "core_limit": "0",
+    "detection_point": "next iteration's get_batch H2D copy",
+    "exit_code": 1,
+    "fault_mode": "hip-illegal-address",
+    "fault_page": [
+      "0x00007fccce200000"
+    ],
+    "faulted": true,
+    "fresh_process": true,
+    "gpu_idle_after": true,
+    "iterations_printed": [
+      0,
+      25
+    ],
+    "kernel_fault_records": 4,
+    "kinds_recorded": [
+      "w3_grad"
+    ],
+    "padded_gradient_allocations": 2068,
+    "reset_lines": [],
+    "retries": 0,
+    "signal": null,
+    "timeout_s": 120
+  },
+  "feasibility": {
+    "consumers": "the elementwise MulBackward, then the w1/w2 backward GEMMs read the resulting derivative tensors",
+    "intervention": "mode 1 PaddedW3 replaces that node and writes the input gradient into padded storage; the forward product is untouched because SwiGLU.forward is not patched",
+    "inversion_of_paddedmul_required": false,
+    "where_allocated": "inside ATen's linear backward as the output of mm(grad_output, weight); for SwiGLU.w3 that output is dL/d(product)"
+  },
+  "gate_a_numerics": {
+    "anchor_matches_reference_4dp": true,
+    "display_identity": true,
+    "display_values_compared": 2,
+    "displayed": {
+      "eval25": "10.4923",
+      "iter0": "10.4816",
+      "iter25": "10.4898"
+    },
+    "first_loss_4dp": "10.4816",
+    "first_loss_full_precision": "10.481635093688965",
+    "post_check_note": "the loop faulted before the recompute; the CPU whole-model gate covers stock versus padded bitwise",
+    "post_check_ran": false
+  },
+  "gate_b_isolation": {
+    "all_contiguous": true,
+    "all_offset_zero": true,
+    "all_pointer_preserved": true,
+    "any_resized": false,
+    "padded_allocations": 2068,
+    "padded_gradients_with_tail_le_64": 0,
+    "producer_writes_into_padded_address": {
+      "C_writes_into_padded_gradient": 2121
+    },
+    "read_match_note": "pointer plus byte count matches are contaminated by allocator reuse and are not used as evidence",
+    "read_matches_informational_only": {
+      "A": 11,
+      "B": 1154
+    },
+    "slack_set": [
+      65536
+    ],
+    "swiglu_product_records": 0
+  },
+  "gate_c_descriptors": {
+    "compute_scale_epilogue": "COMPUTE_32F, R_32F, EPILOGUE_DEFAULT, a1 b0",
+    "kernel_identity": "unknown; no solution id in this build",
+    "w3_backward_input_gradient": "Adesc 682 256 682, OP_N/OP_N, Cdesc 682 3075 682",
+    "w3_forward": "Adesc 256 682 256, OP_T/OP_N, Cdesc 256 3075 256",
+    "w3_group_equal": true
+  },
+  "gate_d_boundary_exposure": {
+    "control_note": "a (4391,682) product at tail 52 was read by the same two consumers 4 s earlier and did not fault",
+    "control_reads": [
+      {
+        "Cdesc": [
+          256,
+          682
+        ],
+        "consumer": "w3_weight_grad",
+        "descriptor": [
+          682,
+          4391,
+          682
+        ],
+        "nbytes": 5989324,
+        "page_rounded_end": "0x7fcc2c800000",
+        "ptr": "0x7fcc2c249c00",
+        "role": "B",
+        "stamp": "2026-10-27 17:20:27",
+        "tail": 52
+      },
+      {
+        "Cdesc": [
+          256,
+          4391
+        ],
+        "consumer": "w3_forward",
+        "descriptor": [
+          682,
+          4391,
+          682
+        ],
+        "nbytes": 5989324,
+        "page_rounded_end": "0x7fcc2c800000",
+        "ptr": "0x7fcc2c249c00",
+        "role": "B",
+        "stamp": "2026-10-27 17:20:27",
+        "tail": 52
+      }
+    ],
+    "fault_attribution": {
+      "critical_match": true,
+      "nearest_padded_storage_gap_bytes": 167592,
+      "padded_containment": 0,
+      "page": [
+        "0x00007fccce200000"
+      ],
+      "page_exact": [
+        {
+          "Cdesc": [
+            256,
+            682
+          ],
+          "consumer": "w3_weight_grad",
+          "descriptor": [
+            682,
+            3075,
+            682
+          ],
+          "nbytes": 4194300,
+          "padded": false,
+          "page": "0x00007fccce200000",
+          "page_rounded_end": "0x7fccce200000",
+          "ptr": "0x7fcccde00000",
+          "role": "B",
+          "stamp": "2026-10-27 17:20:31",
+          "tail": 4
+        },
+        {
+          "Cdesc": [
+            256,
+            3075
+          ],
+          "consumer": "w3_forward",
+          "descriptor": [
+            682,
+            3075,
+            682
+          ],
+          "nbytes": 4194300,
+          "padded": false,
+          "page": "0x00007fccce200000",
+          "page_rounded_end": "0x7fccce200000",
+          "ptr": "0x7fcccde00000",
+          "role": "B",
+          "stamp": "2026-10-27 17:20:31",
+          "tail": 4
+        }
+      ]
+    },
+    "padded_gradient_exposure": "0 allocations within 64 B of a boundary",
+    "stock_product_reads_by_consumer": {
+      "w3_forward": 1,
+      "w3_weight_grad": 1
+    },
+    "stock_product_reads_tail_1_64": [
+      {
+        "Cdesc": [
+          256,
+          682
+        ],
+        "consumer": "w3_weight_grad",
+        "descriptor": [
+          682,
+          3075,
+          682
+        ],
+        "nbytes": 4194300,
+        "page_rounded_end": "0x7fccce200000",
+        "ptr": "0x7fcccde00000",
+        "role": "B",
+        "stamp": "2026-10-27 17:20:31",
+        "tail": 4
+      },
+      {
+        "Cdesc": [
+          256,
+          3075
+        ],
+        "consumer": "w3_forward",
+        "descriptor": [
+          682,
+          3075,
+          682
+        ],
+        "nbytes": 4194300,
+        "page_rounded_end": "0x7fccce200000",
+        "ptr": "0x7fcccde00000",
+        "role": "B",
+        "stamp": "2026-10-27 17:20:31",
+        "tail": 4
+      }
+    ]
+  },
+  "integrity": {
+    "backend_switch": "none",
+    "checkpoint_change": "none",
+    "deviations": "none",
+    "drift_guard": "OK",
+    "gpu_reset": "none",
+    "kernel_serialization": "none",
+    "package_change": "none",
+    "production_change": "none",
+    "push": "none",
+    "retries": 0,
+    "rocm_change": "none",
+    "tests": "122 passed, 2 skipped"
+  },
+  "interpretation": {
+    "limitation": "PERF-5L replicates the PERF-5I arm; its added value is the exposure census and fault-page attribution",
+    "not_established": [
+      "kernel identity and the over-reading instruction",
+      "causality, because each arm also changes allocation layout",
+      "that the tail-52 control generalises beyond one observation"
+    ],
+    "supports": "the fault follows the stock product's page-ending operand read, and protecting that operand's storage removes it in 2 of 2"
+  },
+  "meta": {
+    "budget": {
+      "max_executions": 1,
+      "retries": 0,
+      "used": 1
+    },
+    "classification": 1,
+    "classification_text": "valid gradient-only run, fault at stock product boundary",
+    "date_utc": "2026-10-27",
+    "experiment": "v3.1-PERF-5L gradient-only padding discriminator",
+    "git_head_at_preflight": "1a87d55",
+    "mode": "mode 1: product gradient padded, forward product stock"
+  },
+  "next_experiment": {
+    "arm": "pad the product at the FRONT: allocate tensor_bytes + 64 KiB and place the product at offset 64 KiB so the storage ends at the tensor end",
+    "if_clean": "the clean runs were layout effects and the operand hypothesis weakens",
+    "if_faulted": "tail protection is what matters",
+    "tests": "separates tail protection from allocator perturbation, keeping the allocation size change and removing the trailing slack",
+    "validity": "informative only if the census shows a product at tail 1 to 64; otherwise class 4"
+  },
+  "preflight": {
+    "branch": "v3/data-pipeline",
+    "checkpoint_step250": "ab259ebf78166d3f",
+    "drift_guard": "OK before and after",
+    "gpu": "idle, no foreign KFD process, before and after",
+    "head": "1a87d55",
+    "intervention_diff_lines": 0,
+    "main_entries": 42,
+    "tags": {
+      "v2": "b89d0f0",
+      "v3.1-A": "3aff73e"
+    },
+    "worktree": "clean before the stage"
+  }
+}
