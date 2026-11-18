@@ -36,9 +36,8 @@ release.
 - `v2/` - the upgrade: RoPE, RMSNorm, GQA, sliding-window attention,
   SwiGLU, Mixture-of-Experts, multi-token prediction. A miniature of a
   2026 frontier architecture, still trained from scratch in minutes.
-- `v3/` - pretraining data infrastructure (v3.0): a streaming,
-  manifest-backed corpus pipeline with 8192-token BPE, CPU only. No v3
-  model yet. See `v3/README.md`.
+- `v3/` contains the streaming corpus pipeline with 8192-token BPE and the
+  v3.1 pretraining and routing experiments. [v3 research](v3/README.md)
 - `reference/` - `config.json` files of DeepSeek-V4-Pro, GLM-5,
   Muse Glimmer 30B and MiMo-V2.5. Ground truth for every design choice
   in v2. Grep them: `grep num_experts reference/*.json`.
@@ -95,6 +94,12 @@ validation batches gives a mean router probability between 0.080 and 0.208
 per expert (target 0.125), with no collapsed expert. The lesson: capacity
 must match data. A fancier architecture does not beat a smaller model when
 the corpus is tiny.
+
+### v3.1 expert 3 routing
+
+At update 500, replacing expert 3 at the selected punctuation positions raised next-token loss by **0.186 nats** on the original sample and **0.231 nats** on confirmation. Rust and Python on the Radeon RX 9070 XT reproduced the CPU replacement counts of **4,180** and **4,299** and gave identical GPU loss estimates and confidence intervals. [Expert 3 study results](v3/docs/ROUTING-STUDY.md#expert-3-results-at-update-500)
+
+Across eight GPU runs, mean wall time through verified output and process exit was **64.0 s for Rust** and **76.9 s for Python**. The earlier Rust CPU mean was **327.9 s**. [Timings by validation sample](../README.md#expert-3-benchmark) · [GPU benchmark data](driver/expert3-rocm-benchmark.json)
 
 ## Run
 

@@ -22,13 +22,15 @@ On 240 validation sequences, the unmodified model scored **5.44047 nats per pred
 
 At update 500, replacing expert 3 with the router’s highest-ranked unused expert increased next-token loss by **0.186** and **0.231 nats** on two validation samples at the replaced punctuation positions. The Rust evaluator reproduced the Python results exactly, including replacement counts (4,180 and 4,299), loss estimates and confidence intervals. [Intervention and results](veylith/v3/docs/ROUTING-STUDY.md#expert-3-results-at-update-500)
 
-| Validation sample | Python | Rust | Less wall time |
-|---|---:|---:|---:|
-| Original | 8m 10s | 5m 37s | 31.2% |
-| Confirmation | 8m 35s | 5m 19s | 38.1% |
-| **Overall mean** | **8m 23s** | **5m 28s** | **34.8%** |
+| Validation sample | Python CPU (s) | Rust CPU (s) | Python GPU (s) | Rust GPU (s) |
+|---|---:|---:|---:|---:|
+| Original | 490.0 | 336.9 | 79.6 | 65.7 |
+| Confirmation | 515.4 | 318.9 | 74.2 | 62.3 |
+| **Overall mean** | **502.7** | **327.9** | **76.9** | **64.0** |
 
-Each sample row averages two runs per implementation. All eight runs used the same two logical CPUs on a Ryzen 7 3700X, reversing run order for the second pair. Wall time covers the entire command, from startup and checkpoint loading through verification, publication and exit. Both evaluators use LibTorch CPU kernels. The Rust implementation reuses the computation shared by the ordinary and intervened predictions. [Individual timings and reproduction instructions](veylith/driver/README.md#paired-cpu-results) · [Machine-readable benchmark](veylith/driver/expert3-native-benchmark.json)
+Each sample row averages two runs per implementation on each device, with the order reversed for the second pair. Wall time includes startup, checkpoint loading, verification, publication and exit. On two Ryzen 7 3700X cores, Rust used **34.8% less time** than the Python-backed driver. The Rust evaluator reuses computation shared by the ordinary and intervened predictions. [Individual CPU timings](veylith/driver/README.md#paired-cpu-results) · [CPU benchmark data](veylith/driver/expert3-native-benchmark.json)
+
+On the Radeon RX 9070 XT, Rust used **16.8% less time** than the Python GPU evaluator and **80.5% less time** than its earlier CPU run average. Both GPU implementations produced identical scientific results for each sample. [Paired GPU timings and desktop frame measurements](veylith/driver/README.md#paired-gpu-results) · [GPU benchmark data](veylith/driver/expert3-rocm-benchmark.json)
 
 ## Explore the project
 

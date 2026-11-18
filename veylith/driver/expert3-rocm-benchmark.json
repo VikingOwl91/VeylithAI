@@ -1,0 +1,457 @@
+{
+  "experiment": "v31-expert3-rank1-to-best-unused",
+  "work_item": "VEYLITH-21",
+  "measured_utc_date": "2026-11-18",
+  "primary_measure": "Whole process wall seconds including startup, input validation, loading, inference, verification, writing and exit.",
+  "protocol": {
+    "samples": "Two disjoint frozen validation samples, 30 sequential batches of 8 sequences each, 511 targets per sequence.",
+    "comparison": "Native Rust evaluator and the frozen Python evaluator adapted for ROCm, invoked directly. Two interleaved pairs per sample with reversed order on repeat.",
+    "verification": "Counts, input hashes, prefix identity and all discrete outcomes exact. Absolute tolerance of 0.0001 nats for all mean CE, CE deltas and bootstrap interval endpoints against the frozen CPU reports.",
+    "within_gpu_scientific_fields_identical": true,
+    "previous_cpu_benchmark": "expert3-native-benchmark.json",
+    "cache_policy": "Fresh evaluator processes shared one ROCm kernel cache across the eight runs. The OS file cache was not flushed."
+  },
+  "hardware": {
+    "cpu": "AMD Ryzen 7 3700X",
+    "gpu": "AMD Radeon RX 9070 XT",
+    "architecture": "gfx1201",
+    "kernel": "7.2.14-zen1-1.1-zen",
+    "rocm_core": "7.2.4-1",
+    "pytorch_rocm": "2.15.0-1",
+    "libtorch_target": "2.15.0",
+    "mesa": "26.2.6-1.1"
+  },
+  "settings": {
+    "dtype": "float32",
+    "ROCR_VISIBLE_DEVICES": "0",
+    "ROC_GLOBAL_CU_MASK": "0xff",
+    "hip_stream_priority": 1,
+    "hip_priority_range_least_greatest": [
+      1,
+      -1
+    ],
+    "cpu_affinity": [
+      4,
+      5
+    ],
+    "nice": 15,
+    "intraop_threads": 2,
+    "interop_threads": 1,
+    "openblas_threads": 1,
+    "deadline_seconds_per_run": 360,
+    "minimum_allowed_free_vram_bytes": 2147483648
+  },
+  "provenance": {
+    "base_commit": "626772bfa672f1902084ccb2d5873529416b1de2",
+    "measured_on_working_tree": true,
+    "native_binary_sha256": "10cf7ae632936f205b08d2bfe551ea1d9d9791cc78b8b7b402f760c19446d8c0",
+    "python_adapter_patch": "expert3-python-rocm.patch",
+    "python_adapter_patch_sha256": "632fc1d5a40d2cbcaaa587894f8517920cb7c4ed54c0b54357f25621f339a99d",
+    "source_sha256": {
+      "rust": {
+        "driver/Cargo.lock": "c7d24ed9cafa4849a21a8e8656bc085e426ef7e9c4229f4919ec7aa4b1e89034",
+        "driver/Cargo.toml": "99d561c88cdebfd86a2d60741c31549fca3238c0e96df8f2346fbc92763aaa10",
+        "driver/build.rs": "b84aff01c713e63b50c7a45c08f8ba2e0663e2bdebfc8cf436b322a9654824ab",
+        "driver/src/inputs.rs": "57e93cfc188391cd129c2c79e38096743a044f114c6854cc1b18abce68029039",
+        "driver/src/main.rs": "73c627f4c8c38bb434e5e77593235ae3520236380291f0925102420e0e43155f",
+        "driver/src/model.rs": "143ea213ed2b532ee2e63cbe2b950596e43ad9dcda054f2ae2cb5e6c078f86f2",
+        "driver/src/rocm.cpp": "f471649db675fede06e3e011989b84fa350d60d10e3ffa5e7675581f5a4caff0",
+        "driver/src/stats.rs": "a5a93433072b91cb15d484abad83bc9611210af376da10375266dc3d3f5705dc"
+      },
+      "python": {
+        "analysis/expert3_study.py": "bdca36eb29d9eef4e2e9576dd942879b1ef0b48e18b729f64aab1c61b196db20",
+        "analysis/routing_study.py": "4df66c0d9edc8646c829db7cf35201c3827bcde104ccc0d0baf17b8b01e4e546",
+        "analysis/v31n_expert_behavior.py": "f5b8427183755fedf328ac390aeda10ea128c2eaa6955df18c64e66c689996d7",
+        "architecture/model.py": "51de8b5e93f54568c6cccabb9d1b3296fa8961b4c1ac8396a6bd9c3ebe3ce552",
+        "architecture/config.py": "019c79b2529783cf6607391ae02f73d2c1ef9b1e4023ee713cefb1203c4a5990",
+        "training/data.py": "07f846dc58f79561fcb8ca0f4f2e5a70b9a8cb9b65224d7ca94c8d11e40cf7bf"
+      }
+    }
+  },
+  "kernel_health": {
+    "readable_current_boot_kernel_journal": true,
+    "matching_gpu_reset_timeout_or_vm_fault_entries_during_test_window": 0
+  },
+  "desktop": {
+    "method": "Presentation feedback of a small input-transparent GTK Wayland surface on one output. The 12-second baseline preceded the benchmark. During each run, only intervals wholly within process wall time were counted.",
+    "baseline_frame_intervals": 1188,
+    "baseline_frame_p50_ms": 10.005,
+    "baseline_frame_p95_ms": 10.009,
+    "baseline_frame_max_ms": 10.011,
+    "per_run_p95_ms_range": [
+      10.009,
+      10.009
+    ],
+    "minimum_sampled_free_vram_bytes": 8410443776,
+    "vram_sampling": "Total device VRAM minus kernel mem_info_vram_used, sampled about five times per second."
+  },
+  "samples": {
+    "original": {
+      "frozen_report": "../v3/docs/routing-expert3-update500.json",
+      "frozen_report_sha256": "93213f06ffdd127a9e4030f53940efa031d665f309e5b71cd34841e723a8690f",
+      "inputs_sha256": {
+        "checkpoint": "865946d66664399bd1f8d14619dd231937a14ade3ca9676283554f9554d894cc",
+        "manifest": "4200d524075adf5773bb4634003bfe6296d735bd62118f740ad944bfe881e7b9",
+        "sample_tokens": "70f2643cb4f3e685543b1610e6c28934bfb678891adacc0f98147de21c4c0369",
+        "tokenizer": "411227a8e5289d6f4b450059b744ed278532a4624d3895f1a4979600c49ae034"
+      },
+      "sequences": 240,
+      "substitute_counts": [
+        1011,
+        0,
+        1235,
+        0,
+        60,
+        138,
+        648,
+        1088
+      ],
+      "gpu_outcomes": {
+        "all": {
+          "baseline_ce": 5.440470981407053,
+          "bootstrap_nonempty": 1000,
+          "delta_ce": 0.007551409827255348,
+          "sequence_bootstrap_ci95": [
+            0.006638884587026946,
+            0.00851011740930961
+          ],
+          "sequences": 240,
+          "targets": 122640
+        },
+        "first_replaced_in_sequence": {
+          "baseline_ce": 5.136209516475598,
+          "bootstrap_nonempty": 1000,
+          "delta_ce": 0.5512702750662962,
+          "sequence_bootstrap_ci95": [
+            0.42968742264434695,
+            0.697615729322036
+          ],
+          "sequences": 240,
+          "targets": 240
+        },
+        "replaced": {
+          "baseline_ce": 4.985363669044664,
+          "bootstrap_nonempty": 1000,
+          "delta_ce": 0.1861542663790963,
+          "sequence_bootstrap_ci95": [
+            0.16180609172207008,
+            0.2108378613223406
+          ],
+          "sequences": 240,
+          "targets": 4180
+        },
+        "sentence_end": {
+          "baseline_ce": 5.006278645673674,
+          "bootstrap_nonempty": 1000,
+          "delta_ce": 0.1841147807457589,
+          "sequence_bootstrap_ci95": [
+            0.1599317055194652,
+            0.208303257258155
+          ],
+          "sequences": 240,
+          "targets": 4228
+        },
+        "unaffected_prefix": {
+          "baseline_ce": 5.740458781982339,
+          "bootstrap_nonempty": 1000,
+          "delta_ce": 0.0,
+          "sequence_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "sequences": 229,
+          "targets": 5445
+        }
+      },
+      "max_absolute_difference_from_cpu_reference_nats": 2.0411486423288494e-07,
+      "baseline_reference_exact": false,
+      "unaffected_prefix_ce_exact": true
+    },
+    "confirmation": {
+      "frozen_report": "../v3/docs/routing-expert3-update500-confirmation.json",
+      "frozen_report_sha256": "679a0bdcfa4e214d405ade0ef2779f238569ff3fcf24407afd304c6e535e1116",
+      "inputs_sha256": {
+        "manifest": "4200d524075adf5773bb4634003bfe6296d735bd62118f740ad944bfe881e7b9",
+        "checkpoint": "865946d66664399bd1f8d14619dd231937a14ade3ca9676283554f9554d894cc",
+        "tokenizer": "411227a8e5289d6f4b450059b744ed278532a4624d3895f1a4979600c49ae034",
+        "sample_tokens": "2d323535636c227b321aa215f711ed728c8d693384d9778ffbcb8c166cc97f98"
+      },
+      "sequences": 240,
+      "substitute_counts": [
+        989,
+        0,
+        1290,
+        0,
+        46,
+        153,
+        688,
+        1133
+      ],
+      "gpu_outcomes": {
+        "all": {
+          "targets": 122640,
+          "sequences": 240,
+          "baseline_ce": 5.405104820508493,
+          "delta_ce": 0.009668003693258691,
+          "sequence_bootstrap_ci95": [
+            0.008239427977565647,
+            0.011126428179595464
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "sentence_end": {
+          "targets": 4335,
+          "sequences": 240,
+          "baseline_ce": 5.0716843819157615,
+          "delta_ce": 0.22951984381111987,
+          "sequence_bootstrap_ci95": [
+            0.20023820119835728,
+            0.25996011546492753
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "replaced": {
+          "targets": 4299,
+          "sequences": 240,
+          "baseline_ce": 5.058757944328476,
+          "delta_ce": 0.23131939929275908,
+          "sequence_bootstrap_ci95": [
+            0.20160094875781592,
+            0.2622862315230085
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "first_replaced_in_sequence": {
+          "targets": 240,
+          "sequences": 240,
+          "baseline_ce": 5.088690434892972,
+          "delta_ce": 0.6828128501772881,
+          "sequence_bootstrap_ci95": [
+            0.5370660396913687,
+            0.8378489413609107
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "unaffected_prefix": {
+          "targets": 5200,
+          "sequences": 232,
+          "baseline_ce": 5.7595123800012065,
+          "delta_ce": 0.0,
+          "sequence_bootstrap_ci95": [
+            0.0,
+            0.0
+          ],
+          "bootstrap_nonempty": 1000
+        }
+      },
+      "max_absolute_difference_from_cpu_reference_nats": 8.417319403552365e-07,
+      "baseline_reference_exact": false,
+      "unaffected_prefix_ce_exact": true
+    }
+  },
+  "summary": {
+    "original": {
+      "python_mean_wall_seconds": 79.62674997850263,
+      "rust_mean_wall_seconds": 65.71754625600079,
+      "rust_less_gpu_wall_time_percent": 17.46800381311181,
+      "previous_rust_cpu_mean_seconds": 336.9485,
+      "previous_rust_cpu_time_over_rust_gpu_time": 5.127222776812557
+    },
+    "confirmation": {
+      "python_mean_wall_seconds": 74.15128764949986,
+      "rust_mean_wall_seconds": 62.288325534998876,
+      "rust_less_gpu_wall_time_percent": 15.998322470912619,
+      "previous_rust_cpu_mean_seconds": 318.907,
+      "previous_rust_cpu_time_over_rust_gpu_time": 5.119851870489132
+    },
+    "combined": {
+      "python_mean_wall_seconds": 76.88901881400125,
+      "rust_mean_wall_seconds": 64.00293589549983,
+      "rust_less_gpu_wall_time_percent": 16.759328077359857,
+      "previous_rust_cpu_mean_seconds": 327.92775,
+      "previous_rust_cpu_time_over_rust_gpu_time": 5.123636055311913
+    }
+  },
+  "runs": [
+    {
+      "order": 1,
+      "sample": "original",
+      "implementation": "rust",
+      "wall_seconds": 64.25639958700049,
+      "exit_status": 0,
+      "stop_reason": null,
+      "vram_total": 17095983104,
+      "initial_vram_used": 7218462720,
+      "minimum_sampled_free_vram": 8410443776,
+      "frame_intervals": 6421,
+      "frame_p50_ms": 10.005,
+      "frame_p95_ms": 10.009,
+      "frame_max_ms": 10.011,
+      "report_sha256": "f17b7b63c4d5cf06a715ef51231e69ec75f2b36d3780a22d0554d2bd12e646f4",
+      "rust_receipt": {
+        "bootstrap_seconds": 0.001567894,
+        "evaluator_seconds": 61.349164811,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "inference_and_reduction_seconds": 57.82752847,
+        "load_seconds": 3.520068447,
+        "preflight_seconds": 1.27756139,
+        "sample": "original",
+        "total_seconds": 62.630079643,
+        "verification_and_publish_seconds": 0.003353442,
+        "verified": true
+      }
+    },
+    {
+      "order": 2,
+      "sample": "original",
+      "implementation": "python",
+      "wall_seconds": 72.86987060400133,
+      "exit_status": 0,
+      "stop_reason": null,
+      "vram_total": 17095983104,
+      "initial_vram_used": 7218462720,
+      "minimum_sampled_free_vram": 8469487616,
+      "frame_intervals": 7282,
+      "frame_p50_ms": 10.005,
+      "frame_p95_ms": 10.009,
+      "frame_max_ms": 10.011,
+      "report_sha256": "b56fdcb7bfa88a66c24cae7fad834ae95ec51fe72f5cb93d6981eaa6ba3d21b3",
+      "python_evaluator_seconds": 70.04590763599845
+    },
+    {
+      "order": 3,
+      "sample": "confirmation",
+      "implementation": "python",
+      "wall_seconds": 74.47139812900423,
+      "exit_status": 0,
+      "stop_reason": null,
+      "vram_total": 17095983104,
+      "initial_vram_used": 7159480320,
+      "minimum_sampled_free_vram": 8545239040,
+      "frame_intervals": 7442,
+      "frame_p50_ms": 10.005,
+      "frame_p95_ms": 10.009,
+      "frame_max_ms": 10.011,
+      "report_sha256": "c40782558a6b661d6aebcc6989c9893857c31781ddc27fd616bee59b4a334968",
+      "python_evaluator_seconds": 72.03663006299757
+    },
+    {
+      "order": 4,
+      "sample": "confirmation",
+      "implementation": "rust",
+      "wall_seconds": 62.05199814699881,
+      "exit_status": 0,
+      "stop_reason": null,
+      "vram_total": 17095983104,
+      "initial_vram_used": 7159480320,
+      "minimum_sampled_free_vram": 8460333056,
+      "frame_intervals": 6200,
+      "frame_p50_ms": 10.005,
+      "frame_p95_ms": 10.009,
+      "frame_max_ms": 20.011,
+      "report_sha256": "b7667c3dec5a24613c2ca47dd0c70faad3fa78813499a14a788cd42ad4667441",
+      "rust_receipt": {
+        "bootstrap_seconds": 0.001192352,
+        "evaluator_seconds": 59.852088847,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "inference_and_reduction_seconds": 56.38690744,
+        "load_seconds": 3.463989055,
+        "preflight_seconds": 1.057173443,
+        "sample": "confirmation",
+        "total_seconds": 60.912555207,
+        "verification_and_publish_seconds": 0.003292917,
+        "verified": true
+      }
+    },
+    {
+      "order": 5,
+      "sample": "original",
+      "implementation": "python",
+      "wall_seconds": 86.38362935300393,
+      "exit_status": 0,
+      "stop_reason": null,
+      "vram_total": 17095983104,
+      "initial_vram_used": 7163674624,
+      "minimum_sampled_free_vram": 8543027200,
+      "frame_intervals": 8624,
+      "frame_p50_ms": 10.005,
+      "frame_p95_ms": 10.009,
+      "frame_max_ms": 30.018,
+      "report_sha256": "4ba7bf5b6bdbd258502baef54f94a9d64a5aae618ff336943a94a443d7c2e152",
+      "python_evaluator_seconds": 83.85771218000446
+    },
+    {
+      "order": 6,
+      "sample": "original",
+      "implementation": "rust",
+      "wall_seconds": 67.17869292500109,
+      "exit_status": 0,
+      "stop_reason": null,
+      "vram_total": 17095983104,
+      "initial_vram_used": 7161556992,
+      "minimum_sampled_free_vram": 8455938048,
+      "frame_intervals": 6713,
+      "frame_p50_ms": 10.005,
+      "frame_p95_ms": 10.009,
+      "frame_max_ms": 10.011,
+      "report_sha256": "39219f4d0d1ccfaa3283ff3100a7172edb8b52d2df444aaede67d8baaeb20b48",
+      "rust_receipt": {
+        "bootstrap_seconds": 0.001218652,
+        "evaluator_seconds": 64.783483292,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "inference_and_reduction_seconds": 60.517519895,
+        "load_seconds": 4.264744745,
+        "preflight_seconds": 1.113169552,
+        "sample": "original",
+        "total_seconds": 65.899668305,
+        "verification_and_publish_seconds": 0.003015461,
+        "verified": true
+      }
+    },
+    {
+      "order": 7,
+      "sample": "confirmation",
+      "implementation": "rust",
+      "wall_seconds": 62.52465292299894,
+      "exit_status": 0,
+      "stop_reason": null,
+      "vram_total": 17095983104,
+      "initial_vram_used": 7161556992,
+      "minimum_sampled_free_vram": 8469430272,
+      "frame_intervals": 6248,
+      "frame_p50_ms": 10.005,
+      "frame_p95_ms": 10.009,
+      "frame_max_ms": 10.011,
+      "report_sha256": "f761c0d13395f53ecf5d81a7bd39e5409067d99057b95f8e3e2f3b079c387647",
+      "rust_receipt": {
+        "bootstrap_seconds": 0.001784887,
+        "evaluator_seconds": 60.131847442,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "inference_and_reduction_seconds": 56.351859926,
+        "load_seconds": 3.778202629,
+        "preflight_seconds": 1.113172637,
+        "sample": "confirmation",
+        "total_seconds": 61.248158192,
+        "verification_and_publish_seconds": 0.003138113,
+        "verified": true
+      }
+    },
+    {
+      "order": 8,
+      "sample": "confirmation",
+      "implementation": "python",
+      "wall_seconds": 73.8311771699955,
+      "exit_status": 0,
+      "stop_reason": null,
+      "vram_total": 17095983104,
+      "initial_vram_used": 7159459840,
+      "minimum_sampled_free_vram": 8545280000,
+      "frame_intervals": 7378,
+      "frame_p50_ms": 10.005,
+      "frame_p95_ms": 10.009,
+      "frame_max_ms": 10.011,
+      "report_sha256": "0199f134b2fe052ca124a31de333c577cfadd90874c67e5d69243ba3e6cae8fa",
+      "python_evaluator_seconds": 71.0201480540054
+    }
+  ]
+}
