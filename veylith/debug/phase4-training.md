@@ -34,13 +34,14 @@ Disposable experiment directories `phase4/sparse-run` and `phase4/dense-run`.
 2. **Numerical equivalence holds in real training**: the loss curves
    differ by ~0.01 (GPU nondeterminism) - consistent with Phase C's
    microbenchmark equivalence, on identical init/data/tokenizer.
-3. **Wall-clock throughput is nearly equal at this batch size** (5.4 vs
-   5.6 it/s) even though pure GPU step time favors sparse by 12%
-   (Phase D): the wall-clock loop is bounded by CPU-side data loading
-   (`get_batch`: randint + stack + H2D, ~50ms/iter), which masks the
-   GPU-side advantage. Real-training throughput gains from sparse MoE
-   require the data path to keep up (pre-staged batches, pinned memory,
-   or a dataloader thread).
+3. **Wall-clock throughput was similar at B64 × 256.** The training
+   logs reached 5.4 it/s for sparse and 5.6 it/s for dense. These rates
+   include periodic evaluation and best-state copies to CPU. The Phase D
+   microbenchmark measured a 12% shorter GPU step for sparse. A later
+   eight-expert comparison found that pre-staging batches improved mean
+   training-step throughput by 0.66% for sparse and 0.32% for dense,
+   excluding staging time. The historical runs did not isolate the cost
+   of evaluation or state copies. [Batch-delivery measurements](batch-delivery.md)
 4. Both runs' `exit 1` was a harness bug (checkpoint path without a
    directory passed to `os.makedirs("")`), not a training failure; fixed
    and rerun for the checkpoint-based router analysis.
