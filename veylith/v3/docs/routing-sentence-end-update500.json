@@ -1,0 +1,437 @@
+{
+  "reproduction_command": "python veylith/v3/analysis/routing_study.py --data-root \"$DATA\" --checkpoint \"$CKPT\" --out \"$OUT\" --threads 2 --ablate --layers 1 --seeds 11 29 47 --compare-sentence-end",
+  "schema_version": 1,
+  "experiment": "v31-update500-routing-ce",
+  "update": 500,
+  "git_commit": "2d7a54d2cb96975940c1e626eb90d5021f4b637d",
+  "git_dirty": true,
+  "config": {
+    "name": "v3.1-a-primary",
+    "vocab_size": 8192,
+    "block_size": 512,
+    "n_layer": 8,
+    "n_head": 8,
+    "n_kv_head": 2,
+    "n_embd": 512,
+    "dropout": 0.1,
+    "rope_theta": 10000.0,
+    "sliding_window": 256,
+    "full_attn_every": 4,
+    "n_experts": 8,
+    "n_experts_per_tok": 2,
+    "first_k_dense": 1,
+    "expert_ffn_dim": 960,
+    "shared_expert": false,
+    "shared_ffn_dim": 0,
+    "tie_embeddings": false,
+    "moe_aux_weight": 0.01,
+    "moe_impl": "dense",
+    "attention_impl": "sdpa"
+  },
+  "sha256": {
+    "manifest": "4200d524075adf5773bb4634003bfe6296d735bd62118f740ad944bfe881e7b9",
+    "checkpoint": "865946d66664399bd1f8d14619dd231937a14ade3ca9676283554f9554d894cc",
+    "tokenizer": "411227a8e5289d6f4b450059b744ed278532a4624d3895f1a4979600c49ae034",
+    "sample_tokens": "70f2643cb4f3e685543b1610e6c28934bfb678891adacc0f98147de21c4c0369"
+  },
+  "split": "validation",
+  "sequences": 240,
+  "runtime": {
+    "device": "cpu",
+    "dtype": "float32",
+    "torch": "2.15.0",
+    "python": "3.14.10",
+    "threads": 2,
+    "interop_threads": 1,
+    "numpy": "2.5.4",
+    "sentencepiece": "0.2.2"
+  },
+  "shuffle_seeds": [
+    11,
+    29,
+    47
+  ],
+  "bootstrap_seed": 20261118,
+  "bootstrap_draws": 1000,
+  "mode": "ablation",
+  "sample_batch_offset_per_source": 0,
+  "analysis_files_sha256": {
+    "routing_control.py": "b735270e69f8964f33f5c631161ffa2531ceb3675b280d2706c0a127d15976cd",
+    "routing_study.py": "5dfd10ed241c91b586d51de747ab5e986f551c7038dd045d7f3d34861c1044c9"
+  },
+  "baseline": {
+    "all": {
+      "targets": 122640,
+      "sequences_with_targets": 240,
+      "ce": 5.440470999294374
+    },
+    "eos": {
+      "targets": 109,
+      "sequences_with_targets": 97,
+      "ce": 4.370344218857792
+    },
+    "numeric": {
+      "targets": 2247,
+      "sequences_with_targets": 185,
+      "ce": 4.724692198551916
+    },
+    "punct_only": {
+      "targets": 13282,
+      "sequences_with_targets": 240,
+      "ce": 5.1096259470736785
+    },
+    "sentence_end": {
+      "targets": 4228,
+      "sequences_with_targets": 240,
+      "ce": 5.006278731029343
+    },
+    "alpha": {
+      "targets": 104915,
+      "sequences_with_targets": 240,
+      "ce": 5.531037528388151
+    }
+  },
+  "per_source_ce": {
+    "cosmopedia-v2": 5.359603950485403,
+    "fineweb-edu": 5.494529341035119,
+    "wikipedia": 5.467279706362597
+  },
+  "layers": {
+    "1": {
+      "identity_ce_exact": true,
+      "per_seed": {
+        "11": {
+          "all": {
+            "delta_ce": 0.09587795390470764,
+            "sequence_bootstrap_ci95": [
+              0.09301342533556085,
+              0.09884949572913447
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "eos": {
+            "delta_ce": 0.22265922913857555,
+            "sequence_bootstrap_ci95": [
+              0.12315686593908783,
+              0.3319199415091611
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "numeric": {
+            "delta_ce": 0.05049158056139363,
+            "sequence_bootstrap_ci95": [
+              0.026014320483970454,
+              0.073141019164884
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "punct_only": {
+            "delta_ce": 0.10605075027833755,
+            "sequence_bootstrap_ci95": [
+              0.09686843872408606,
+              0.11639403634233206
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "sentence_end": {
+            "delta_ce": 0.1346319637533591,
+            "sequence_bootstrap_ci95": [
+              0.11598188655667288,
+              0.154322720088185
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "alpha": {
+            "delta_ce": 0.09608706801765614,
+            "sequence_bootstrap_ci95": [
+              0.09343181853682203,
+              0.09891462327413174
+            ],
+            "bootstrap_nonempty": 1000
+          }
+        },
+        "29": {
+          "all": {
+            "delta_ce": 0.09735153810682236,
+            "sequence_bootstrap_ci95": [
+              0.09444879343590483,
+              0.1002681905278545
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "eos": {
+            "delta_ce": 0.15969710612515792,
+            "sequence_bootstrap_ci95": [
+              0.06051653670241135,
+              0.2660691128522798
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "numeric": {
+            "delta_ce": 0.06719862425664186,
+            "sequence_bootstrap_ci95": [
+              0.040342054597451465,
+              0.09286101712970218
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "punct_only": {
+            "delta_ce": 0.10827982023580904,
+            "sequence_bootstrap_ci95": [
+              0.09905185015453793,
+              0.1184105360408961
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "sentence_end": {
+            "delta_ce": 0.14725781772232835,
+            "sequence_bootstrap_ci95": [
+              0.12902404458049715,
+              0.16636476892206498
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "alpha": {
+            "delta_ce": 0.09709521959943361,
+            "sequence_bootstrap_ci95": [
+              0.0941153519481486,
+              0.09991856606812273
+            ],
+            "bootstrap_nonempty": 1000
+          }
+        },
+        "47": {
+          "all": {
+            "delta_ce": 0.09723121962464941,
+            "sequence_bootstrap_ci95": [
+              0.094245122304377,
+              0.1004531434338955
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "eos": {
+            "delta_ce": 0.17802538018707836,
+            "sequence_bootstrap_ci95": [
+              0.08242581405422905,
+              0.27595084863049646
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "numeric": {
+            "delta_ce": 0.07851292253614904,
+            "sequence_bootstrap_ci95": [
+              0.053756880570262726,
+              0.10304162604068143
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "punct_only": {
+            "delta_ce": 0.10832032059080772,
+            "sequence_bootstrap_ci95": [
+              0.09850066925743045,
+              0.11894945124321721
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "sentence_end": {
+            "delta_ce": 0.14381705854500423,
+            "sequence_bootstrap_ci95": [
+              0.12502335974009932,
+              0.16365374826866974
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "alpha": {
+            "delta_ce": 0.09673739184746573,
+            "sequence_bootstrap_ci95": [
+              0.09361873191520662,
+              0.0997189052954992
+            ],
+            "bootstrap_nonempty": 1000
+          }
+        }
+      },
+      "mean_over_fixed_seeds": {
+        "all": {
+          "delta_ce": 0.09682023721205973,
+          "sequence_bootstrap_ci95": [
+            0.09419917226950912,
+            0.0995883911040256
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "eos": {
+          "delta_ce": 0.1867939051502706,
+          "sequence_bootstrap_ci95": [
+            0.0962546064916513,
+            0.2843776190346055
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "numeric": {
+          "delta_ce": 0.06540104245139483,
+          "sequence_bootstrap_ci95": [
+            0.0410302751010894,
+            0.08787714254300341
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "punct_only": {
+          "delta_ce": 0.10755029703498477,
+          "sequence_bootstrap_ci95": [
+            0.09895501827465321,
+            0.11706946035062848
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "sentence_end": {
+          "delta_ce": 0.14190228000689717,
+          "sequence_bootstrap_ci95": [
+            0.12493596774012246,
+            0.15913905819304686
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "alpha": {
+          "delta_ce": 0.09663989315485176,
+          "sequence_bootstrap_ci95": [
+            0.0941228733858246,
+            0.09916083853012551
+          ],
+          "bootstrap_nonempty": 1000
+        }
+      },
+      "sentence_end_comparison": {
+        "grouped_minus_baseline": {
+          "all": {
+            "delta_ce": 0.08823394970406412,
+            "sequence_bootstrap_ci95": [
+              0.08598478191493106,
+              0.09063812042047811
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "eos": {
+            "delta_ce": 0.20704785618213323,
+            "sequence_bootstrap_ci95": [
+              0.11274110593293851,
+              0.31339370250769255
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "numeric": {
+            "delta_ce": 0.05197737898366455,
+            "sequence_bootstrap_ci95": [
+              0.028834463116794485,
+              0.07261382352994583
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "punct_only": {
+            "delta_ce": 0.07049955393678582,
+            "sequence_bootstrap_ci95": [
+              0.0634918962600805,
+              0.07785860968853894
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "sentence_end": {
+            "delta_ce": 0.007561513255942101,
+            "sequence_bootstrap_ci95": [
+              0.0036950393522833256,
+              0.011390456409954678
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "alpha": {
+            "delta_ce": 0.09198259736282213,
+            "sequence_bootstrap_ci95": [
+              0.08940972124500939,
+              0.09429476405402618
+            ],
+            "bootstrap_nonempty": 1000
+          }
+        },
+        "unrestricted_minus_grouped": {
+          "all": {
+            "delta_ce": 0.008586287507995673,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              0.00719793366982039,
+              0.009932078705263202
+            ]
+          },
+          "eos": {
+            "delta_ce": -0.020253951031862776,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              -0.05471234714955783,
+              0.011646319341725676
+            ]
+          },
+          "numeric": {
+            "delta_ce": 0.013423663467730282,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              0.006283788150084152,
+              0.0213903320571922
+            ]
+          },
+          "punct_only": {
+            "delta_ce": 0.037050743098198946,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              0.03051402223413428,
+              0.043460533599590435
+            ]
+          },
+          "sentence_end": {
+            "delta_ce": 0.1343407667509551,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              0.11676759760841623,
+              0.1506187138424441
+            ]
+          },
+          "alpha": {
+            "delta_ce": 0.004657295792029648,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              0.00355627833604645,
+              0.005754117991624948
+            ]
+          }
+        },
+        "recovered_ce_per_seed": {
+          "11": {
+            "all": 0.007874259635505667,
+            "eos": 0.026137288557280095,
+            "numeric": 0.005959051261226177,
+            "punct_only": 0.03602803897982366,
+            "sentence_end": 0.1262115394818185,
+            "alpha": 0.0041257768140071874
+          },
+          "29": {
+            "all": 0.008832465809957044,
+            "eos": -0.07912308360458514,
+            "numeric": 0.01267044265759909,
+            "punct_only": 0.03707807494865661,
+            "sentence_end": 0.13820535522888264,
+            "alpha": 0.005099494082432698
+          },
+          "47": {
+            "all": 0.009052137078524312,
+            "eos": -0.007776058048283289,
+            "numeric": 0.02164149648436558,
+            "punct_only": 0.03804611536611655,
+            "sentence_end": 0.13860540554216422,
+            "alpha": 0.004746616479649061
+          }
+        }
+      }
+    }
+  },
+  "elapsed_seconds": 2053.538143539001,
+  "evaluation_seconds": 2045.8383077549988,
+  "peak_process_rss_kib": 1643388
+}

@@ -62,3 +62,31 @@ def test_rejects_training_and_dense_layer():
     with pytest.raises(ValueError, match="MoE block"):
         with routing_control(model.eval(), 0, mask, seed=7):
             pass
+
+
+@pytest.mark.parametrize("labels", [
+    [1, 0, 0, 1, 1, 0, 1, 0],
+    [0] * 8,
+    [1, 0, 0, 0, 0, 0, 0, 0],
+])
+def test_grouped_shuffle_preserves_exact_gate_rows_and_padding(labels):
+    model = GPT(tiny_config(moe_impl="dense")).eval()
+    gate = model.blocks[1].mlp.gate
+    x = torch.arange(8 * model.cfg.n_embd).float().sin().reshape(8, -1)
+    valid = torch.tensor([[True, False, True, True], [True, True, True, False]])
+    group = torch.tensor(labels, dtype=torch.bool).reshape_as(valid)
+    with torch.inference_mode():
+        baseline = gate(x)
+        with routing_control(model, 1, valid, 11):
+            unrestricted = gate(x)
+        with routing_control(model, 1, valid, 11, group):
+            grouped = gate(x)
+    # Recover donor identities by matching every logit of each gate row.
+    matches = (unrestricted[:, None] == baseline[None, :]).all(-1)
+    assert torch.all(matches.sum(1) == 1)
+    donors = matches.int().argmax(1)[valid.flatten()]
+    for member in (True, False):
+        receivers = (valid & (group == member)).flatten()
+        expected_donors = donors[group.flatten()[donors] == member]
+        assert torch.equal(grouped[receivers], baseline[expected_donors])
+    assert torch.equal(grouped[~valid.flatten()], baseline[~valid.flatten()])

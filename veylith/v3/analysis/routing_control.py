@@ -6,11 +6,12 @@ import torch
 
 
 @contextmanager
-def routing_control(model, layer_index, valid_positions, seed):
+def routing_control(model, layer_index, valid_positions, seed, group_mask=None):
     """Permute complete router rows across true positions of one CPU batch.
 
     layer_index is the absolute index in model.blocks. A None seed selects
-    the identity permutation. Equal masks and seeds produce equal permutations.
+    the identity permutation. An optional boolean group_mask restricts donors
+    to the recipient's group, using the same shuffled donor order.
     """
     if model.training:
         raise ValueError("routing control requires model.eval()")
@@ -23,10 +24,20 @@ def routing_control(model, layer_index, valid_positions, seed):
         raise ValueError("valid_positions must be a boolean CPU tensor of shape (batch, sequence)")
 
     positions = valid_positions.flatten().nonzero(as_tuple=True)[0]
+    if group_mask is not None and (group_mask.shape != valid_positions.shape
+                                   or group_mask.dtype != torch.bool
+                                   or group_mask.device != valid_positions.device):
+        raise ValueError("group_mask must match the boolean CPU routing mask")
     donors = positions
     if seed is not None:
         generator = torch.Generator(device="cpu").manual_seed(seed)
         donors = positions[torch.randperm(positions.numel(), generator=generator)]
+        if group_mask is not None:
+            group = group_mask.flatten()
+            grouped = torch.empty_like(donors)
+            for member in (False, True):
+                grouped[group[positions] == member] = donors[group[donors] == member]
+            donors = grouped
 
     def check_shape(module, args):
         if args[0].shape[:2] != valid_positions.shape:
