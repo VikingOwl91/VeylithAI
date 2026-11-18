@@ -1,0 +1,27 @@
+~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+Traceback (most recent call last):
+  File "~/git/AI-Research/veylith/debug/benchmark.py", line 134, in <module>
+    main()
+    ~~~~^^
+  File "~/git/AI-Research/veylith/debug/benchmark.py", line 77, in main
+    _, loss = model(x, y)
+              ~~~~~^^^^^^
+  File "~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1787, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1798, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "~/git/AI-Research/veylith/debug/../v2/train.py", line 342, in forward
+    loss = F.cross_entropy(logits.view(-1, logits.size(-1)), targets.view(-1))
+  File "~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/nn/functional.py", line 3561, in cross_entropy
+    return torch._C._nn.cross_entropy_loss(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        input,
+        ^^^^^^
+    ...<5 lines>...
+        label_smoothing,
+        ^^^^^^^^^^^^^^^^
+    )
+    ^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 126.00 MiB. GPU 0 has a total capacity of 15.92 GiB of which 54.00 MiB is free. Of the allocated memory 14.14 GiB is allocated by PyTorch, and 1.10 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)

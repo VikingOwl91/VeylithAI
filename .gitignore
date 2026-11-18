@@ -6,3 +6,10 @@ __pycache__/
 
 # v3 data pipeline: materialized corpora, tokenizer and shards stay out of git
 veylith/v3/data/
+
+.codex/
+
+# Local ROCm traces and generated Phase 4 training artifacts
+/veylith/.rocprofv3/
+/veylith/debug/phase4/*-run/checkpoints/
+/veylith/debug/phase4/*-run/data/

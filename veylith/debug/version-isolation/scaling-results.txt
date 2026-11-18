@@ -1,0 +1,14 @@
+config,impl,fwd_ms,bwd_ms,step_ms,tok_s,alloc_GB,reserved_GB
+b16_blk256,sparse,28.30,39.69,74.45,55017,1.56,1.72
+b16_blk256,dense,19.97,33.07,59.33,69039,2.38,2.49
+b64_blk256,sparse,53.88,71.89,130.77,125286,4.70,5.13
+b64_blk256,dense,49.94,94.02,148.93,110010,8.02,8.53
+b128_blk256,sparse,94.46,142.59,241.78,135529,8.90,9.75
+b128_blk256,dense,OOM,,,,
+b64_blk512,sparse,112.00,171.94,288.30,113658,11.32,13.19
+b64_blk512,dense,OOM,,,,
+b128_blk512,sparse,OOM,,,,
+b128_blk512,dense,OOM,,,,
+b64_e16k4,sparse,FAILED(exit=134),,,,
+b64_e16k4,dense,70.83,136.86,215.61,75988,13.01,13.59
+=== scaling done ===

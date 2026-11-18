@@ -1,0 +1,10 @@
+~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+impl=sparse dtype=bf16 params=25.60M batch=16 block=256
+forward  ms: median=28.30 [25.95..34.74]
+backward ms: median=39.69 [36.63..78.66]
+full step ms: median=74.45 [69.36..112.49]
+tokens/sec (median step): 55,017
+peak GPU allocated: 1.56 GB | reserved: 1.72 GB
+CPU RSS max: 2456 MB (start 1084 MB)
+blocks measured: 3 x 50 iters

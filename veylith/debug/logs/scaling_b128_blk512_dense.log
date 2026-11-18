@@ -1,0 +1,37 @@
+~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+Traceback (most recent call last):
+  File "~/git/AI-Research/veylith/debug/benchmark.py", line 134, in <module>
+    main()
+    ~~~~^^
+  File "~/git/AI-Research/veylith/debug/benchmark.py", line 77, in main
+    _, loss = model(x, y)
+              ~~~~~^^^^^^
+  File "~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1787, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1798, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "~/git/AI-Research/veylith/debug/../v2/train.py", line 336, in forward
+    x, aux = block(x)
+             ~~~~~^^^
+  File "~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1787, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1798, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "~/git/AI-Research/veylith/debug/../v2/train.py", line 307, in forward
+    x = x + self.attn(self.ln1(x))
+            ~~~~~~~~~^^^^^^^^^^^^^
+  File "~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1787, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+           ~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/nn/modules/module.py", line 1798, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "~/git/AI-Research/veylith/debug/../v2/train.py", line 216, in forward
+    att = (q @ k.transpose(-2, -1)) / math.sqrt(self.head_dim)
+           ~~^~~~~~~~~~~~~~~~~~~~~
+  File "~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/_native/registry.py", line 1145, in eager_router
+    return _fallback.call_boxed(keyset, *args, **kwargs)
+           ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 512.00 MiB. GPU 0 has a total capacity of 15.92 GiB of which 434.00 MiB is free. Of the allocated memory 14.65 GiB is allocated by PyTorch, and 354.84 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)

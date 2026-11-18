@@ -18,22 +18,22 @@ the PENDING placeholder of the earlier working copy.
 
 ## Measured results
 
-Table copied without edits from the run's CSV (see Provenance):
+Median timings and peak memory from the [recorded grid](version-isolation/scaling-results.txt). Each configuration links to its run log.
 
 | config | impl | fwd ms | bwd ms | step ms | tok/s | alloc GB | reserved GB |
 |---|---|---|---|---|---|---|---|
-| b16_blk256 | sparse | 28.30 | 39.69 | 74.45 | 55,017 | 1.56 | 1.72 |
-| b16_blk256 | dense | 19.97 | 33.07 | 59.33 | 69,039 | 2.38 | 2.49 |
-| b64_blk256 | sparse | 53.88 | 71.89 | 130.77 | 125,286 | 4.70 | 5.13 |
-| b64_blk256 | dense | 49.94 | 94.02 | 148.93 | 110,010 | 8.02 | 8.53 |
-| b128_blk256 | sparse | 94.46 | 142.59 | 241.78 | 135,529 | 8.90 | 9.75 |
-| b128_blk256 | dense | OOM | | | | | |
-| b64_blk512 | sparse | 112.00 | 171.94 | 288.30 | 113,658 | 11.32 | 13.19 |
-| b64_blk512 | dense | OOM | | | | | |
-| b128_blk512 | sparse | OOM | | | | | |
-| b128_blk512 | dense | OOM | | | | | |
-| b64_e16k4 | sparse | FAILED(exit=134) | | | | | |
-| b64_e16k4 | dense | 70.83 | 136.86 | 215.61 | 75,988 | 13.01 | 13.59 |
+| [b16_blk256](logs/scaling_b16_blk256_sparse.log) | sparse | 28.30 | 39.69 | 74.45 | 55,017 | 1.56 | 1.72 |
+| [b16_blk256](logs/scaling_b16_blk256_dense.log) | dense | 19.97 | 33.07 | 59.33 | 69,039 | 2.38 | 2.49 |
+| [b64_blk256](logs/scaling_b64_blk256_sparse.log) | sparse | 53.88 | 71.89 | 130.77 | 125,286 | 4.70 | 5.13 |
+| [b64_blk256](logs/scaling_b64_blk256_dense.log) | dense | 49.94 | 94.02 | 148.93 | 110,010 | 8.02 | 8.53 |
+| [b128_blk256](logs/scaling_b128_blk256_sparse.log) | sparse | 94.46 | 142.59 | 241.78 | 135,529 | 8.90 | 9.75 |
+| [b128_blk256](logs/scaling_b128_blk256_dense.log) | dense | OOM | | | | | |
+| [b64_blk512](logs/scaling_b64_blk512_sparse.log) | sparse | 112.00 | 171.94 | 288.30 | 113,658 | 11.32 | 13.19 |
+| [b64_blk512](logs/scaling_b64_blk512_dense.log) | dense | OOM | | | | | |
+| [b128_blk512](logs/scaling_b128_blk512_sparse.log) | sparse | OOM | | | | | |
+| [b128_blk512](logs/scaling_b128_blk512_dense.log) | dense | OOM | | | | | |
+| [b64_e16k4](logs/scaling_b64_e16k4_sparse.log) | sparse | FAILED(exit=134) | | | | | |
+| [b64_e16k4](logs/scaling_b64_e16k4_dense.log) | dense | 70.83 | 136.86 | 215.61 | 75,988 | 13.01 | 13.59 |
 
 `OOM` means `torch.cuda.OutOfMemoryError` aborted the run. `FAILED(exit=134)`
 is the GPU fault class: `Memory access fault ... Page not present` (see
@@ -74,7 +74,4 @@ is the GPU fault class: `Memory access fault ... Page not present` (see
 
 ## Provenance
 
-The table is the output of the scaling driver. The CSV is archived with the
-GPU investigation (read-only, sha256
-`3d74cfaf05bbc128ed4104350ffac00935c6fdd4b5b14af3809c583db4227773`); it is
-not part of this repository snapshot. Values were not edited.
+The [scaling driver](version-isolation/run-scaling.sh) produced the [recorded grid](version-isolation/scaling-results.txt). The [training comparison](phase4-training.md) covers validation loss and end-to-end throughput.
