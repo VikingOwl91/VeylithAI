@@ -220,12 +220,12 @@ pub fn load_batches(
     }
     let mut original_digest = Sha256::new();
     let mut selected_digest = Sha256::new();
-    let mut original_rows = HashSet::new();
+    let mut original_rows: HashSet<&[u8; BYTES_PER_SEQUENCE]> = HashSet::new();
     for stream in &streams {
         original_digest.update(&stream[..span]);
         selected_digest.update(&stream[limit - span..]);
         if confirmation {
-            original_rows.extend(stream[..span].chunks_exact(BYTES_PER_SEQUENCE));
+            original_rows.extend(stream[..span].as_chunks::<BYTES_PER_SEQUENCE>().0);
         }
     }
     if format!("{:x}", original_digest.finalize()) != ORIGINAL_SAMPLE_SHA256
@@ -236,15 +236,18 @@ pub fn load_batches(
 
     let mut batches = Vec::new();
     for stream in &streams {
-        for batch in stream[limit - span..].chunks_exact(BATCH_SIZE * BYTES_PER_SEQUENCE) {
+        for batch in stream[limit - span..]
+            .as_chunks::<{ BATCH_SIZE * BYTES_PER_SEQUENCE }>()
+            .0
+        {
             let mut tokens = Vec::with_capacity(BATCH_SIZE * SEQ_LEN);
             let mut mask = Vec::with_capacity(BATCH_SIZE * (SEQ_LEN - 1));
-            for row in batch.chunks_exact(BYTES_PER_SEQUENCE) {
+            for row in batch.as_chunks::<BYTES_PER_SEQUENCE>().0 {
                 if confirmation && original_rows.contains(row) {
                     return Err("confirmation sample overlaps the original sample".into());
                 }
-                for (pos, word) in row.chunks_exact(2).enumerate() {
-                    let id = u16::from_le_bytes([word[0], word[1]]);
+                for (pos, &word) in row.as_chunks::<2>().0.iter().enumerate() {
+                    let id = u16::from_le_bytes(word);
                     let punct = *is_punctuation
                         .get(usize::from(id))
                         .ok_or("token ID outside vocabulary")?;
