@@ -77,3 +77,33 @@ Preserving only the ranked expert IDs recovered 97.6% of the joint recovery on t
 Values are recovered next-token CE in nats per qualifying position, relative to unrestricted shuffling. On the second sample, preserving the weight split in addition to the ranked IDs recovered another 0.00776 nats. The interaction was +0.01881 (95% interval 0.01242–0.02549), reflecting how the value of keeping the weight split depends on which experts receive it.
 
 The baseline, identity control, and both previous shuffle conditions reproduced the earlier measurements exactly on each sample. These results establish the importance of the ranked pair in this block at this checkpoint. Isolating expert 3's contribution would require varying its assignment separately.
+
+## Replacing expert 3 in block 1
+
+At every valid punctuation piece where block 1 ranks expert 3 first, transfer its weight to the highest-scoring unused expert. The original second expert keeps its weight. The substitute is chosen from the original gate logits at the same position. In a tie between unused experts, use the lowest expert ID. Every other position in block 1 retains its ordinary routing. Later blocks process the resulting hidden states normally.
+
+The primary measurement is the change in next-token CE at the replaced positions, paired with ordinary inference on the same tokens. A positive value favors expert 3 over that position's substitute. Report each of the two previously studied validation samples separately. A second measurement uses only the first replacement in each sequence, where earlier substitutions cannot influence the prediction. The intervals resample whole sequences within each corpus source (1,000 draws). Both samples come from the same checkpoint and corpus, and neighboring sequences can share a document.
+
+Each run checks the effective mixture weights on every replacement, the exact CE on every valid position before its sequence's first replacement, and the original sample's or second sample's reference CE and target counts. The reports include the number of times each substitute was used. To reproduce from the repository root, run once per output path.
+
+```sh
+nice -n 15 env OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 \
+  python veylith/v3/analysis/expert3_study.py --data-root "$DATA" \
+  --checkpoint "$CKPT" --threads 2 --out expert3.json
+# Second sample: add --fresh-sample and use --out expert3-confirmation.json.
+```
+
+### Expert 3 results at update 500
+
+Replacing expert 3 raised next-token loss on both samples. The router chose it first at 98.9% and 99.2% of qualifying punctuation pieces, respectively. All 480 sequences had at least one replacement.
+
+| Validation sample | Replaced / qualifying pieces | Extra CE at replaced positions (95% interval) | Extra CE at first replacement per sequence (95% interval) |
+|---|---:|---:|---:|
+| [Original](routing-expert3-update500.json) | 4,180 / 4,228 | +0.18615 (0.16181–0.21084) | +0.55127 (0.42969–0.69762) |
+| [Second](routing-expert3-update500-confirmation.json) | 4,299 / 4,335 | +0.23132 (0.20160–0.26229) | +0.68281 (0.53707–0.83785) |
+
+Each first-replacement estimate uses 240 targets. At those positions the two runs have identical prior routing, so expert 3's assignment at the current position can itself improve prediction. The larger estimate for first replacements also conditions on a different set of tokens. Across all 122,640 targets per sample, mean CE rose by 0.00755 and 0.00967. Ordinary CE matched both historical references exactly, and loss was identical at all 5,445 and 5,200 targets preceding a replacement. The comparison establishes an advantage over the router's best unused alternative on these inputs. Measuring specificity to punctuation would require a comparison at other types of input.
+
+### Follow-up for the Rust driver
+
+The planned first Rust milestone is a command that selects the validation sample, verifies input hashes, enforces the CPU thread budget, runs the existing PyTorch evaluator and verifies its report. The acceptance check is to reproduce the sample digest, target and replacement counts, ordinary CE and intervention deltas recorded by this experiment. This gives later ports of individual computation steps a numerical reference.
