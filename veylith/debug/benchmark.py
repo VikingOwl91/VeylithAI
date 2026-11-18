@@ -37,6 +37,9 @@ def main():
     p.add_argument("--block_size", type=int, default=256)
     p.add_argument("--n_layer", type=int, default=6)
     p.add_argument("--n_embd", type=int, default=256)
+    p.add_argument("--n_experts", type=int, default=8)
+    p.add_argument("--n_experts_per_tok", type=int, default=2)
+    p.add_argument("--n_kv_head", type=int, default=2)
     p.add_argument("--iters", type=int, default=50)
     p.add_argument("--blocks", type=int, default=3)
     p.add_argument("--warmup", type=int, default=10)
@@ -47,11 +50,11 @@ def main():
     torch.manual_seed(1337)
     device = "cuda"
 
-    cfg = impl.Config(n_layer=args.n_layer, n_head=8, n_kv_head=2,
+    cfg = impl.Config(n_layer=args.n_layer, n_head=8, n_kv_head=args.n_kv_head,
                       n_embd=args.n_embd, block_size=args.block_size,
                       sliding_window=128, full_attn_every=4, dropout=0.0,
-                      n_experts=8, n_experts_per_tok=2, first_k_dense=1,
-                      n_mtp=1, vocab_size=1000)
+                      n_experts=args.n_experts, n_experts_per_tok=args.n_experts_per_tok,
+                      first_k_dense=1, n_mtp=1, vocab_size=1000)
     model = impl.GPT(cfg).to(device)
     n_params = sum(pp.numel() for pp in model.parameters())
     optimizer = torch.optim.AdamW(model.parameters(), lr=3e-4)
