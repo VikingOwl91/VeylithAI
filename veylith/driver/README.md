@@ -20,3 +20,12 @@ Choose `--sample confirmation` and a new output path for the second sample. Use 
 The output file is the evaluator's full report, including the checkpoint and ordered token hashes, substitute counts, baseline losses, intervention deltas, and confidence intervals. The driver checks those fields against the bundled reference. A differing result makes the command fail. Publication uses a hard link from a temporary directory on the output filesystem, which must support hard links. An existing output path is preserved.
 
 The command writes progress to stderr and a JSON timing receipt to stdout. `total_seconds` measures wall time from driver entry through publication of the verified report. It includes input hashing, Python startup, inference, report checks and publication. The receipt also gives the three phase times. Build the executable before timing a run.
+
+## First CPU measurements
+
+| Sample | Input checks | Evaluator | Verify and publish | Total to result |
+|---|---:|---:|---:|---:|
+| Original | 1.372 s | 588.252 s | 0.0011 s | 589.625 s |
+| Confirmation | 1.203 s | 521.089 s | 0.0002 s | 522.292 s |
+
+The runs used the same two logical CPUs sequentially. All outcome fields matched the corresponding frozen report, including the differences in loss and their confidence intervals. These single runs measure turnaround for each sample. Measuring a speedup requires a paired timing comparison on the same sample. [Timing receipts and report hashes](expert3-cpu-timings.json)

@@ -1,0 +1,49 @@
+{
+  "driver_commit": "996bdb894617ef598e84c01ea3e04d94c6fa676a",
+  "reference_commit": "9acb457c863f24b5b8cde19decc2143e585c1e97",
+  "environment": {
+    "device": "cpu",
+    "dtype": "float32",
+    "python": "3.14.10",
+    "torch": "2.15.0",
+    "numpy": "2.5.4",
+    "sentencepiece": "0.2.2",
+    "threads": 2,
+    "interop_threads": 1
+  },
+  "cpu_affinity": [
+    4,
+    5
+  ],
+  "worker_nice_increment": 15,
+  "runs": [
+    {
+      "reference_report": "routing-expert3-update500.json",
+      "reference_report_sha256": "93213f06ffdd127a9e4030f53940efa031d665f309e5b71cd34841e723a8690f",
+      "new_report_sha256": "da7a2f121fdcb1f7cb99286ab9831ab58cd8389ad1a9a282320d075c80916b35",
+      "receipt": {
+        "evaluator_seconds": 588.251602955,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "preflight_seconds": 1.372336098,
+        "sample": "original",
+        "total_seconds": 589.625009363,
+        "verification_and_publish_seconds": 0.00107031,
+        "verified": true
+      }
+    },
+    {
+      "reference_report": "routing-expert3-update500-confirmation.json",
+      "reference_report_sha256": "679a0bdcfa4e214d405ade0ef2779f238569ff3fcf24407afd304c6e535e1116",
+      "new_report_sha256": "3ad11638e28d13f0e65c3a2493f0df3589e00d9e4e39fb01bb812c414ecfeedf",
+      "receipt": {
+        "evaluator_seconds": 521.089407654,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "preflight_seconds": 1.202662851,
+        "sample": "confirmation",
+        "total_seconds": 522.292239015,
+        "verification_and_publish_seconds": 0.00016851,
+        "verified": true
+      }
+    }
+  ]
+}
