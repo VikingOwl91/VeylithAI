@@ -1,4 +1,4 @@
-//! CPU float32 inference for the frozen v3.1-A update-500 checkpoint.
+//! Float32 inference for the frozen v3.1-A update-500 checkpoint.
 
 use crate::Result;
 use std::collections::HashMap;
@@ -38,8 +38,8 @@ fn take_weight(weights: &mut Weights, prefix: &str, shape: &[i64]) -> Result<Ten
     let weight = weights
         .remove(&key)
         .ok_or_else(|| format!("missing checkpoint tensor {key}"))?;
-    if weight.size() != shape || weight.kind() != Kind::Float || weight.device() != Device::Cpu {
-        return Err(format!("{key} must be a CPU float32 tensor of shape {shape:?}").into());
+    if weight.size() != shape || weight.kind() != Kind::Float {
+        return Err(format!("{key} must be a float32 tensor of shape {shape:?}").into());
     }
     Ok(weight)
 }
@@ -63,7 +63,7 @@ struct Positions {
 }
 
 impl Positions {
-    fn new() -> Self {
+    fn new(device: Device) -> Self {
         let cpu_float = (Kind::Float, Device::Cpu);
         let exponent = Tensor::arange_start_step(0, HEAD_DIM, 2, cpu_float) / HEAD_DIM as f64;
         let inverse_frequency = Tensor::pow_scalar(10000., &exponent).reciprocal();
@@ -73,10 +73,10 @@ impl Positions {
         let causal = distance.ge(0);
         let sliding = causal.logical_and(&distance.lt(256));
         Self {
-            cosine: angle.cos().narrow(0, 0, STEPS),
-            sine: angle.sin().narrow(0, 0, STEPS),
-            full_mask: causal.unsqueeze(0).unsqueeze(0),
-            sliding_mask: sliding.unsqueeze(0).unsqueeze(0),
+            cosine: angle.cos().narrow(0, 0, STEPS).to_device(device),
+            sine: angle.sin().narrow(0, 0, STEPS).to_device(device),
+            full_mask: causal.unsqueeze(0).unsqueeze(0).to_device(device),
+            sliding_mask: sliding.unsqueeze(0).unsqueeze(0).to_device(device),
         }
     }
 
@@ -282,7 +282,10 @@ impl Mixture {
 }
 
 impl Model {
-    pub fn new(mut weights: Weights) -> Result<Self> {
+    pub fn new(mut weights: Weights, device: Device) -> Result<Self> {
+        for tensor in weights.values_mut() {
+            *tensor = tensor.f_to_device(device)?;
+        }
         let dense = SwiGlu::load(&mut weights, "blocks.0.mlp", WIDTH * 8 / 3)?;
         let dense_block = Block::load(&mut weights, 0, dense)?;
         let mut routed_blocks = Vec::with_capacity(LAYERS - 1);
@@ -296,7 +299,7 @@ impl Model {
             routed_blocks,
             final_norm: take_weight(&mut weights, "ln_f", &[WIDTH])?,
             head: take_weight(&mut weights, "head", &[VOCAB, WIDTH])?,
-            positions: Positions::new(),
+            positions: Positions::new(device),
         };
         if !weights.is_empty() {
             return Err(format!("{} unexpected checkpoint tensors", weights.len()).into());
@@ -332,6 +335,9 @@ impl Model {
         if tokens.min().int64_value(&[]) < 0 || tokens.max().int64_value(&[]) >= VOCAB {
             return Err("token ID outside the frozen model vocabulary".into());
         }
+        let device = self.embedding.device();
+        let tokens = tokens.to_device(device);
+        let punctuation = punctuation.to_device(device);
         let inputs = tokens.narrow(1, 0, STEPS);
         let targets = tokens.narrow(1, 1, STEPS).reshape([-1]);
         let embedding = Tensor::embedding(&self.embedding, &inputs, -1, false, false);
@@ -339,12 +345,16 @@ impl Model {
         let hidden = residual + self.dense_block.mlp.forward(&input);
         let first_moe = &self.routed_blocks[0];
         let (residual, input) = first_moe.prepare_mlp(&hidden, &self.positions);
-        let (ordinary, altered, route) = first_moe.mlp.intervene(&input, punctuation)?;
+        let (ordinary, altered, route) = first_moe.mlp.intervene(&input, &punctuation)?;
         Ok(BatchResult {
-            ordinary: self.continuation_loss(&residual + ordinary, &targets),
-            altered: self.continuation_loss(&residual + altered, &targets),
-            eligible: route.eligible,
-            substitute: route.substitute,
+            ordinary: self
+                .continuation_loss(&residual + ordinary, &targets)
+                .to_device(Device::Cpu),
+            altered: self
+                .continuation_loss(&residual + altered, &targets)
+                .to_device(Device::Cpu),
+            eligible: route.eligible.to_device(Device::Cpu),
+            substitute: route.substitute.to_device(Device::Cpu),
         })
     }
 }

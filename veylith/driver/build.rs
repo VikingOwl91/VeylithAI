@@ -9,6 +9,24 @@ fn output(program: &str, args: &[&str]) -> Option<String> {
 }
 
 fn main() {
+    #[cfg(feature = "rocm")]
+    {
+        let root = std::env::var("ROCM_PATH").unwrap_or_else(|_| "/opt/rocm".into());
+        let torch = std::env::var("LIBTORCH").unwrap_or_else(|_| "/usr".into());
+        println!("cargo:rerun-if-env-changed=ROCM_PATH");
+        println!("cargo:rerun-if-env-changed=LIBTORCH");
+        cc::Build::new()
+            .cpp(true)
+            .std("c++20")
+            .define("__HIP_PLATFORM_AMD__", None)
+            .include(format!("{root}/include"))
+            .include(format!("{torch}/include"))
+            .file("src/rocm.cpp")
+            .compile("veylith_hip_stream");
+        println!("cargo:rustc-link-search=native={root}/lib");
+        println!("cargo:rustc-link-lib=dylib=amdhip64");
+        println!("cargo:rustc-link-arg=-Wl,--no-as-needed,-ltorch_hip,--as-needed");
+    }
     for path in ["src", "build.rs", "Cargo.toml", "Cargo.lock"] {
         println!("cargo:rerun-if-changed={path}");
     }

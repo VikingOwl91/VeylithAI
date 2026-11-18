@@ -39,12 +39,60 @@ impl Sample {
     }
 }
 
+/// Float metrics are in nats. Counts, hashes and same-device controls remain exact.
+const GPU_CE_ATOL: f64 = 1e-4;
+
+#[derive(Clone, Copy, PartialEq, ValueEnum)]
+enum Backend {
+    Cpu,
+    Rocm,
+}
+
+impl Backend {
+    fn name(self) -> &'static str {
+        match self {
+            Self::Cpu => "cpu",
+            Self::Rocm => "rocm:0",
+        }
+    }
+
+    fn start(self) -> Result<(tch::Device, Option<i32>)> {
+        if self == Self::Cpu {
+            return Ok((tch::Device::Cpu, None));
+        }
+        #[cfg(feature = "rocm")]
+        {
+            unsafe extern "C" {
+                fn veylith_start_rocm(
+                    priority: *mut i32,
+                    error: *mut libc::c_char,
+                    len: usize,
+                ) -> i32;
+            }
+            let mut priority = 0;
+            let mut error = [0; 1024];
+            // The helper handles C++ exceptions and NUL-terminates any error.
+            if unsafe { veylith_start_rocm(&mut priority, error.as_mut_ptr(), error.len()) } != 0 {
+                return Err(unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }
+                    .to_string_lossy()
+                    .into_owned()
+                    .into());
+            }
+            Ok((tch::Device::Cuda(0), Some(priority)))
+        }
+        #[cfg(not(feature = "rocm"))]
+        Err("build with --features rocm to run on an AMD GPU".into())
+    }
+}
+
 #[derive(Parser)]
 #[command(
     version,
-    about = "Evaluate and verify the frozen expert 3 study in Rust on CPU"
+    about = "Evaluate and verify the frozen expert 3 study in Rust"
 )]
 struct Args {
+    #[arg(long, value_enum, default_value = "cpu")]
+    device: Backend,
     #[arg(long, value_enum, default_value = "original")]
     sample: Sample,
     #[arg(long)]
@@ -91,6 +139,8 @@ fn source_hashes() -> Value {
         ("driver/src/main.rs", include_bytes!("main.rs")),
         ("driver/src/inputs.rs", include_bytes!("inputs.rs")),
         ("driver/src/model.rs", include_bytes!("model.rs")),
+        #[cfg(feature = "rocm")]
+        ("driver/src/rocm.cpp", include_bytes!("rocm.cpp")),
         ("driver/src/stats.rs", include_bytes!("stats.rs")),
     ];
     let mut hashes = serde_json::Map::new();
@@ -103,7 +153,7 @@ fn source_hashes() -> Value {
     Value::Object(hashes)
 }
 
-fn verify_report(report: &Value, reference: &Value) -> Result<()> {
+fn verify_report(report: &Value, reference: &Value, backend: Backend) -> Result<()> {
     for field in [
         "experiment",
         "update",
@@ -118,27 +168,57 @@ fn verify_report(report: &Value, reference: &Value) -> Result<()> {
         "sequences",
         "substitute_counts",
         "unaffected_prefix_ce_exact",
-        "baseline_reference_exact",
     ] {
         if report.get(field) != reference.get(field) {
             return Err(format!("report differs from frozen reference at {field}").into());
         }
     }
-    if report["outcomes"] != reference["outcomes"] {
-        for (name, outcome) in reference["outcomes"].as_object().expect("bundled outcomes") {
-            for (field, expected) in outcome.as_object().expect("bundled outcome") {
-                let actual = &report["outcomes"][name][field];
-                if actual != expected {
-                    return Err(format!(
-                        "outcomes.{name}.{field}: expected {expected}, measured {actual}"
-                    )
-                    .into());
+    let mut checked = report["outcomes"].clone();
+    if backend == Backend::Rocm {
+        for name in reference["outcomes"].as_object().unwrap().keys() {
+            let actual = &mut checked[name];
+            let expected = &reference["outcomes"][name];
+            for field in ["baseline_ce", "delta_ce", "sequence_bootstrap_ci95"] {
+                let compare = |v: &mut Value, target: &Value| -> Result<()> {
+                    let measurement = v.as_f64().ok_or("missing measured CE")?;
+                    let error =
+                        (measurement - target.as_f64().ok_or("missing reference CE")?).abs();
+                    if error > GPU_CE_ATOL {
+                        return Err(format!("outcomes.{name}.{field}: measured {measurement}, expected {target}, absolute difference {error} exceeds {GPU_CE_ATOL}").into());
+                    }
+                    *v = target.clone();
+                    Ok(())
+                };
+                if field == "sequence_bootstrap_ci95" {
+                    let interval = actual[field]
+                        .as_array_mut()
+                        .ok_or("missing measured interval")?;
+                    if interval.len() != 2 {
+                        return Err("expected two interval endpoints".into());
+                    }
+                    for (v, target) in interval.iter_mut().zip(expected[field].as_array().unwrap())
+                    {
+                        compare(v, target)?;
+                    }
+                } else {
+                    compare(&mut actual[field], &expected[field])?;
                 }
             }
         }
-        return Err("unexpected outcome fields".into());
     }
-    for key in ["device", "dtype", "threads", "interop_threads"] {
+    if checked != reference["outcomes"] {
+        return Err("outcome fields differ from frozen reference".into());
+    }
+    let exact = ["all", "sentence_end"].iter().all(|name| {
+        report["outcomes"][name]["baseline_ce"] == reference["outcomes"][name]["baseline_ce"]
+    });
+    if report["baseline_reference_exact"] != json!(exact) || (backend == Backend::Cpu && !exact) {
+        return Err("inconsistent baseline exactness".into());
+    }
+    if report["runtime"]["device"] != backend.name() {
+        return Err("incorrect runtime device".into());
+    }
+    for key in ["dtype", "threads", "interop_threads"] {
         if report["runtime"].get(key) != reference["runtime"].get(key) {
             return Err(format!("report differs from frozen reference at runtime.{key}").into());
         }
@@ -169,6 +249,7 @@ fn run(args: Args, started: Instant) -> Result<()> {
     tch::set_num_threads(2);
     tch::set_num_interop_threads(1);
     let _no_grad = tch::no_grad_guard();
+    let (device, priority) = args.device.start()?;
     let reference = args.sample.reference();
     let mut hashes = verify_inputs(&args, &reference)?;
     let inputs_verified = Instant::now();
@@ -181,7 +262,10 @@ fn run(args: Args, started: Instant) -> Result<()> {
         sample_hash,
     )?;
     hashes["sample_tokens"] = json!(sample_hash); // Ordered bytes were checked by load_batches.
-    let model = model::Model::new(inputs::load_weights(&args.checkpoint, scratch.path())?)?;
+    let model = model::Model::new(
+        inputs::load_weights(&args.checkpoint, scratch.path())?,
+        device,
+    )?;
     scratch.close()?;
     let loaded = Instant::now();
     let mut stats = stats::Stats::new();
@@ -201,17 +285,13 @@ fn run(args: Args, started: Instant) -> Result<()> {
     }
     let inferred = Instant::now();
     let mut report = stats.finish()?;
-    for name in ["all", "sentence_end"] {
-        for field in ["baseline_ce", "targets"] {
-            if report["outcomes"][name][field] != reference["outcomes"][name][field] {
-                return Err(
-                    format!("ordinary {name} {field} differs from the frozen reference").into(),
-                );
-            }
-        }
-    }
     let evaluated = Instant::now();
-    report["baseline_reference_exact"] = json!(true);
+    report["baseline_reference_exact"] = json!(
+        ["all", "sentence_end"]
+            .iter()
+            .all(|name| report["outcomes"][name]["baseline_ce"]
+                == reference["outcomes"][name]["baseline_ce"])
+    );
     // Frozen study parameters are shared. All outcome fields come from the current run.
     for field in [
         "experiment",
@@ -234,15 +314,30 @@ fn run(args: Args, started: Instant) -> Result<()> {
     report["sha256"] = hashes;
     report["runtime"] = json!({
         "evaluator": "rust", "rustc": option_env!("DRIVER_RUSTC"), "tch": "0.27.0",
-        "libtorch_target": "2.15.0", "device": "cpu", "dtype": "float32",
+        "libtorch_target": "2.15.0", "device": args.device.name(), "dtype": "float32",
         "threads": tch::get_num_threads(), "interop_threads": tch::get_num_interop_threads(),
     });
+    if let Some(priority) = priority {
+        report["runtime"]["hip_stream_priority"] = json!(priority);
+        report["runtime"]["roc_global_cu_mask"] = json!(std::env::var("ROC_GLOBAL_CU_MASK").ok());
+        report["verification_ce_absolute_tolerance"] = json!(GPU_CE_ATOL);
+    }
     report["reproduction_command"] = json!(format!(
-        "veylith-driver --sample {} --data-root \"$DATA\" --checkpoint \"$CKPT\" --out \"$OUT\"",
+        "veylith-driver --device {} --sample {} --data-root \"$DATA\" --checkpoint \"$CKPT\" --out \"$OUT\"",
+        if args.device == Backend::Rocm {
+            "rocm"
+        } else {
+            "cpu"
+        },
         args.sample.name()
     ));
     report["elapsed_seconds"] = json!(started.elapsed().as_secs_f64());
-    verify_report(&report, &reference)?;
+    if let Err(err) = verify_report(&report, &reference, args.device) {
+        if args.device == Backend::Rocm {
+            eprintln!("Unverified GPU report: {report}");
+        }
+        return Err(err);
+    }
     let mut file = tempfile::NamedTempFile::new_in(parent)?;
     serde_json::to_writer_pretty(&mut file, &report)?;
     file.write_all(b"\n")?;
@@ -283,11 +378,11 @@ mod tests {
     fn checks_the_selected_sample_and_each_outcome() {
         let original = Sample::Original.reference();
         let second = Sample::Confirmation.reference();
-        assert!(verify_report(&second, &original).is_err());
+        assert!(verify_report(&second, &original, Backend::Cpu).is_err());
         let mut result = original.clone();
         result["source_sha256"] = source_hashes();
-        verify_report(&result, &original).unwrap();
+        verify_report(&result, &original, Backend::Cpu).unwrap();
         result["outcomes"]["replaced"]["delta_ce"] = json!(0.0);
-        assert!(verify_report(&result, &original).is_err());
+        assert!(verify_report(&result, &original, Backend::Cpu).is_err());
     }
 }
