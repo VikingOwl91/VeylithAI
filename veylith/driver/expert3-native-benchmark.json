@@ -1,0 +1,213 @@
+{
+  "experiment": "v31-expert3-rank1-to-best-unused",
+  "protocol": "Two sequential Python/Rust pairs per 240-sequence validation sample. Order reversed for the second pair. Includes frozen input checks, fresh checkpoint loading, inference, statistics, verification and report publication.",
+  "measured_utc_date": "2026-11-18",
+  "primary_measure": "Whole-process wall seconds from invoking the prebuilt driver to its successful exit. Each internal receipt measures driver entry through verified publication. Compilation is excluded.",
+  "host": {
+    "cpu": "AMD Ryzen 7 3700X",
+    "affinity": [
+      4,
+      5
+    ],
+    "compute_threads": 2,
+    "interop_threads": 1,
+    "openblas_threads": 1,
+    "worker_niceness": 15,
+    "device": "cpu",
+    "dtype": "float32"
+  },
+  "builds": {
+    "python": {
+      "driver_commit": "e97f44b732ea2e23988fd1677ca9213cae351826",
+      "binary_sha256": "23c6281bd68984aadc2fcc5e3c5770d347865a96ac17ca942fbb088600f621c8",
+      "python": "3.14.10",
+      "torch": "2.15.0"
+    },
+    "rust": {
+      "driver_commit": "4f9e8bd511a23cc23de980c40b34ce1f6257bf25",
+      "binary_sha256": "c86db6f5cfa646e409397f26ca5e83bf49117965d4623f4c02da8b9df2461a54",
+      "tch": "0.27.0",
+      "libtorch": "2.15.0",
+      "profile": "release",
+      "native_path_tools": [
+        "bsdtar"
+      ]
+    }
+  },
+  "frozen_reports": {
+    "original": {
+      "path": "../v3/docs/routing-expert3-update500.json",
+      "sha256": "93213f06ffdd127a9e4030f53940efa031d665f309e5b71cd34841e723a8690f"
+    },
+    "confirmation": {
+      "path": "../v3/docs/routing-expert3-update500-confirmation.json",
+      "sha256": "679a0bdcfa4e214d405ade0ef2779f238569ff3fcf24407afd304c6e535e1116"
+    }
+  },
+  "validation": "Every run independently matched the reference study configuration, ordered input hashes, substitutions, all five outcomes (including intervals and counts), exact-prefix and baseline controls. Producer provenance and timing are run-specific.",
+  "summary": {
+    "original": {
+      "python_mean_wall_seconds": 490.026,
+      "rust_mean_wall_seconds": 336.9485,
+      "mean_seconds_saved": 153.0775,
+      "less_wall_time_percent": 31.23865,
+      "speedup": 1.45431
+    },
+    "confirmation": {
+      "python_mean_wall_seconds": 515.392,
+      "rust_mean_wall_seconds": 318.907,
+      "mean_seconds_saved": 196.485,
+      "less_wall_time_percent": 38.12341,
+      "speedup": 1.61612
+    },
+    "combined": {
+      "python_mean_wall_seconds": 502.709,
+      "rust_mean_wall_seconds": 327.92775,
+      "mean_seconds_saved": 174.78125,
+      "less_wall_time_percent": 34.76788,
+      "speedup": 1.53299
+    }
+  },
+  "runs": [
+    {
+      "order": 1,
+      "backend": "rust",
+      "sample": "original",
+      "wall_seconds": 356.855,
+      "report_sha256": "b59f727609ec52a0d9de28ab77d9782396795dca7a0e4510439292637b2ce1ba",
+      "receipt": {
+        "bootstrap_seconds": 0.002575837,
+        "evaluator_seconds": 355.14112045,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "inference_and_reduction_seconds": 351.646689715,
+        "load_seconds": 3.491854898,
+        "preflight_seconds": 1.195838998,
+        "sample": "original",
+        "total_seconds": 356.341843625,
+        "verification_and_publish_seconds": 0.004884177,
+        "verified": true
+      }
+    },
+    {
+      "order": 2,
+      "backend": "python",
+      "sample": "original",
+      "wall_seconds": 553.102,
+      "report_sha256": "d6beb4c4ba21b6ef1ced258cfa19cb4a959488ed64e0dcb384bd9d0e208c0029",
+      "receipt": {
+        "evaluator_seconds": 551.976156015,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "preflight_seconds": 1.12067875,
+        "sample": "original",
+        "total_seconds": 553.097913142,
+        "verification_and_publish_seconds": 0.001078377,
+        "verified": true
+      }
+    },
+    {
+      "order": 3,
+      "backend": "python",
+      "sample": "confirmation",
+      "wall_seconds": 531.601,
+      "report_sha256": "25830c4840640d2692395cf43adcf1783fe7c4b611f21fd2fea56739b9222a1e",
+      "receipt": {
+        "evaluator_seconds": 530.415691419,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "preflight_seconds": 1.181959624,
+        "sample": "confirmation",
+        "total_seconds": 531.598285557,
+        "verification_and_publish_seconds": 0.000634514,
+        "verified": true
+      }
+    },
+    {
+      "order": 4,
+      "backend": "rust",
+      "sample": "confirmation",
+      "wall_seconds": 307.756,
+      "report_sha256": "88c0fbeb0ebbc97adee9512db7786161edda38f2c8ba2592f1bcff39162946a1",
+      "receipt": {
+        "bootstrap_seconds": 0.001247477,
+        "evaluator_seconds": 306.243395899,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "inference_and_reduction_seconds": 302.782876386,
+        "load_seconds": 3.4592720359999998,
+        "preflight_seconds": 1.149117093,
+        "sample": "confirmation",
+        "total_seconds": 307.395398988,
+        "verification_and_publish_seconds": 0.002885996,
+        "verified": true
+      }
+    },
+    {
+      "order": 5,
+      "backend": "python",
+      "sample": "original",
+      "wall_seconds": 426.95,
+      "report_sha256": "f6c044446bdbf068053bc76dc444b41a36ea260a0734b99bc4b2006a81615006",
+      "receipt": {
+        "evaluator_seconds": 426.037785287,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "preflight_seconds": 0.910407506,
+        "sample": "original",
+        "total_seconds": 426.948334211,
+        "verification_and_publish_seconds": 0.000141418,
+        "verified": true
+      }
+    },
+    {
+      "order": 6,
+      "backend": "rust",
+      "sample": "original",
+      "wall_seconds": 317.042,
+      "report_sha256": "15b27d470c43d72abc5fedfd661527163145b99f61e3b4ecd802b393af83f0ab",
+      "receipt": {
+        "bootstrap_seconds": 0.001561242,
+        "evaluator_seconds": 315.695815469,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "inference_and_reduction_seconds": 312.478228903,
+        "load_seconds": 3.216025324,
+        "preflight_seconds": 0.988559035,
+        "sample": "original",
+        "total_seconds": 316.687952442,
+        "verification_and_publish_seconds": 0.003577938,
+        "verified": true
+      }
+    },
+    {
+      "order": 7,
+      "backend": "rust",
+      "sample": "confirmation",
+      "wall_seconds": 330.058,
+      "report_sha256": "f60e15d9edd04088e1a214c87e3f867bb66c852845279c97b3480138e0dc09a1",
+      "receipt": {
+        "bootstrap_seconds": 0.001230374,
+        "evaluator_seconds": 328.636415153,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "inference_and_reduction_seconds": 325.152411923,
+        "load_seconds": 3.482772856,
+        "preflight_seconds": 1.048505123,
+        "sample": "confirmation",
+        "total_seconds": 329.687925818,
+        "verification_and_publish_seconds": 0.003005542,
+        "verified": true
+      }
+    },
+    {
+      "order": 8,
+      "backend": "python",
+      "sample": "confirmation",
+      "wall_seconds": 499.183,
+      "report_sha256": "5d5f04fd646fbcbaedef301b30eaf3645a43d333d84a1f64f881153c0b31fccf",
+      "receipt": {
+        "evaluator_seconds": 498.207562395,
+        "experiment": "v31-expert3-rank1-to-best-unused",
+        "preflight_seconds": 0.972596629,
+        "sample": "confirmation",
+        "total_seconds": 499.180312395,
+        "verification_and_publish_seconds": 0.000153371,
+        "verified": true
+      }
+    }
+  ]
+}
