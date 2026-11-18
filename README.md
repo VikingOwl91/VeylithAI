@@ -1,6 +1,19 @@
-# Veylith
+# Veylith — Python research archive
 
 Veylith is a family of small language models trained from scratch to study a practical question: when does routing tokens to different experts improve prediction? The project started with Transformer baselines on Tiny Shakespeare and grew into multi-source pretraining experiments on a single AMD Radeon RX 9070 XT. The repository includes PyTorch implementations, experimental checkpoints, and the measurements behind the results.
+
+## Using this branch
+
+`archive/python-research` preserves the Python training, data preparation, checkpoint sampling and evaluation workflows. Its Python source is frozen at commit `9acb457`. Use this branch to reproduce the original expert 3 reports or to work with the historical models. Continued Rust development lives on [main](https://github.com/VikingOwl91/VeylithAI/tree/main).
+
+From the repository root, set `DATA` to the frozen multi-100m corpus root, `CKPT` to the update-500 checkpoint and `OUT` to a new report path. In the study’s Python environment, run the CPU reference with two threads.
+
+```sh
+python -B veylith/v3/analysis/expert3_study.py --threads 2 \
+  --data-root "$DATA" --checkpoint "$CKPT" --out "$OUT"
+```
+
+Add `--fresh-sample` and choose a different output path for confirmation. The ROCm comparison used the same Python source with the [GPU adapter patch](veylith/driver/expert3-python-rocm.patch). The [benchmark snapshot](https://github.com/VikingOwl91/VeylithAI/blob/225d574840820ae71f388651a9ad07bd45290b64/veylith/driver/README.md) preserves the exact paired CPU and GPU commands and measurements.
 
 ## Try a checkpoint
 
