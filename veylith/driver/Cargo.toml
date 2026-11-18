@@ -6,7 +6,13 @@ license = "GPL-3.0-or-later"
 publish = false
 
 [dependencies]
+candle-core = "=0.11.1"
 clap = { version = "4.5", features = ["derive"] }
+libc = "0.2"
+prost = "0.14"
+serde = { version = "1", features = ["derive"] }
 serde_json = { version = "1", features = ["float_roundtrip"] }
 sha2 = "0.10"
+tch = "=0.27.0"
 tempfile = "3"
+zip = { version = "9.5", default-features = false }
