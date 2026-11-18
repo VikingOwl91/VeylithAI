@@ -47,3 +47,33 @@ Preserving the punctuation group recovered about 95% of the extra next-token los
 Both penalties are increases over normal routing, in nats per qualifying target. All three seeds gave positive recovery on each sample. On the confirmation sample, preserving the grouping recovered 0.00946 nats per target across **all** positions, about 9.6% of the unrestricted penalty overall. The grouping explains much more of the measured penalty immediately after these pieces than across the sample as a whole.
 
 The identity control reproduced each valid token's baseline CE exactly on both samples. On the original sample, the baseline and the unrestricted per-seed measurements matched the previous study exactly. The run measures the effect of preserving the grouping in block 1 of this checkpoint. It does not identify a particular expert as responsible or establish that the model recognizes grammatical sentence boundaries.
+
+## Separating expert choice from mixture weights
+
+The block-1 follow-up crosses two components of the top-2 route. At a given position, one donor supplies the ranked pair of expert IDs. Another supplies the weights on the first and second ranks. Each batch and seed uses exactly the unrestricted and group-preserving donor permutations from the preceding experiment.
+
+| Condition | Ranked expert IDs | Weight on each rank |
+|---|---|---|
+| Unrestricted | Unrestricted donor | Same unrestricted donor |
+| Preserve IDs only | Same-group donor | Unrestricted donor |
+| Preserve weights only | Unrestricted donor | Same-group donor |
+| Preserve both | Same-group donor | Same donor as IDs |
+
+All four interventions preserve how often each expert is selected across the batch and the batch-wide distribution of ranked weight pairs. Crossing components can change the total weight assigned to an individual expert. The evaluator constructs gate scores that reproduce the desired pair and its two weights, then scores next-token CE. The auxiliary load-balancing loss is outside this comparison.
+
+The primary outcome is recovery at input pieces containing `.`, `!`, or `?`: subtract each single-component condition's CE from unrestricted CE. Directly compare the two recoveries on identical batches. The interaction is the recovery with both components preserved minus the sum of the two individual recoveries. A positive interaction means joint preservation recovered more than the sum. Intervals resample whole batches within source and condition on the same three fixed seeds as above.
+
+Add `--cross-components` to the block-1 sentence-end command and use a new output filename. Use `--fresh-sample` for the second sample. These are the two samples from the preceding study, analyzed separately.
+
+### Crossed results at update 500
+
+Preserving only the ranked expert IDs recovered 97.6% of the joint recovery on the original sample and 95.1% on the second sample. All three seeds on each sample favored preserving IDs. Preserving the weight split alone made the unrestricted assignments slightly worse.
+
+| Sample | Qualifying positions | Preserve IDs only | Preserve weights only | Preserve both | IDs-only advantage over weights-only (95% paired interval) |
+|---|---:|---:|---:|---:|---:|
+| [Original](routing-components-update500.json) | 4,228 | +0.13114 | −0.01118 | +0.13434 | +0.14232 (0.12617–0.15759) |
+| [Second sample](routing-components-update500-confirmation.json) | 4,335 | +0.15047 | −0.01105 | +0.15823 | +0.16152 (0.13983–0.18386) |
+
+Values are recovered next-token CE in nats per qualifying position, relative to unrestricted shuffling. On the second sample, preserving the weight split in addition to the ranked IDs recovered another 0.00776 nats. The interaction was +0.01881 (95% interval 0.01242–0.02549), reflecting how the value of keeping the weight split depends on which experts receive it.
+
+The baseline, identity control, and both previous shuffle conditions reproduced the earlier measurements exactly on each sample. These results establish the importance of the ranked pair in this block at this checkpoint. Isolating expert 3's contribution would require varying its assignment separately.

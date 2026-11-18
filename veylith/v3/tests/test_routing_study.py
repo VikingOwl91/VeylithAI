@@ -102,3 +102,35 @@ def test_sentence_end_recovery_matches_two_full_forward_passes():
     comparison = report["layers"]["1"]["sentence_end_comparison"]
     assert abs(expected) > 1e-8
     assert comparison["unrestricted_minus_grouped"]["sentence_end"]["delta_ce"] == pytest.approx(expected)
+
+
+def test_crossed_contrasts_match_independent_full_model_cross_entropies():
+    from analysis.routing_control import routing_control
+    from architecture.config import tiny_config
+    from architecture.model import GPT
+    from training.data import to_tensors
+
+    with torch.random.fork_rng(devices=[]):
+        torch.manual_seed(31)
+        model = GPT(tiny_config(moe_impl="dense", vocab_size=7)).eval()
+    batch = {"tokens": np.array([[6, 5, 4, 5, 2], [2, 6, 5, 4, 4]], dtype=np.uint16),
+             "lengths": [5, 5]}
+    x, y, valid = to_tensors(batch, "cpu")
+    group = x == 5
+    batch_seed = int(np.random.SeedSequence([11, 0]).generate_state(1)[0])
+    with torch.inference_mode():
+        means = []
+        for mask, component in ((None, "both"), (group, "both"), (group, "ids"), (group, "weights")):
+            with routing_control(model, 1, valid, batch_seed, mask, preserve=component):
+                logits, _ = model(x)
+            means.append(torch.nn.functional.cross_entropy(
+                logits[group], y[group], reduction="none").double().mean().item())
+    u, g, i, w = means
+    stats = evaluate(model, [("sample", batch)], Pieces(), [1], [11], True, True)
+    crossed = stats["layers"]["1"]["crossed_components"]
+    for name, expected in (("ids_only_recovery", u-i), ("weights_only_recovery", u-w),
+                           ("ids_recovery_minus_weights_recovery", w-i),
+                           ("joint_recovery_minus_sum_of_separate_recoveries", i+w-g-u)):
+        estimate = crossed[name]["mean_over_fixed_seeds"]["sentence_end"]
+        assert estimate["delta_ce"] == pytest.approx(expected)
+        assert estimate["batch_bootstrap_ci95"] == pytest.approx([expected, expected])

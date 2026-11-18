@@ -1,0 +1,907 @@
+{
+  "reproduction_command": "python veylith/v3/analysis/routing_study.py --data-root \"$DATA\" --checkpoint \"$CKPT\" --out \"$OUT\" --threads 2 --ablate --layers 1 --seeds 11 29 47 --compare-sentence-end --cross-components --fresh-sample",
+  "schema_version": 1,
+  "experiment": "v31-update500-routing-ce",
+  "update": 500,
+  "git_commit": "510d5262f637461755a48bb665c6a1b8ed4f13ee",
+  "git_dirty": true,
+  "config": {
+    "name": "v3.1-a-primary",
+    "vocab_size": 8192,
+    "block_size": 512,
+    "n_layer": 8,
+    "n_head": 8,
+    "n_kv_head": 2,
+    "n_embd": 512,
+    "dropout": 0.1,
+    "rope_theta": 10000.0,
+    "sliding_window": 256,
+    "full_attn_every": 4,
+    "n_experts": 8,
+    "n_experts_per_tok": 2,
+    "first_k_dense": 1,
+    "expert_ffn_dim": 960,
+    "shared_expert": false,
+    "shared_ffn_dim": 0,
+    "tie_embeddings": false,
+    "moe_aux_weight": 0.01,
+    "moe_impl": "dense",
+    "attention_impl": "sdpa"
+  },
+  "sha256": {
+    "manifest": "4200d524075adf5773bb4634003bfe6296d735bd62118f740ad944bfe881e7b9",
+    "checkpoint": "865946d66664399bd1f8d14619dd231937a14ade3ca9676283554f9554d894cc",
+    "tokenizer": "411227a8e5289d6f4b450059b744ed278532a4624d3895f1a4979600c49ae034",
+    "sample_tokens": "2d323535636c227b321aa215f711ed728c8d693384d9778ffbcb8c166cc97f98"
+  },
+  "split": "validation",
+  "sequences": 240,
+  "runtime": {
+    "device": "cpu",
+    "dtype": "float32",
+    "torch": "2.15.0",
+    "python": "3.14.10",
+    "threads": 2,
+    "interop_threads": 1,
+    "numpy": "2.5.4",
+    "sentencepiece": "0.2.2"
+  },
+  "shuffle_seeds": [
+    11,
+    29,
+    47
+  ],
+  "bootstrap_seed": 20261118,
+  "bootstrap_draws": 1000,
+  "mode": "ablation",
+  "sample_batch_offset_per_source": 10,
+  "analysis_files_sha256": {
+    "routing_control.py": "170a60b78156dae2ff7a82a6392c9c09a7c329029deec5d1ad85c5b4cb294374",
+    "routing_study.py": "4df66c0d9edc8646c829db7cf35201c3827bcde104ccc0d0baf17b8b01e4e546"
+  },
+  "baseline": {
+    "all": {
+      "targets": 122640,
+      "sequences_with_targets": 240,
+      "ce": 5.405104558119855
+    },
+    "eos": {
+      "targets": 102,
+      "sequences_with_targets": 96,
+      "ce": 4.482017649155037
+    },
+    "numeric": {
+      "targets": 2336,
+      "sequences_with_targets": 186,
+      "ce": 4.494267210606741
+    },
+    "punct_only": {
+      "targets": 13253,
+      "sequences_with_targets": 240,
+      "ce": 5.120539867295942
+    },
+    "sentence_end": {
+      "targets": 4335,
+      "sequences_with_targets": 240,
+      "ce": 5.0716845805446304
+    },
+    "alpha": {
+      "targets": 105596,
+      "sequences_with_targets": 240,
+      "ce": 5.475833375571365
+    }
+  },
+  "per_source_ce": {
+    "cosmopedia-v2": 5.312787751169202,
+    "fineweb-edu": 5.491972028929262,
+    "wikipedia": 5.410553894261101
+  },
+  "layers": {
+    "1": {
+      "identity_ce_exact": true,
+      "per_seed": {
+        "11": {
+          "all": {
+            "delta_ce": 0.0983207481578679,
+            "sequence_bootstrap_ci95": [
+              0.09536708343777982,
+              0.1011882889880052
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "eos": {
+            "delta_ce": 0.3008431920818254,
+            "sequence_bootstrap_ci95": [
+              0.19512569304653152,
+              0.3997601852634407
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "numeric": {
+            "delta_ce": 0.08923265637434406,
+            "sequence_bootstrap_ci95": [
+              0.06646843103397253,
+              0.11421285785288014
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "punct_only": {
+            "delta_ce": 0.1121986586743055,
+            "sequence_bootstrap_ci95": [
+              0.10203500043072261,
+              0.12275723584809413
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "sentence_end": {
+            "delta_ce": 0.1555198766248174,
+            "sequence_bootstrap_ci95": [
+              0.1339481835816606,
+              0.17616849492130188
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "alpha": {
+            "delta_ce": 0.09633454840652236,
+            "sequence_bootstrap_ci95": [
+              0.09344591492320398,
+              0.09893422564119214
+            ],
+            "bootstrap_nonempty": 1000
+          }
+        },
+        "29": {
+          "all": {
+            "delta_ce": 0.09881363596822774,
+            "sequence_bootstrap_ci95": [
+              0.0957060598855352,
+              0.10193331439547354
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "eos": {
+            "delta_ce": 0.29486949186699063,
+            "sequence_bootstrap_ci95": [
+              0.1975799915872625,
+              0.3989503877401446
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "numeric": {
+            "delta_ce": 0.0811491943090478,
+            "sequence_bootstrap_ci95": [
+              0.057234266503371066,
+              0.10725277718683085
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "punct_only": {
+            "delta_ce": 0.11543160968221988,
+            "sequence_bootstrap_ci95": [
+              0.10430097455240568,
+              0.12738533424082701
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "sentence_end": {
+            "delta_ce": 0.17048638672702177,
+            "sequence_bootstrap_ci95": [
+              0.147979660857691,
+              0.19380670366815794
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "alpha": {
+            "delta_ce": 0.09662681300187567,
+            "sequence_bootstrap_ci95": [
+              0.09366894687032741,
+              0.09961827423457295
+            ],
+            "bootstrap_nonempty": 1000
+          }
+        },
+        "47": {
+          "all": {
+            "delta_ce": 0.09965953327184504,
+            "sequence_bootstrap_ci95": [
+              0.09679331311790149,
+              0.10252051607659482
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "eos": {
+            "delta_ce": 0.2894732870307623,
+            "sequence_bootstrap_ci95": [
+              0.18869270783534614,
+              0.4036445528700776
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "numeric": {
+            "delta_ce": 0.0861649723206838,
+            "sequence_bootstrap_ci95": [
+              0.06575530944410758,
+              0.11057276097425515
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "punct_only": {
+            "delta_ce": 0.1138249564073538,
+            "sequence_bootstrap_ci95": [
+              0.10306095888553733,
+              0.12499197175880707
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "sentence_end": {
+            "delta_ce": 0.17180989599832888,
+            "sequence_bootstrap_ci95": [
+              0.14919506328403886,
+              0.1958302896327801
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "alpha": {
+            "delta_ce": 0.09773469996352874,
+            "sequence_bootstrap_ci95": [
+              0.09485255896627479,
+              0.10074662687556926
+            ],
+            "bootstrap_nonempty": 1000
+          }
+        }
+      },
+      "mean_over_fixed_seeds": {
+        "all": {
+          "delta_ce": 0.09893130579931352,
+          "sequence_bootstrap_ci95": [
+            0.0962258253206086,
+            0.10153962078009264
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "eos": {
+          "delta_ce": 0.29506199032652614,
+          "sequence_bootstrap_ci95": [
+            0.1989619985634022,
+            0.3939956311347994
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "numeric": {
+          "delta_ce": 0.0855156076680252,
+          "sequence_bootstrap_ci95": [
+            0.06477931274754065,
+            0.10977734371931319
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "punct_only": {
+          "delta_ce": 0.11381840825462633,
+          "sequence_bootstrap_ci95": [
+            0.10433261470772494,
+            0.12388927569148143
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "sentence_end": {
+          "delta_ce": 0.16593871978338934,
+          "sequence_bootstrap_ci95": [
+            0.14576628427572735,
+            0.18768939413570682
+          ],
+          "bootstrap_nonempty": 1000
+        },
+        "alpha": {
+          "delta_ce": 0.09689868712397566,
+          "sequence_bootstrap_ci95": [
+            0.09418949896487241,
+            0.09942526192590816
+          ],
+          "bootstrap_nonempty": 1000
+        }
+      },
+      "sentence_end_comparison": {
+        "grouped_minus_baseline": {
+          "all": {
+            "delta_ce": 0.08947512445637544,
+            "sequence_bootstrap_ci95": [
+              0.08709968255827329,
+              0.09185842013523655
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "eos": {
+            "delta_ce": 0.2886509120074754,
+            "sequence_bootstrap_ci95": [
+              0.19631736693040436,
+              0.38550541653945264
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "numeric": {
+            "delta_ce": 0.08474950144943445,
+            "sequence_bootstrap_ci95": [
+              0.06512855399273608,
+              0.10610880617823475
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "punct_only": {
+            "delta_ce": 0.06712010980638378,
+            "sequence_bootstrap_ci95": [
+              0.061052312436853384,
+              0.07382562977542384
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "sentence_end": {
+            "delta_ce": 0.007709202354846212,
+            "sequence_bootstrap_ci95": [
+              0.0037018377291463817,
+              0.01205731213882934
+            ],
+            "bootstrap_nonempty": 1000
+          },
+          "alpha": {
+            "delta_ce": 0.09249843870917135,
+            "sequence_bootstrap_ci95": [
+              0.08999182475662572,
+              0.09509677849671024
+            ],
+            "bootstrap_nonempty": 1000
+          }
+        },
+        "unrestricted_minus_grouped": {
+          "all": {
+            "delta_ce": 0.009456181342938162,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              0.007734122148213827,
+              0.011274078520944463
+            ]
+          },
+          "eos": {
+            "delta_ce": 0.0064110783190509035,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              -0.032947345587553946,
+              0.0434907484808925
+            ]
+          },
+          "numeric": {
+            "delta_ce": 0.0007661062185907722,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              -0.0074123353760514946,
+              0.008374636933164618
+            ]
+          },
+          "punct_only": {
+            "delta_ce": 0.04669829844824264,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              0.037891166197628084,
+              0.055896038347081796
+            ]
+          },
+          "sentence_end": {
+            "delta_ce": 0.15822951742854316,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              0.13277006980568007,
+              0.18323059288306226
+            ]
+          },
+          "alpha": {
+            "delta_ce": 0.004400248414804215,
+            "bootstrap_nonempty": 1000,
+            "batch_bootstrap_ci95": [
+              0.0031929012912586346,
+              0.005628114488220359
+            ]
+          }
+        },
+        "recovered_ce_per_seed": {
+          "11": {
+            "all": 0.00840973924245231,
+            "eos": 0.015206017914940329,
+            "numeric": 0.00013332954792892688,
+            "punct_only": 0.0465881558863738,
+            "sentence_end": 0.14817110715474774,
+            "alpha": 0.003388282860846895
+          },
+          "29": {
+            "all": 0.010012368150422956,
+            "eos": 0.010741189414379643,
+            "numeric": 0.00021027001848903626,
+            "punct_only": 0.048648670651504904,
+            "sentence_end": 0.1619124207478081,
+            "alpha": 0.004659154773719617
+          },
+          "47": {
+            "all": 0.009946436635939228,
+            "eos": -0.0067139723721672505,
+            "numeric": 0.00195471908935435,
+            "punct_only": 0.044858068806849186,
+            "sentence_end": 0.1646050243830736,
+            "alpha": 0.005153307609846132
+          }
+        }
+      },
+      "crossed_components": {
+        "ids_only_minus_baseline": {
+          "mean_over_fixed_seeds": {
+            "all": {
+              "delta_ce": 0.08982873401662003,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.08720388088063814,
+                0.09239824732853331
+              ]
+            },
+            "eos": {
+              "delta_ce": 0.29255638714709314,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.21654267147087763,
+                0.3726769011815966
+              ]
+            },
+            "numeric": {
+              "delta_ce": 0.08291252401628697,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.06011137587913523,
+                0.1098560698267674
+              ]
+            },
+            "punct_only": {
+              "delta_ce": 0.06907479214136995,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.0622555983982903,
+                0.07610877790866555
+              ]
+            },
+            "sentence_end": {
+              "delta_ce": 0.015472723791137287,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.007940449418864258,
+                0.024477912004930456
+              ]
+            },
+            "alpha": {
+              "delta_ce": 0.09264842455270489,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.08992140369506334,
+                0.0954116849823927
+              ]
+            }
+          },
+          "per_seed": {
+            "11": {
+              "all": 0.09039967780104208,
+              "eos": 0.2932285666465759,
+              "numeric": 0.08709695089802988,
+              "punct_only": 0.0676544992876713,
+              "sentence_end": 0.015756869255946444,
+              "alpha": 0.09324467702784053
+            },
+            "29": {
+              "all": 0.08913161420023837,
+              "eos": 0.28480760490193086,
+              "numeric": 0.08011488941632058,
+              "punct_only": 0.06901775089024459,
+              "sentence_end": 0.015647822398490423,
+              "alpha": 0.09204783407948366
+            },
+            "47": {
+              "all": 0.08995491004857965,
+              "eos": 0.2996329898927726,
+              "numeric": 0.08152573173451046,
+              "punct_only": 0.07055212624619395,
+              "sentence_end": 0.015013479718974992,
+              "alpha": 0.09265276255079044
+            }
+          }
+        },
+        "weights_only_minus_baseline": {
+          "mean_over_fixed_seeds": {
+            "all": {
+              "delta_ce": 0.09706229249062762,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.09429049924644316,
+                0.09985877273565469
+              ]
+            },
+            "eos": {
+              "delta_ce": 0.2966040174166363,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.21001967687802006,
+                0.3984034898648294
+              ]
+            },
+            "numeric": {
+              "delta_ce": 0.08539742024027482,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.0618402387098508,
+                0.11239204275434998
+              ]
+            },
+            "punct_only": {
+              "delta_ce": 0.1168938452801214,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.10575359298261326,
+                0.12810284890334803
+              ]
+            },
+            "sentence_end": {
+              "delta_ce": 0.17698960270974695,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.14911014154671476,
+                0.20505439764274974
+              ]
+            },
+            "alpha": {
+              "delta_ce": 0.09435973556858371,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.0915747497755585,
+                0.09696166755110538
+              ]
+            }
+          },
+          "per_seed": {
+            "11": {
+              "all": 0.09617197958495685,
+              "eos": 0.30280108895956304,
+              "numeric": 0.08841262588896215,
+              "punct_only": 0.11602690028788314,
+              "sentence_end": 0.16521076614503355,
+              "alpha": 0.09337416571244854
+            },
+            "29": {
+              "all": 0.0971005248066007,
+              "eos": 0.30218446605345783,
+              "numeric": 0.08287415772194859,
+              "punct_only": 0.11907406537365266,
+              "sentence_end": 0.18475335105617705,
+              "alpha": 0.09421528701000631
+            },
+            "47": {
+              "all": 0.09791437308032527,
+              "eos": 0.28482649723688763,
+              "numeric": 0.08490547710991375,
+              "punct_only": 0.1155805701788284,
+              "sentence_end": 0.18100469092803018,
+              "alpha": 0.09548975398329627
+            }
+          }
+        },
+        "ids_only_recovery": {
+          "mean_over_fixed_seeds": {
+            "all": {
+              "delta_ce": 0.009102571782693528,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.0074378024184743015,
+                0.010818887987375061
+              ]
+            },
+            "eos": {
+              "delta_ce": 0.0025056031794329836,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.03760897292407081,
+                0.040001382263186745
+              ]
+            },
+            "numeric": {
+              "delta_ce": 0.0026030836517382484,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.005326802111000595,
+                0.010094549907294768
+              ]
+            },
+            "punct_only": {
+              "delta_ce": 0.04474361611325646,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.03747316826476294,
+                0.05244514556955618
+              ]
+            },
+            "sentence_end": {
+              "delta_ce": 0.15046599599225202,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.12930390482974743,
+                0.1710321201398393
+              ]
+            },
+            "alpha": {
+              "delta_ce": 0.00425026257127071,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.0029872938168914328,
+                0.005523535570562047
+              ]
+            }
+          },
+          "per_seed": {
+            "11": {
+              "all": 0.007921070356825816,
+              "eos": 0.007614625435249478,
+              "numeric": 0.0021357054763141868,
+              "punct_only": 0.04454415938663419,
+              "sentence_end": 0.13976300736887096,
+              "alpha": 0.0030898713786818226
+            },
+            "29": {
+              "all": 0.009682021767989381,
+              "eos": 0.010061886965059767,
+              "numeric": 0.0010343048927272122,
+              "punct_only": 0.0464138587919753,
+              "sentence_end": 0.15483856432853135,
+              "alpha": 0.004578978922392008
+            },
+            "47": {
+              "all": 0.009704623223265386,
+              "eos": -0.010159702862010282,
+              "numeric": 0.0046392405861733505,
+              "punct_only": 0.04327283016115985,
+              "sentence_end": 0.1567964162793539,
+              "alpha": 0.005081937412738299
+            }
+          }
+        },
+        "weights_only_recovery": {
+          "mean_over_fixed_seeds": {
+            "all": {
+              "delta_ce": 0.0018690133086859512,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.0013681346228585616,
+                0.002424009095643079
+              ]
+            },
+            "eos": {
+              "delta_ce": -0.0015420270901100317,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.010297563595561693,
+                0.006032609574075016
+              ]
+            },
+            "numeric": {
+              "delta_ce": 0.00011818742775039333,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.0026753284769849687,
+                0.003029808447284047
+              ]
+            },
+            "punct_only": {
+              "delta_ce": -0.00307543702549501,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.004904479090220722,
+                -0.0012771375074490542
+              ]
+            },
+            "sentence_end": {
+              "delta_ce": -0.011050882926357567,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.014743085315671842,
+                -0.007273735249315862
+              ]
+            },
+            "alpha": {
+              "delta_ce": 0.002538951555391886,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.002090448750697609,
+                0.003021087626925908
+              ]
+            }
+          },
+          "per_seed": {
+            "11": {
+              "all": 0.0021487685729110395,
+              "eos": -0.0019578968777376063,
+              "numeric": 0.0008200304853819209,
+              "punct_only": -0.0038282416135776557,
+              "sentence_end": -0.009690889520216153,
+              "alpha": 0.0029603826940738285
+            },
+            "29": {
+              "all": 0.0017131111616270577,
+              "eos": -0.007314974186467189,
+              "numeric": -0.0017249634129007999,
+              "punct_only": -0.003642455691432765,
+              "sentence_end": -0.014266964329155259,
+              "alpha": 0.002411525991869368
+            },
+            "47": {
+              "all": 0.0017451601915197557,
+              "eos": 0.004646789793874703,
+              "numeric": 0.0012594952107700583,
+              "punct_only": -0.0017556137714746097,
+              "sentence_end": -0.009194794929701289,
+              "alpha": 0.002244945980232463
+            }
+          }
+        },
+        "ids_recovery_minus_weights_recovery": {
+          "mean_over_fixed_seeds": {
+            "all": {
+              "delta_ce": 0.007233558474007577,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.005410374006253885,
+                0.009062779042499252
+              ]
+            },
+            "eos": {
+              "delta_ce": 0.004047630269543021,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.04027499338508536,
+                0.04593642312910325
+              ]
+            },
+            "numeric": {
+              "delta_ce": 0.002484896223987857,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.004387647529995008,
+                0.009274971893430465
+              ]
+            },
+            "punct_only": {
+              "delta_ce": 0.04781905313875147,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.040200762663823386,
+                0.05585630773578452
+              ]
+            },
+            "sentence_end": {
+              "delta_ce": 0.16151687891860964,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.13983467732674004,
+                0.18385981260525414
+              ]
+            },
+            "alpha": {
+              "delta_ce": 0.0017113110158788237,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.0004128653102623225,
+                0.003005534232469348
+              ]
+            }
+          },
+          "per_seed": {
+            "11": {
+              "all": 0.0057723017839147765,
+              "eos": 0.009572522312987084,
+              "numeric": 0.0013156749909322657,
+              "punct_only": 0.04837240100021185,
+              "sentence_end": 0.1494538968890871,
+              "alpha": 0.00012948868460799421
+            },
+            "29": {
+              "all": 0.007968910606362324,
+              "eos": 0.017376861151526955,
+              "numeric": 0.002759268305628012,
+              "punct_only": 0.05005631448340807,
+              "sentence_end": 0.1691055286576866,
+              "alpha": 0.00216745293052264
+            },
+            "47": {
+              "all": 0.00795946303174563,
+              "eos": -0.014806492655884986,
+              "numeric": 0.003379745375403292,
+              "punct_only": 0.04502844393263446,
+              "sentence_end": 0.1659912112090552,
+              "alpha": 0.0028369914325058363
+            }
+          }
+        },
+        "joint_recovery_minus_sum_of_separate_recoveries": {
+          "mean_over_fixed_seeds": {
+            "all": {
+              "delta_ce": -0.001515403748441315,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.0023333068028698425,
+                -0.0007534502392357856
+              ]
+            },
+            "eos": {
+              "delta_ce": 0.005447502229727953,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.0019255874935913903,
+                0.014662907342665744
+              ]
+            },
+            "numeric": {
+              "delta_ce": -0.0019551648608978713,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.005441816250706474,
+                0.001393773218116155
+              ]
+            },
+            "punct_only": {
+              "delta_ce": 0.005030119360481196,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.0020146930312460514,
+                0.008293292744090784
+              ]
+            },
+            "sentence_end": {
+              "delta_ce": 0.018814404362648647,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                0.01241624178819347,
+                0.02549073905469725
+              ]
+            },
+            "alpha": {
+              "delta_ce": -0.002388965711858382,
+              "bootstrap_nonempty": 1000,
+              "batch_bootstrap_ci95": [
+                -0.0030414876790695127,
+                -0.0017443872652079348
+              ]
+            }
+          },
+          "per_seed": {
+            "11": {
+              "all": -0.0016600996872845463,
+              "eos": 0.009549289357428457,
+              "numeric": -0.0028224064137671806,
+              "punct_only": 0.005872238113317269,
+              "sentence_end": 0.01809898930609295,
+              "alpha": -0.002661971211908756
+            },
+            "29": {
+              "all": -0.0013827647791934835,
+              "eos": 0.007994276635787067,
+              "numeric": 0.0009009285386626239,
+              "punct_only": 0.005877267550962368,
+              "sentence_end": 0.02134082074843201,
+              "alpha": -0.00233135014054176
+            },
+            "47": {
+              "all": -0.001503346778845915,
+              "eos": -0.0012010593040316713,
+              "numeric": -0.003944016707589059,
+              "punct_only": 0.003340852417163947,
+              "sentence_end": 0.017003403033420978,
+              "alpha": -0.00217357578312463
+            }
+          }
+        }
+      }
+    }
+  },
+  "elapsed_seconds": 3430.128474147001,
+  "evaluation_seconds": 3419.7383786009996,
+  "peak_process_rss_kib": 1660396
+}

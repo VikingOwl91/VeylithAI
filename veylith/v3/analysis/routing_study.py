@@ -109,7 +109,9 @@ def paired_stats(deltas, counts, groups, draws=1000):
 
 
 @torch.inference_mode()
-def evaluate(model, batches, sp, layers, seeds, compare_sentence_end=False):
+def evaluate(model, batches, sp, layers, seeds, compare_sentence_end=False, cross_components=False):
+    if cross_components and not (compare_sentence_end and layers and seeds):
+        raise ValueError("component comparison requires sentence-end controls, layers and seeds")
     if layers:
         from analysis.routing_control import routing_control
     _, table = history._piece_tables(sp)
@@ -117,6 +119,8 @@ def evaluate(model, batches, sp, layers, seeds, compare_sentence_end=False):
     baseline, counts, sources = [], [], []
     differences = {(layer, seed): [] for layer in layers for seed in seeds}
     grouped_differences = {(layer, seed): [] for layer in layers for seed in seeds}
+    crossed = {component: {(layer, seed): [] for layer in layers for seed in seeds}
+               for component in ("ids", "weights") if cross_components}
     batch_sizes = []
     for number, (source, batch) in enumerate(batches):
         x, y, valid = to_tensors(batch, "cpu")
@@ -149,9 +153,9 @@ def evaluate(model, batches, sp, layers, seeds, compare_sentence_end=False):
 
         baseline.append(sequence_sums(base_ce))
         for layer in layers:
-            def suffix_ce(batch_seed, group_mask=None):
+            def suffix_ce(batch_seed, group_mask=None, preserve="both"):
                 hidden = inputs[layer]
-                with routing_control(model, layer, valid, batch_seed, group_mask):
+                with routing_control(model, layer, valid, batch_seed, group_mask, preserve=preserve):
                     for block in model.blocks[layer:]:
                         hidden, _, _ = block(hidden)
                     return loss_tokens(model.head(model.ln_f(hidden)), y)
@@ -160,14 +164,17 @@ def evaluate(model, batches, sp, layers, seeds, compare_sentence_end=False):
                 raise ValueError(f"identity CE mismatch at layer {layer}, batch {number}")
             for seed in seeds:
                 batch_seed = int(np.random.SeedSequence([seed, number]).generate_state(1)[0])
-                def record(destination, group_mask=None):
-                    ce = suffix_ce(batch_seed, group_mask)
+                def record(destination, group_mask=None, preserve="both"):
+                    ce = suffix_ce(batch_seed, group_mask, preserve)
                     if not torch.isfinite(ce[valid]).all():
                         raise ValueError(f"nonfinite shuffled CE at layer {layer}")
                     destination[layer, seed].append(sequence_sums(ce.double() - base_ce.double()))
                 record(differences)
                 if compare_sentence_end:
-                    record(grouped_differences, torch.from_numpy(table["sent_end"][ids]))
+                    group_mask = torch.from_numpy(table["sent_end"][ids])
+                    record(grouped_differences, group_mask)
+                    for component, destination in crossed.items():
+                        record(destination, group_mask, component)
         print(f"completed batch {number + 1}/{len(batches)} ({source})", flush=True)
     counts = np.concatenate(counts)
     baseline = np.concatenate(baseline)
@@ -193,18 +200,38 @@ def evaluate(model, batches, sp, layers, seeds, compare_sentence_end=False):
             # Routing rows move within batches. Resample these intact within source.
             starts = np.cumsum([0, *batch_sizes[:-1]])
             batch_counts = np.add.reduceat(counts, starts, axis=0)
-            batch_deltas = np.add.reduceat(paired.mean(axis=0), starts, axis=0)
-            intervals = paired_stats(batch_deltas, batch_counts, sources[starts])
-            for interval in intervals:
-                interval["batch_bootstrap_ci95"] = interval.pop("sequence_bootstrap_ci95")
+            def batch_intervals(seed_rows):
+                batch_deltas = np.add.reduceat(seed_rows.mean(axis=0), starts, axis=0)
+                intervals = paired_stats(batch_deltas, batch_counts, sources[starts])
+                for interval in intervals:
+                    interval["batch_bootstrap_ci95"] = interval.pop("sequence_bootstrap_ci95")
+                return dict(zip(keys, intervals))
+
+            def seed_means(seed_rows):
+                return {str(seed): dict(zip(keys, (float(x) if np.isfinite(x) else None
+                                                    for x in summarize_rows(rows, counts))))
+                        for seed, rows in zip(seeds, seed_rows)}
+
             result["layers"][str(layer)]["sentence_end_comparison"] = {
                 "grouped_minus_baseline": dict(zip(keys, paired_stats(
                     np.mean(grouped, axis=0), counts, sources))),
-                "unrestricted_minus_grouped": dict(zip(keys, intervals)),
-                "recovered_ce_per_seed": {
-                    str(seed): dict(zip(keys, (float(x) if np.isfinite(x) else None
-                                               for x in summarize_rows(rows, counts))))
-                    for seed, rows in zip(seeds, paired)}}
+                "unrestricted_minus_grouped": batch_intervals(paired),
+                "recovered_ce_per_seed": seed_means(paired)}
+            if cross_components:
+                unrestricted = np.asarray(values)
+                ids, weights = (np.stack([np.concatenate(crossed[c][layer, seed]) for seed in seeds])
+                                for c in ("ids", "weights"))
+                contrasts = {
+                    "ids_only_minus_baseline": ids,
+                    "weights_only_minus_baseline": weights,
+                    "ids_only_recovery": unrestricted - ids,
+                    "weights_only_recovery": unrestricted - weights,
+                    "ids_recovery_minus_weights_recovery": weights - ids,
+                    "joint_recovery_minus_sum_of_separate_recoveries": ids + weights - grouped - unrestricted,
+                }
+                result["layers"][str(layer)]["crossed_components"] = {
+                    name: {"mean_over_fixed_seeds": batch_intervals(rows), "per_seed": seed_means(rows)}
+                    for name, rows in contrasts.items()}
     return result
 
 
@@ -219,9 +246,13 @@ def main():
     parser.add_argument("--seeds", nargs="+", type=int, default=[11, 29, 47])
     parser.add_argument("--compare-sentence-end", action="store_true",
                         help="compare unrestricted and sentence-end-preserving routing shuffles")
+    parser.add_argument("--cross-components", action="store_true",
+                        help="also preserve ranked expert IDs and ranked weights separately")
     parser.add_argument("--fresh-sample", action="store_true",
                         help="use the next ten validation batches from each source")
     args = parser.parse_args()
+    if args.cross_components and not args.compare_sentence_end:
+        parser.error("--cross-components requires --compare-sentence-end")
     if args.compare_sentence_end and not args.ablate:
         parser.error("--compare-sentence-end requires --ablate")
     if args.layers and not args.ablate:
@@ -246,6 +277,8 @@ def main():
         command.extend(["--ablate", "--layers", *map(str, layers), "--seeds", *map(str, args.seeds)])
     if args.compare_sentence_end:
         command.append("--compare-sentence-end")
+    if args.cross_components:
+        command.append("--cross-components")
     if args.fresh_sample:
         command.append("--fresh-sample")
     # The manifest uses relocatable artifact arguments. Keep shell expansion
@@ -268,7 +301,8 @@ def main():
             name: history.sha256_file(V3 / "analysis" / name)
             for name in ("routing_control.py", "routing_study.py")}
     started_eval = time.monotonic()
-    manifest.update(evaluate(model, batches, sp, layers, args.seeds, args.compare_sentence_end))
+    manifest.update(evaluate(model, batches, sp, layers, args.seeds, args.compare_sentence_end,
+                             args.cross_components))
     seconds = time.monotonic() - started_eval
     if manifest["baseline"]["all"]["targets"] != history.BATCH * history.BATCHES_PER_SOURCE * 3 * 511:
         raise ValueError("unexpected number of valid next-token targets")

@@ -90,3 +90,37 @@ def test_grouped_shuffle_preserves_exact_gate_rows_and_padding(labels):
         expected_donors = donors[group.flatten()[donors] == member]
         assert torch.equal(grouped[receivers], baseline[expected_donors])
     assert torch.equal(grouped[~valid.flatten()], baseline[~valid.flatten()])
+
+
+@pytest.mark.parametrize("tied", [False, True])
+def test_crossed_mixtures_take_ranked_ids_and_weights_from_their_own_donors(tied):
+    model = GPT(tiny_config(moe_impl="dense")).eval()
+    moe = model.blocks[1].mlp
+    with torch.no_grad():
+        # Use the first input coordinates as gate logits, with known ties.
+        moe.gate.weight.zero_()
+        for i in range(moe.cfg.n_experts):
+            moe.gate.weight[i, i] = 1
+        x = torch.randn(12, model.cfg.n_embd, generator=torch.Generator().manual_seed(42))
+        if tied:
+            x[::2] = 1
+        valid = torch.tensor([[True, True, False, True, True, True]] * 2)
+        group = torch.tensor([[True, False, True, False, True, False]] * 2)
+        base = moe.gate(x)
+        with routing_control(model, 1, valid, 11):
+            unrestricted = moe.gate(x)
+        with routing_control(model, 1, valid, 11, group):
+            grouped = moe.gate(x)
+        assert not torch.equal(unrestricted, grouped)
+        for component, id_rows, weight_rows in (("ids", grouped, unrestricted),
+                                                ("weights", unrestricted, grouped)):
+            with routing_control(model, 1, valid, 11, group, preserve=component):
+                actual = moe.gate(x)
+            k = moe.cfg.n_experts_per_tok
+            ids = id_rows.topk(k).indices
+            weights = weight_rows.topk(k).values.softmax(-1)
+            expected = torch.zeros_like(base).scatter(1, ids, weights)
+            values, selected = actual.topk(k)
+            mixture = torch.zeros_like(base).scatter(1, selected, values.softmax(-1))
+            assert torch.equal(mixture, expected)
+            assert torch.equal(actual[~valid.flatten()], base[~valid.flatten()])
