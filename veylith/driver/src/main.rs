@@ -133,15 +133,16 @@ fn verify_inputs(args: &Args, reference: &Value) -> Result<Value> {
 
 fn source_hashes() -> Value {
     let sources: &[(&str, &[u8])] = &[
-        ("driver/Cargo.toml", include_bytes!("../Cargo.toml")),
-        ("driver/Cargo.lock", include_bytes!("../Cargo.lock")),
-        ("driver/build.rs", include_bytes!("../build.rs")),
-        ("driver/src/main.rs", include_bytes!("main.rs")),
-        ("driver/src/inputs.rs", include_bytes!("inputs.rs")),
-        ("driver/src/model.rs", include_bytes!("model.rs")),
+        ("veylith/driver/Cargo.toml", include_bytes!("../Cargo.toml")),
+        ("Cargo.toml", include_bytes!("../../../Cargo.toml")),
+        ("Cargo.lock", include_bytes!("../../../Cargo.lock")),
+        ("veylith/driver/build.rs", include_bytes!("../build.rs")),
+        ("veylith/driver/src/main.rs", include_bytes!("main.rs")),
+        ("veylith/driver/src/inputs.rs", include_bytes!("inputs.rs")),
+        ("veylith/driver/src/model.rs", include_bytes!("model.rs")),
         #[cfg(feature = "rocm")]
-        ("driver/src/rocm.cpp", include_bytes!("rocm.cpp")),
-        ("driver/src/stats.rs", include_bytes!("stats.rs")),
+        ("veylith/driver/src/rocm.cpp", include_bytes!("rocm.cpp")),
+        ("veylith/driver/src/stats.rs", include_bytes!("stats.rs")),
     ];
     let mut hashes = serde_json::Map::new();
     for (path, bytes) in sources {
@@ -309,7 +310,9 @@ fn run(args: Args, started: Instant) -> Result<()> {
     report["schema_version"] = json!(2);
     report["git_commit"] = json!(option_env!("DRIVER_BUILD_COMMIT"));
     report["git_dirty"] = json!(option_env!("DRIVER_BUILD_DIRTY").map(|v| v == "true"));
-    report["git_state_scope"] = json!("driver package at build time");
+    report["git_state_scope"] =
+        json!("driver package and workspace manifest and lockfile at build time");
+    report["source_sha256_path_base"] = json!("repository root");
     report["source_sha256"] = source_hashes();
     report["sha256"] = hashes;
     report["runtime"] = json!({

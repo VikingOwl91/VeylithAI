@@ -27,7 +27,13 @@ fn main() {
         println!("cargo:rustc-link-lib=dylib=amdhip64");
         println!("cargo:rustc-link-arg=-Wl,--no-as-needed,-ltorch_hip,--as-needed");
     }
-    for path in ["src", "build.rs", "Cargo.toml", "Cargo.lock"] {
+    for path in [
+        "src",
+        "build.rs",
+        "Cargo.toml",
+        "../../Cargo.toml",
+        "../../Cargo.lock",
+    ] {
         println!("cargo:rerun-if-changed={path}");
     }
     let mut refs = vec![
@@ -48,7 +54,17 @@ fn main() {
     if let Some(commit) = output("git", &["rev-parse", "HEAD"]) {
         println!("cargo:rustc-env=DRIVER_BUILD_COMMIT={commit}");
     }
-    if let Some(status) = output("git", &["status", "--porcelain", "--", "."]) {
+    if let Some(status) = output(
+        "git",
+        &[
+            "status",
+            "--porcelain",
+            "--",
+            ".",
+            "../../Cargo.toml",
+            "../../Cargo.lock",
+        ],
+    ) {
         println!("cargo:rustc-env=DRIVER_BUILD_DIRTY={}", !status.is_empty());
     }
     let compiler = std::env::var("RUSTC").unwrap_or_else(|_| "rustc".into());

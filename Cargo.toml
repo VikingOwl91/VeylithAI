@@ -1,0 +1,3 @@
+[workspace]
+members = ["veylith/driver"]
+resolver = "3"

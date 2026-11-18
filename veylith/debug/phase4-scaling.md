@@ -74,4 +74,4 @@ is the GPU fault class: `Memory access fault ... Page not present` (see
 
 ## Provenance
 
-The [scaling driver](version-isolation/run-scaling.sh) produced the [recorded grid](version-isolation/scaling-results.txt). The [training comparison](phase4-training.md) covers validation loss and end-to-end throughput.
+The [scaling driver](https://github.com/VikingOwl91/VeylithAI/blob/be68c2c32e9629a14a5a6ae8329ca214ea639044/veylith/debug/version-isolation/run-scaling.sh) produced the [recorded grid](version-isolation/scaling-results.txt). The [training comparison](phase4-training.md) covers validation loss and end-to-end throughput.

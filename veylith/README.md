@@ -30,14 +30,9 @@ release.
 
 ## Layout
 
-- `v1/` - the original: char-level or custom-BPE tokenizer, learned
-  position embeddings, LayerNorm, full multi-head attention, GELU MLP.
-  Frozen, kept exactly as it was.
-- `v2/` - the upgrade: RoPE, RMSNorm, GQA, sliding-window attention,
-  SwiGLU, Mixture-of-Experts, multi-token prediction. A miniature of a
-  2026 frontier architecture, still trained from scratch in minutes.
-- `v3/` contains the streaming corpus pipeline with 8192-token BPE and the
-  v3.1 pretraining and routing experiments. [v3 research](v3/README.md)
+- `driver/` contains the native Rust evaluator for the update-500 expert 3 study. Run Cargo from the repository root. [Rust quickstart](../README.md#run-the-rust-evaluator)
+- `v1/` and `v2/` preserve the baseline and MoE checkpoints, tokenizer files and research records.
+- `v3/` contains pretraining and routing evidence, including the frozen numerical references. [v3 research](v3/README.md)
 - `reference/` - `config.json` files of DeepSeek-V4-Pro, GLM-5,
   Muse Glimmer 30B and MiMo-V2.5. Ground truth for every design choice
   in v2. Grep them: `grep num_experts reference/*.json`.
@@ -101,28 +96,13 @@ At update 500, replacing expert 3 at the selected punctuation positions raised n
 
 Across eight GPU runs, mean wall time through verified output and process exit was **64.0 s for Rust** and **76.9 s for Python**. The earlier Rust CPU mean was **327.9 s**. [Timings by validation sample](../README.md#expert-3-benchmark) · [GPU benchmark data](driver/expert3-rocm-benchmark.json)
 
-## Run
+## Reproduce historical Python runs
 
-```bash
-cd v1 && python train.py            # v1, char tokenizer
-cd v1 && python train.py --tokenizer bpe --bpe_vocab_size 1000
-cd v2 && python train.py --tokenizer bpe --bpe_vocab_size 1000
-```
-
-Each version is self-contained: run from inside its folder, paths are
-relative, the dataset downloads itself on first run.
-
-Evaluate every checkpoint on the shared CPU protocol (no GPU, writes
-`evaluation/results.json`):
-
-```bash
-python3 veylith/evaluate.py
-```
+Switch to `archive/python-research` for the original training, corpus preparation, checkpoint sampling and evaluation commands. Return to `main` for the Rust evaluator. [Archive quickstart](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research)
 
 The v2 baseline is frozen (tag `v2-research-freeze-2026-10-26`):
 architecture, protocols, results, limitations and checkpoint hashes are
-recorded in `v2/FREEZE-2026-10-26.md`. v3 data work happens on
-`v3/data-pipeline`.
+recorded in `v2/FREEZE-2026-10-26.md`. The original v3 data work is preserved in the Python archive.
 
 v3.0 is data infrastructure, not a model. The first pilot materialized
 2000 FineWeb-Edu documents (1.92M tokens, eight shards, 8192-token BPE) on

@@ -2,6 +2,8 @@
 
 # veylith v1: train your own language model from scratch
 
+The Python commands in this historical guide run on `archive/python-research`. [Browse the archived directory](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research/veylith/v1)
+
 A single-file, dependency-free (beyond PyTorch) implementation of a small
 GPT-style transformer, trained on Tiny Shakespeare. Two tokenizer options:
 character-level (simplest) or a custom subword BPE you train yourself.

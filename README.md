@@ -1,16 +1,29 @@
 # Veylith
 
-Veylith is a family of small language models trained from scratch to study a practical question: when does routing tokens to different experts improve prediction? The project started with Transformer baselines on Tiny Shakespeare and grew into multi-source pretraining experiments on a single AMD Radeon RX 9070 XT. The repository includes PyTorch training code, a native Rust evaluator, experimental checkpoints, and the measurements behind the results.
+Veylith is a family of small language models trained from scratch to study a practical question: when does routing tokens to different experts improve prediction? The project started with Transformer baselines on Tiny Shakespeare and grew into multi-source pretraining experiments on a single AMD Radeon RX 9070 XT. The active branch, `main`, uses a native Rust evaluator for the frozen expert 3 routing experiment. It includes the experimental checkpoints and the measurements behind the results.
 
-## Try a checkpoint
+## Run the Rust evaluator
 
-From the repository root, run the following in a Python environment. This generates a short passage using the included v2 checkpoint and tokenizer. A CPU is sufficient.
+From the repository root, use Cargo to build, test and run Veylith. The CPU evaluator uses Rust, a C++ compiler, LibTorch 2.15.0 and `bsdtar`. On the tested Linux system, LibTorch is installed under `/usr`.
 
 ```sh
-cd veylith/v2
-python -m pip install -r requirements.txt
-python sample.py --prompt "JULIET:" --max_new_tokens 40 --seed 42
+export LIBTORCH=/usr CXX=g++
+cargo test --locked -j 2
+cargo run --release --locked -j 2 -- --help
 ```
+
+To evaluate the original 240-sequence sample, set `DATA` to the frozen multi-100m corpus directory, `CKPT` to the matching update-500 training checkpoint and `OUT` to a new file in an existing directory. These inputs are stored separately. Use `--sample confirmation` to evaluate the second sample.
+
+```sh
+cargo run --release --locked -j 2 -- --sample original \
+  --data-root "$DATA" --checkpoint "$CKPT" --out "$OUT"
+```
+
+CPU is the default. On supported AMD systems, build with the `rocm` feature and select `--device rocm`. The driver checks the inputs and scientific results before publishing the report. [Inputs, verification and ROCm instructions](veylith/driver/README.md)
+
+## Python research archive
+
+Use `main` for daily development. The `archive/python-research` branch preserves the original Python evaluator, v1/v2 checkpoint sampling, training, corpus preparation and historical tests. To reproduce one of those workflows, run `git switch archive/python-research` from a clean checkout, then `git switch main` to return to Rust. The Rust CLI currently covers expert 3 evaluation. Earlier training runs and their data licenses remain documented here. [Python archive and quickstart](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research)
 
 ## What the routing experiment found
 
@@ -37,7 +50,7 @@ On the Radeon RX 9070 XT, Rust used **16.8% less time** than the Python GPU eval
 | Area | What you can study |
 |---|---|
 | [v1 · Transformer baselines](veylith/v1/README.md) | Compare character and byte-pair tokenization on the same plays. |
-| [v2 · Mixture of experts](veylith/v2/README.md) | Train, sample, and resume a model with grouped-query attention, top-2 routing, and multi-token prediction. |
+| [v2 · Mixture of experts](veylith/v2/README.md) | Inspect the historical model with grouped-query attention, top-2 routing and multi-token prediction. |
 | [v1/v2 evaluation](veylith/evaluation/REPORT.md) | Compare checkpoints on the same held-out text using bits per character across tokenizers. |
 | [v3 · Data and pretraining](veylith/v3/README.md) | Follow the corpus from pinned sources through tokenization and validation splits to a [500-update training run](veylith/v3/docs/V3.1-L-DENSE-RUN.md). |
 

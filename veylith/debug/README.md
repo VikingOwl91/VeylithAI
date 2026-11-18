@@ -1,5 +1,7 @@
 # Debug: ROCm memory access fault in veylith v2 sparse MoE
 
+The Python commands in this historical guide run on `archive/python-research`. [Browse the archived directory](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research/veylith/debug)
+
 Investigation of the GPU "Memory access fault" (page not present) that
 killed sparse-MoE training runs of veylith v2. The working dense-MoE
 v2 and all of v1 are preserved on `main`; this directory and the

@@ -1,5 +1,0 @@
-# Test dependencies for veylith v2. CPU only, no GPU build required.
--r requirements.txt
-
-# Tested: 9.1.1
-pytest>=8

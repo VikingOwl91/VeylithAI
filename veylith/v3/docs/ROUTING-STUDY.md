@@ -2,6 +2,8 @@
 
 VEYLITH-11 measures next-token cross-entropy (CE, nats per token) on the same 240 validation sequences as the [expert-behavior analysis](V3.1-N-EXPERT-BEHAVIOR.md). VEYLITH-9 adds a one-layer routing intervention. The reference uses update 500 of the v3.1-L dense-combined model in CPU float32 evaluation mode. It scores 511 next-token targets per sequence and excludes padding and the auxiliary routing loss.
 
+The original routing and shuffle commands below run on `archive/python-research`. The expert 3 experiment also has a Rust entry point on `main`. [Python archive](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research)
+
 From the repository root, set `DATA` to the multi-100m corpus directory and `CKPT` to the saved `ckpt_state_step500.pt`. Choose a new output filename for each run.
 
 ```sh
@@ -84,13 +86,12 @@ At every valid punctuation piece where block 1 ranks expert 3 first, transfer it
 
 The primary measurement is the change in next-token CE at the replaced positions, paired with ordinary inference on the same tokens. A positive value favors expert 3 over that position's substitute. Report each of the two previously studied validation samples separately. A second measurement uses only the first replacement in each sequence, where earlier substitutions cannot influence the prediction. The intervals resample whole sequences within each corpus source (1,000 draws). Both samples come from the same checkpoint and corpus, and neighboring sequences can share a document.
 
-Each run checks the effective mixture weights on every replacement, the exact CE on every valid position before its sequence's first replacement, and the original sample's or second sample's reference CE and target counts. The reports include the number of times each substitute was used. To reproduce from the repository root, run once per output path.
+Each run checks the effective mixture weights on every replacement, the exact CE on every valid position before its sequence's first replacement, and the original sample's or second sample's reference CE and target counts. The reports include the number of times each substitute was used. On `main`, run the native evaluator from the repository root. Choose a fresh output path for each sample.
 
 ```sh
-nice -n 15 env OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 \
-  python veylith/v3/analysis/expert3_study.py --data-root "$DATA" \
-  --checkpoint "$CKPT" --threads 2 --out expert3.json
-# Second sample: add --fresh-sample and use --out expert3-confirmation.json.
+cargo run --locked --release -j 2 -- --sample original --data-root "$DATA" \
+  --checkpoint "$CKPT" --out expert3.json
+# Second sample: use --sample confirmation and --out expert3-confirmation.json.
 ```
 
 ### Expert 3 results at update 500

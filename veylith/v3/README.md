@@ -1,5 +1,7 @@
 # veylith v3: pretraining data pipeline
 
+The Python commands in this historical guide run on `archive/python-research`. [Browse the archived directory](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research/veylith/v3)
+
 > Research status: v3.0 is pretraining data infrastructure, not a trained
 > model. v1.x and v2.x are experimental research prototypes, not finished or
 > production-ready language models. v3.1-A (initial pretraining

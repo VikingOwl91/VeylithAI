@@ -13,3 +13,6 @@ veylith/v3/data/
 /veylith/.rocprofv3/
 /veylith/debug/phase4/*-run/checkpoints/
 /veylith/debug/phase4/*-run/data/
+
+# Cargo workspace build output
+/target/

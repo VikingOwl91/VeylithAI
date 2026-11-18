@@ -6,11 +6,11 @@ The Rust driver evaluates the frozen update-500 checkpoint on CPU or an AMD GPU 
 
 Build on Linux with Rust, a C++ compiler, LibTorch 2.15.0 headers and libraries, and `bsdtar` on PATH. The tested build used GCC with the system LibTorch installation. Set `DATA` to the frozen multi-100m corpus root, `CKPT` to the original update-500 training checkpoint, and `OUT` to a **new** report path in an existing directory. Allow roughly 1.5 GiB of temporary disk space alongside the report. The loader normalizes the checkpoint ZIP into a temporary file and removes it after reading the verified model tensors.
 
-From the Git repository root:
+Build and run from the Git repository root.
 
 ```sh
-export CARGO_TARGET_DIR="$PWD/.codex/target" CXX=g++
-cargo build -j 2 --release --locked --manifest-path veylith/driver/Cargo.toml
+export CARGO_TARGET_DIR="$PWD/.codex/target" LIBTORCH=/usr CXX=g++
+cargo build -j 2 --release --locked
 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 \
   "$CARGO_TARGET_DIR/release/veylith-driver" --sample original \
   --data-root "$DATA" --checkpoint "$CKPT" --out "$OUT"
@@ -23,27 +23,13 @@ Select `--sample confirmation` and a fresh output path for the second sample. Th
 * Checkpoint, corpus manifest, tokenizer, consumed validation shards, ordered tokens and the 229 loaded model parameter payloads are checked against recorded SHA-256 digests. The second sample is checked for sequence overlap with the first.
 * The forward pass shares computation up to the block-1 intervention. It evaluates each block-1 expert once on the common input and combines its output separately with the ordinary and intervened mixture weights. Later blocks run independently. Each substitute receives expert 3’s original weight.
 * The evaluator checks loss at every position before its sequence’s first intervention, then compares all five outcome groups including counts, CE, deltas and 95% intervals to the corresponding frozen report. CPU runs require an exact match. GPU runs use the numerical tolerance described below. The Rust bootstrap reproduces all 240,000 NumPy row selections for this protocol’s fixed seed.
-* The schema-2 report identifies the compiled Rust sources and dependencies. Its Git fields describe the driver package at build time. The evaluator stages the verified report on the destination filesystem and publishes it without replacing an existing output.
+* The schema-2 report identifies the compiled Rust sources and dependencies. Source-hash paths are relative to the repository root. The Git fields describe the driver package, workspace manifest and lockfile at build time. The evaluator stages the verified report on the destination filesystem and publishes it without replacing an existing output.
 
 Progress goes to stderr. The JSON receipt on stdout measures wall time from driver entry through publication. It also includes time spent verifying inputs, loading weights and batches, evaluating token losses, and computing bootstrap statistics.
 
-## Benchmark the change
+## Reproduce the Python comparisons
 
-The benchmark compares this release binary against the Rust driver from commit `e97f44b` that launches the frozen Python evaluator. Build that reference separately so both binaries are available. Use the same Python evaluation environment as the frozen reports. Pass the two binaries, original input paths and a new output directory to the benchmark script.
-
-```sh
-LEGACY_BUILD="$PWD/.codex/expert3-python-reference"
-mkdir -p "$LEGACY_BUILD"
-git archive e97f44b -- veylith/driver veylith/v3/docs/routing-expert3-update500.json \
-  veylith/v3/docs/routing-expert3-update500-confirmation.json | tar -x -C "$LEGACY_BUILD"
-cargo build -j 2 --release --locked --target-dir "$LEGACY_BUILD/target" \
-  --manifest-path "$LEGACY_BUILD/veylith/driver/Cargo.toml"
-LEGACY_DRIVER="$LEGACY_BUILD/target/release/veylith-driver"
-NATIVE_DRIVER="$CARGO_TARGET_DIR/release/veylith-driver"
-veylith/driver/benchmark-expert3.sh "$LEGACY_DRIVER" "$NATIVE_DRIVER" "$DATA" "$CKPT" "$NEW_BENCH_DIR"
-```
-
-The script runs both binaries twice per sample, reversing their order on the second pair. It pins all eight processes to the same logical CPUs (4 and 5 by default, configurable with `VEYLITH_BENCH_CPUS`). Each run includes input checks, fresh model loading, inference, statistics and report publication. Native runs receive a PATH containing only `bsdtar`. Each output includes the report, driver receipt, progress log, and independently timed process wall duration. The two older single-run CPU measurements are retained for context. [Historical Python-backed driver receipts](expert3-cpu-timings.json)
+The original Python evaluator, its tests and the ROCm adapter live on `archive/python-research`. The paired benchmark instructions at commit `225d574` use the source layout and lockfile that produced the published measurements. Use that revision for a historical timing comparison. [Python research archive](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research) · [Benchmark commands at the measured milestone](https://github.com/VikingOwl91/VeylithAI/blob/225d574840820ae71f388651a9ad07bd45290b64/veylith/driver/README.md) · [Historical Python-backed driver receipts](expert3-cpu-timings.json)
 
 ## Paired CPU results
 
@@ -58,7 +44,7 @@ Measured on an AMD Ryzen 7 3700X on 18 November 2026. Every run reproduced its f
 
 Across four runs per implementation, mean wall time fell from **502.7 s to 327.9 s**. The native evaluator saved **174.8 s per run (34.8%)** and finished first in each pair. This measures the two implementations as shipped, including the Rust evaluator's reuse of shared model computation. The individual timings show the variation on the shared workstation. [All eight receipts, build revisions and report hashes](expert3-native-benchmark.json)
 
-## Run the ROCm comparison
+## Run on ROCm
 
 The native GPU evaluator requires the ROCm build of LibTorch and HIP development headers. Enable the Cargo feature and select the GPU at runtime. The driver obtains HIP’s lowest supported stream priority, verifies the actual priority, moves the model to device 0, and copies each batch’s losses and routing decisions back to the CPU for reduction. The measured configuration set an eight-bit compute-unit mask and ran one batch at a time. [AMD ROCm compute-unit settings](https://rocm.docs.amd.com/en/docs-7.2.1/reference/env-variables.html)
 
@@ -66,25 +52,14 @@ Run this from the repository root with the same frozen inputs and a new output p
 
 ```sh
 export CARGO_TARGET_DIR="$PWD/.codex/target" CXX=g++ LIBTORCH=/usr ROCM_PATH=/opt/rocm
-cargo build -j 2 --release --locked --features rocm --manifest-path veylith/driver/Cargo.toml
+cargo build -j 2 --release --locked --features rocm
 export ROCR_VISIBLE_DEVICES=0 ROC_GLOBAL_CU_MASK=0xff
 export OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2
 nice -n 15 taskset -c 4,5 "$CARGO_TARGET_DIR/release/veylith-driver" --device rocm \
   --sample original --data-root "$DATA" --checkpoint "$CKPT" --out "$OUT"
 ```
 
-The Python comparator uses the archived evaluator with a small patch for GPU inference, stream selection, and verification. It runs both full forward passes and uses the existing CPU reduction and bootstrap code. These commands prepare a fresh reference directory and run the original sample.
-
-```sh
-GPU_REFERENCE="$PWD/.codex/expert3-rocm-reference"
-mkdir "$GPU_REFERENCE"
-git archive 626772b -- veylith/v3 | tar -x -C "$GPU_REFERENCE"
-patch -d "$GPU_REFERENCE" -p1 < veylith/driver/expert3-python-rocm.patch
-nice -n 15 taskset -c 4,5 python -B "$GPU_REFERENCE/veylith/v3/analysis/expert3_study.py" \
-  --data-root "$DATA" --checkpoint "$CKPT" --threads 2 --out "$PYTHON_OUT"
-```
-
-For confirmation use `--sample confirmation` in Rust and `--fresh-sample` in Python. Use a fresh output path each time. Both comparators check the frozen input hashes, exact counts, and exact equality of the two forward passes at positions preceding the first replacement. Against the CPU reference, the absolute tolerance is **0.0001 nats** for each baseline mean, mean loss change, and endpoint of its 95% interval.
+For confirmation use `--sample confirmation`. Use a fresh output path each time. Both comparators check the frozen input hashes, exact counts, and exact equality of the two forward passes at positions preceding the first replacement. Against the CPU reference, the absolute tolerance is **0.0001 nats** for each baseline mean, mean loss change, and endpoint of its 95% interval.
 
 ## Paired GPU results
 

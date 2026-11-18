@@ -1,5 +1,7 @@
 # veylith v2
 
+The Python commands in this historical guide run on `archive/python-research`. [Browse the archived directory](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research/veylith/v2)
+
 > Research status: v2.x is an experimental MoE architecture research
 > prototype, not a trained, production-ready or generally usable language
 > model. Checkpoints are experiment artifacts. The v2 freeze tag is a

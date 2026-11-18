@@ -4,8 +4,8 @@ The scaling report identifies the Phase 4 environment as PyTorch `2.16.0.dev2026
 
 | Question | What the saved run establishes |
 |---|---|
-| Which interpreter and build? | The [launcher](version-isolation/run-scaling.sh) selects the Phase 4 interpreter. A warning in the [sparse log](logs/scaling_b64_e16k4_sparse.log) identifies the same environment's PyTorch installation. The version comes from the report. The failing process printed neither a wheel version nor a Git revision. |
-| Which cache setting? | The launcher passes the caller's environment through. Neither the launcher nor the [benchmark](benchmark.py) sets or records the variable. The log cannot distinguish an inherited override from an unset variable. |
+| Which interpreter and build? | The [launcher](https://github.com/VikingOwl91/VeylithAI/blob/be68c2c32e9629a14a5a6ae8329ca214ea639044/veylith/debug/version-isolation/run-scaling.sh) selects the Phase 4 interpreter. A warning in the [sparse log](logs/scaling_b64_e16k4_sparse.log) identifies the same environment's PyTorch installation. The version comes from the report. The failing process printed neither a wheel version nor a Git revision. |
+| Which cache setting? | The launcher passes the caller's environment through. Neither the launcher nor the [benchmark](https://github.com/VikingOwl91/VeylithAI/blob/be68c2c32e9629a14a5a6ae8329ca214ea639044/veylith/debug/benchmark.py) sets or records the variable. The log cannot distinguish an inherited override from an unset variable. |
 | What happened? | The [grid](version-isolation/scaling-results.txt) records one sparse exit 134 at batch 64 × 256, 16 experts, top-4. The sparse log reports a GPU page fault during a GEMM. The paired [dense run](logs/scaling_b64_e16k4_dense.log) completed at 215.61 ms per step. |
 
 ## Comparison with the cache experiments

@@ -2,7 +2,7 @@
 
 ## v1, v2 and Phase 4 · Tiny Shakespeare
 
-William Shakespeare wrote the plays. Andrej Karpathy distributed the Tiny Shakespeare compilation in the 2015 *char-rnn* project. Both trainers load this corpus, and the Phase 4 batch-delivery experiment used token IDs derived from it. The repository includes the text twice, in `v1/data/tinyshakespeare.txt` and `v2/data/tinyshakespeare.txt`, alongside tokenizer files and token-ID caches. The selection and evaluation offsets refer to the same text. [v1 trainer](v1/train.py) · [v2 trainer](v2/train.py) · [Phase 4 run](debug/batch-delivery.md)
+William Shakespeare wrote the plays. Andrej Karpathy distributed the Tiny Shakespeare compilation in the 2015 *char-rnn* project. Both trainers load this corpus, and the Phase 4 batch-delivery experiment used token IDs derived from it. The repository includes the text twice, in `v1/data/tinyshakespeare.txt` and `v2/data/tinyshakespeare.txt`, alongside tokenizer files and token-ID caches. The selection and evaluation offsets refer to the same text. [v1 trainer](https://github.com/VikingOwl91/VeylithAI/blob/be68c2c32e9629a14a5a6ae8329ca214ea639044/veylith/v1/train.py) · [v2 trainer](https://github.com/VikingOwl91/VeylithAI/blob/be68c2c32e9629a14a5a6ae8329ca214ea639044/veylith/v2/train.py) · [Phase 4 run](debug/batch-delivery.md)
 
 Both tracked texts match the upstream file at commit `370cbcd448eb7daf32f21a6be560b70e0b33c4e3` byte for byte by SHA-256, `86c4e6aa9db7c042ec79f339dcb96d42b0075e16b8fc2e86bf0ca57e2dc565ed`. This identifies the content even though the training scripts use a mutable download URL. [Pinned upstream text](https://github.com/karpathy/char-rnn/blob/370cbcd448eb7daf32f21a6be560b70e0b33c4e3/data/tinyshakespeare/input.txt)
 

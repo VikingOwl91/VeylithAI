@@ -1,5 +1,7 @@
 # Veylith v3.1-H isolated ROCm environment
 
+The Python commands in this historical guide run on `archive/python-research`. [Browse the archived directory](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research/veylith/v3/env)
+
 Status 2026-10-27. Installed, CPU-validated and GPU-smoke-validated. No
 training or sparse-MoE reproduction has been run.
 
