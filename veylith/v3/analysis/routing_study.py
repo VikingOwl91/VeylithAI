@@ -7,6 +7,7 @@ import json
 from pathlib import Path
 import platform
 import resource
+import shlex
 import subprocess
 import sys
 import time
@@ -195,7 +196,15 @@ def main():
         parser.error("routing ablation requires the frozen dense-combined model")
     def git(*cmd):
         return subprocess.check_output(["git", "-C", str(V3), *cmd], text=True).strip()
-    manifest = {"schema_version": 1, "experiment": "v31-update500-routing-ce", "update": 500,
+    command = ["python", "veylith/v3/analysis/routing_study.py", "--data-root", "$DATA",
+               "--checkpoint", "$CKPT", "--out", "$OUT", "--threads", str(args.threads)]
+    if layers:
+        command.extend(["--ablate", "--layers", *map(str, layers), "--seeds", *map(str, args.seeds)])
+    # The manifest uses relocatable artifact arguments. Keep shell expansion
+    # for these three named paths, while quoting all fixed arguments.
+    reproduction = " ".join('"' + arg + '"' if arg in {"$DATA", "$CKPT", "$OUT"} else shlex.quote(arg)
+                            for arg in command)
+    manifest = {"reproduction_command": reproduction, "schema_version": 1, "experiment": "v31-update500-routing-ce", "update": 500,
                 "git_commit": git("rev-parse", "HEAD"), "git_dirty": bool(git("status", "--porcelain")),
                 "config": model.cfg.to_dict(), "sha256": hashes, "split": "validation",
                 "sequences": sum(len(b["lengths"]) for _, b in batches),
