@@ -1,0 +1,64 @@
+~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+device: cuda (AMD Radeon RX 9070 XT)
+tokenizer: bpe | vocab 1000 | 492,841 tokens (2.26 chars/token)
+model: 25.60M total / ~25.59M compute per token (5 MoE layers x 8 experts, dense-combined, top-2 routing, GQA 8Q/2KV, SWA 128, full every 4, RoPE, SwiGLU, MTP x1)
+mixed precision: bfloat16
+iter     0 | loss 10.5037 | lr 3.00e-06 | 0.0 it/s | mem 0.4GB
+  eval | train loss 10.5029 | val loss 10.5033
+iter   100 | loss 7.6540 | lr 3.00e-04 | 4.0 it/s | mem 0.4GB
+iter   200 | loss 6.4275 | lr 2.97e-04 | 4.7 it/s | mem 0.4GB
+  eval | train loss 6.0014 | val loss 6.3689
+iter   300 | loss 5.8223 | lr 2.87e-04 | 4.4 it/s | mem 0.4GB
+iter   400 | loss 5.5420 | lr 2.71e-04 | 4.7 it/s | mem 0.4GB
+iter   500 | loss 5.0520 | lr 2.49e-04 | 4.9 it/s | mem 0.4GB
+  eval | train loss 4.8881 | val loss 6.0477
+iter   600 | loss 4.8885 | lr 2.24e-04 | 4.9 it/s | mem 0.4GB
+iter   700 | loss 4.4813 | lr 1.95e-04 | 5.0 it/s | mem 0.4GB
+  eval | train loss 3.9908 | val loss 6.2290
+iter   800 | loss 4.3083 | lr 1.65e-04 | 5.0 it/s | mem 0.4GB
+iter   900 | loss 4.0980 | lr 1.35e-04 | 5.1 it/s | mem 0.4GB
+iter  1000 | loss 3.9463 | lr 1.06e-04 | 5.2 it/s | mem 0.4GB
+  eval | train loss 3.3567 | val loss 6.4714
+iter  1100 | loss 3.7635 | lr 8.08e-05 | 5.1 it/s | mem 0.4GB
+iter  1200 | loss 3.6276 | lr 5.95e-05 | 5.2 it/s | mem 0.4GB
+  eval | train loss 2.9813 | val loss 6.6677
+iter  1300 | loss 3.5632 | lr 4.34e-05 | 5.1 it/s | mem 0.4GB
+iter  1400 | loss 3.4602 | lr 3.34e-05 | 5.2 it/s | mem 0.4GB
+iter  1499 | loss 3.3975 | lr 3.00e-05 | 5.2 it/s | mem 0.4GB
+  eval | train loss 2.7944 | val loss 6.7650
+
+saved checkpoint -> checkpoints/ckpt_dense.pt (best val loss 6.0477)
+
+--- sample generation (prompt: 'ROMEO:') ---
+ROMEO: let away;
+But if thou w, me you not.
+
+FRIARAURENCE
+Tou fire'st me, that's for me again.
+
+R:
+H now,,am, dost thouear, you'll be putdle in my guers
+This change silence boys with a murderer,
+My lashsrew hym'd, brave's, die,
+offter hands in fools.
+
+LAD CULET:
+H! the gound is here the d ofps of heart!And my life
+Hath that spend into the tnccsin that love
+That do not a lle cause.
+
+CULET:
+Ay, my lord
+
+LDY CAPULET:
+I not much inturn!
+Being a pale, why now bid me hear my word:
+o, with this whilst, that hast thou sp me noower.
+
+CUET:
+W, what's the trespass of our l?
+
+BAPTISTA
+OWIAA:
+To make a word of

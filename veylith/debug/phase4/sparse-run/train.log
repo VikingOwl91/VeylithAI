@@ -1,0 +1,79 @@
+~/veylith-debug-venvs/phase4/lib/python3.14/site-packages/torch/_subclasses/functional_tensor.py:377: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at /__w/pytorch/pytorch/torch/csrc/utils/tensor_numpy.cpp:82.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+device: cuda (AMD Radeon RX 9070 XT)
+tokenizer: bpe | vocab 1000 | 492,841 tokens (2.26 chars/token)
+model: 25.60M total / ~9.88M active per token (5 MoE layers x 8 experts, top-2, GQA 8Q/2KV, SWA 128, full every 4, RoPE, SwiGLU, MTP x1)
+mixed precision: bfloat16
+iter     0 | loss 10.5043 | lr 3.00e-06 | 0.0 it/s | mem 0.4GB
+  eval | train loss 10.5029 | val loss 10.5033
+iter   100 | loss 7.6545 | lr 3.00e-04 | 4.2 it/s | mem 0.4GB
+iter   200 | loss 6.4272 | lr 2.97e-04 | 5.3 it/s | mem 0.4GB
+  eval | train loss 5.9887 | val loss 6.3510
+iter   300 | loss 5.8293 | lr 2.87e-04 | 5.0 it/s | mem 0.4GB
+iter   400 | loss 5.5366 | lr 2.71e-04 | 5.5 it/s | mem 0.4GB
+iter   500 | loss 5.0470 | lr 2.49e-04 | 5.7 it/s | mem 0.4GB
+  eval | train loss 4.8887 | val loss 6.0385
+iter   600 | loss 4.8995 | lr 2.24e-04 | 5.6 it/s | mem 0.4GB
+iter   700 | loss 4.4746 | lr 1.95e-04 | 5.8 it/s | mem 0.4GB
+  eval | train loss 3.9945 | val loss 6.2267
+iter   800 | loss 4.3077 | lr 1.65e-04 | 5.7 it/s | mem 0.4GB
+iter   900 | loss 4.0899 | lr 1.35e-04 | 5.9 it/s | mem 0.4GB
+iter  1000 | loss 3.9306 | lr 1.06e-04 | 6.0 it/s | mem 0.4GB
+  eval | train loss 3.3518 | val loss 6.4771
+iter  1100 | loss 3.7555 | lr 8.08e-05 | 5.9 it/s | mem 0.4GB
+iter  1200 | loss 3.6263 | lr 5.95e-05 | 6.0 it/s | mem 0.4GB
+  eval | train loss 2.9823 | val loss 6.6687
+iter  1300 | loss 3.5616 | lr 4.34e-05 | 5.9 it/s | mem 0.4GB
+iter  1400 | loss 3.4465 | lr 3.34e-05 | 6.0 it/s | mem 0.4GB
+iter  1499 | loss 3.3815 | lr 3.00e-05 | 6.0 it/s | mem 0.4GB
+  eval | train loss 2.7876 | val loss 6.7765
+
+saved checkpoint -> checkpoints/ckpt_sparse.pt (best val loss 6.0385)
+
+--- sample generation (prompt: 'ROMEO:') ---
+ROMEO:
+Ponder for s, sir! I would do you see youreat
+of the duke
+reports.
+
+LUCIO:
+he' hear you well.
+
+ESCLUS:
+I know a you?
+
+Prov:
+No, sir, a fow.
+
+ROMEO:I'll you.
+
+ESCAUS:
+, then
+So the mter, sir, she shall stalk of you.
+
+LIO
+I'll go:
+O, bpelad whatsoever you do, sir?
+
+ETRUCHIO
+ISABELL:
+Sirra, good brother, my lord.
+
+DUKE VINCENTIO:
+e, and your turns my business.
+
+UKE VINCENTIO:
+What' your will?
+
+ESCALUS
+No,; good,.
+D you not, sir?
+
+POME:
+ow sir, but you will, sir in what to, sir?
+
+UKE:
+Why, then, is a condemned pispose me to my counsel?
+ESCALUS:
+I have a matter in the corse, and beech you; I, I'll bear
+conurpsion;
