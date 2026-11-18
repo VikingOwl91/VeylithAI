@@ -123,3 +123,9 @@ v3.0 is data infrastructure, not a model. The first pilot materialized
 2000 FineWeb-Edu documents (1.92M tokens, eight shards, 8192-token BPE) on
 CPU, with a manifest digest, shard hashes and deep verification. Numbers,
 limitations and the 10M-token plan are in `v3/STATUS-2026-10-26.md`.
+
+## License and training data
+
+You may redistribute and modify Veylith's original software under the GNU General Public License, version 3 or (at your option) any later version (`GPL-3.0-or-later`). The full terms are in [LICENSE](../LICENSE).
+
+Training text, tokenized copies and third-party reference configurations retain their respective upstream terms. The v1 and v2 checkpoints are experimental artifacts. This project grants no separate license for the checkpoint weights or trained tokenizer models at this time. See [training data origins and licenses](TRAINING-DATA.md) for dataset attribution, tracked copies and the sources used by each generation.
