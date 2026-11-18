@@ -1,2 +1,9 @@
 __pycache__/
 *.pyc
+
+.codex/
+
+# Local ROCm traces and generated Phase 4 training artifacts
+/veylith/.rocprofv3/
+/veylith/debug/phase4/*-run/checkpoints/
+/veylith/debug/phase4/*-run/data/
