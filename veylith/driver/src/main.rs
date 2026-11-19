@@ -1,4 +1,5 @@
 mod inputs;
+mod matched;
 mod model;
 mod stats;
 
@@ -21,14 +22,17 @@ enum Sample {
 }
 
 impl Sample {
-    fn reference(self) -> Value {
-        let report = match self {
+    fn reference_text(self) -> &'static str {
+        match self {
             Self::Original => include_str!("../../v3/docs/routing-expert3-update500.json"),
             Self::Confirmation => {
                 include_str!("../../v3/docs/routing-expert3-update500-confirmation.json")
             }
-        };
-        serde_json::from_str(report).expect("invalid bundled expert 3 report")
+        }
+    }
+
+    fn reference(self) -> Value {
+        serde_json::from_str(self.reference_text()).expect("invalid bundled expert 3 report")
     }
 
     fn name(self) -> &'static str {
@@ -41,6 +45,14 @@ impl Sample {
 
 /// Float metrics are in nats. Counts, hashes and same-device controls remain exact.
 const GPU_CE_ATOL: f64 = 1e-4;
+
+#[derive(Clone, Copy, PartialEq, ValueEnum)]
+enum Study {
+    /// Replace expert 3 at every eligible punctuation piece.
+    Expert3,
+    /// Compare separate, single-position substitutions on matched punctuation and words.
+    Matched,
+}
 
 #[derive(Clone, Copy, PartialEq, ValueEnum)]
 enum Backend {
@@ -91,6 +103,11 @@ impl Backend {
     about = "Evaluate and verify the frozen expert 3 study in Rust"
 )]
 struct Args {
+    #[arg(long, value_enum, default_value = "expert3")]
+    study: Study,
+    /// Publish the matched study's eligibility and balance without evaluating losses.
+    #[arg(long)]
+    coverage_only: bool,
     #[arg(long, value_enum, default_value = "cpu")]
     device: Backend,
     #[arg(long, value_enum, default_value = "original")]
@@ -139,6 +156,10 @@ fn source_hashes() -> Value {
         ("veylith/driver/build.rs", include_bytes!("../build.rs")),
         ("veylith/driver/src/main.rs", include_bytes!("main.rs")),
         ("veylith/driver/src/inputs.rs", include_bytes!("inputs.rs")),
+        (
+            "veylith/driver/src/matched.rs",
+            include_bytes!("matched.rs"),
+        ),
         ("veylith/driver/src/model.rs", include_bytes!("model.rs")),
         #[cfg(feature = "rocm")]
         ("veylith/driver/src/rocm.cpp", include_bytes!("rocm.cpp")),
@@ -227,7 +248,124 @@ fn verify_report(report: &Value, reference: &Value, backend: Backend) -> Result<
     Ok(())
 }
 
+fn expert3_report(
+    model: &model::Model,
+    batches: &[inputs::Batch],
+    reference: &Value,
+) -> Result<(Value, Instant)> {
+    let mut stats = stats::Stats::new();
+    for (index, batch) in batches.iter().enumerate() {
+        let result = model.evaluate_batch(&batch.tokens, &batch.punctuation)?;
+        stats.add_batch(
+            &result.ordinary,
+            &result.altered,
+            &batch.punctuation,
+            &result.eligible,
+            &result.substitute,
+        )?;
+        let number = index + 1;
+        if number == 1 || number % 5 == 0 {
+            eprintln!("Batch {number}/{} complete", batches.len());
+        }
+    }
+    let inferred = Instant::now();
+    let mut report = stats.finish()?;
+    report["baseline_reference_exact"] = json!(
+        ["all", "sentence_end"]
+            .iter()
+            .all(|name| report["outcomes"][name]["baseline_ce"]
+                == reference["outcomes"][name]["baseline_ce"])
+    );
+    for field in ["experiment", "primary", "delta", "bootstrap"] {
+        report[field] = reference[field].clone();
+    }
+    Ok((report, inferred))
+}
+
+fn matched_report(
+    model: &model::Model,
+    batches: &[inputs::Batch],
+    reference: &Value,
+    coverage_only: bool,
+) -> Result<(Value, Instant)> {
+    let mut selections = Vec::with_capacity(batches.len());
+    for batch in batches {
+        let (ids, confidence) = model.ordinary_routes(&batch.tokens)?;
+        let selection = matched::select_pairs(&batch.punctuation, &batch.words, &ids, &confidence)?;
+        selections.push(selection);
+    }
+    let adequate = matched::coverage_adequate(&selections)?;
+    let mut coverage = matched::coverage_report(&selections)?;
+    eprintln!(
+        "Pre-outcome matched coverage by source: {}",
+        coverage["by_source"]
+    );
+    let (mut report, inferred) = if !adequate || coverage_only {
+        coverage["baseline_all_targets"] = json!(0);
+        coverage["baseline_all_ce"] = Value::Null;
+        coverage["matched_effects"] = Value::Null;
+        coverage["unaffected_prefix_ce_exact"] = Value::Null;
+        (coverage, Instant::now())
+    } else {
+        let mut stats = matched::MatchedStats::new();
+        for (index, (batch, selection)) in batches.iter().zip(&selections).enumerate() {
+            let loss = model.evaluate_matched(
+                &batch.tokens,
+                &selection.punctuation_mask,
+                &selection.word_mask,
+            )?;
+            stats.add_batch(selection, &loss.ordinary, &loss.punctuation, &loss.word)?;
+            let number = index + 1;
+            if number == 1 || number % 5 == 0 {
+                eprintln!("Matched batch {number}/{} complete", batches.len());
+            }
+        }
+        let inferred = Instant::now();
+        (stats.finish()?, inferred)
+    };
+    if report["support_adequate"] != json!(adequate) {
+        return Err("inconsistent matched cohort support".into());
+    }
+    let scored = adequate && !coverage_only;
+    if scored
+        && (report["baseline_all_ce"] != reference["outcomes"]["all"]["baseline_ce"]
+            || report["baseline_all_targets"] != reference["outcomes"]["all"]["targets"]
+            || report["unaffected_prefix_ce_exact"] != true
+            || report["matched_effects"].is_null())
+    {
+        return Err(
+            "matched study failed the frozen all-target baseline, prefix or effect check".into(),
+        );
+    }
+    if !scored
+        && (!report["matched_effects"].is_null()
+            || !report["baseline_all_ce"].is_null()
+            || !report["unaffected_prefix_ce_exact"].is_null())
+    {
+        return Err("unexpected loss measurements in a coverage-only report".into());
+    }
+    report["baseline_reference_exact"] = if scored { json!(true) } else { Value::Null };
+    report["scored"] = json!(scored);
+    report["stage"] = json!(if scored {
+        "matched_losses"
+    } else if !adequate {
+        "insufficient_support"
+    } else {
+        "coverage_only"
+    });
+    report["experiment"] = json!("v31-expert3-matched-punctuation-word");
+    report["primary"] =
+        json!("punctuation minus matched word in substitution-induced next-token CE change");
+    Ok((report, inferred))
+}
+
 fn run(args: Args, started: Instant) -> Result<()> {
+    if args.study == Study::Matched && args.device != Backend::Cpu {
+        return Err("the matched study requires --device cpu".into());
+    }
+    if args.coverage_only && args.study != Study::Matched {
+        return Err("--coverage-only requires --study matched".into());
+    }
     if args.out.try_exists()? {
         return Err("output already exists; choose a new report path".into());
     }
@@ -269,40 +407,17 @@ fn run(args: Args, started: Instant) -> Result<()> {
     )?;
     scratch.close()?;
     let loaded = Instant::now();
-    let mut stats = stats::Stats::new();
-    for (index, (tokens, punctuation)) in batches.iter().enumerate() {
-        let batch = model.evaluate_batch(tokens, punctuation)?;
-        stats.add_batch(
-            &batch.ordinary,
-            &batch.altered,
-            punctuation,
-            &batch.eligible,
-            &batch.substitute,
-        )?;
-        let number = index + 1;
-        if number == 1 || number % 5 == 0 {
-            eprintln!("Batch {number}/{} complete", batches.len());
-        }
-    }
-    let inferred = Instant::now();
-    let mut report = stats.finish()?;
+    let (mut report, inferred) = match args.study {
+        Study::Expert3 => expert3_report(&model, &batches, &reference)?,
+        Study::Matched => matched_report(&model, &batches, &reference, args.coverage_only)?,
+    };
     let evaluated = Instant::now();
-    report["baseline_reference_exact"] = json!(
-        ["all", "sentence_end"]
-            .iter()
-            .all(|name| report["outcomes"][name]["baseline_ce"]
-                == reference["outcomes"][name]["baseline_ce"])
-    );
-    // Frozen study parameters are shared. All outcome fields come from the current run.
+    // Both studies use the same frozen model, validation corpus and sample selection.
     for field in [
-        "experiment",
         "config",
         "update",
         "layer",
         "split",
-        "primary",
-        "delta",
-        "bootstrap",
         "sample_batch_offset_per_source",
     ] {
         report[field] = reference[field].clone();
@@ -315,6 +430,13 @@ fn run(args: Args, started: Instant) -> Result<()> {
     report["source_sha256_path_base"] = json!("repository root");
     report["source_sha256"] = source_hashes();
     report["sha256"] = hashes;
+    if args.study == Study::Matched {
+        report["sample"] = json!(args.sample.name());
+        report["baseline_report_sha256"] = json!(format!(
+            "{:x}",
+            Sha256::digest(args.sample.reference_text().as_bytes())
+        ));
+    }
     report["runtime"] = json!({
         "evaluator": "rust", "rustc": option_env!("DRIVER_RUSTC"), "tch": "0.27.0",
         "libtorch_target": "2.15.0", "device": args.device.name(), "dtype": "float32",
@@ -325,8 +447,13 @@ fn run(args: Args, started: Instant) -> Result<()> {
         report["runtime"]["roc_global_cu_mask"] = json!(std::env::var("ROC_GLOBAL_CU_MASK").ok());
         report["verification_ce_absolute_tolerance"] = json!(GPU_CE_ATOL);
     }
+    let mode = match (args.study, args.coverage_only) {
+        (Study::Expert3, _) => "",
+        (Study::Matched, false) => " --study matched",
+        (Study::Matched, true) => " --study matched --coverage-only",
+    };
     report["reproduction_command"] = json!(format!(
-        "veylith-driver --device {} --sample {} --data-root \"$DATA\" --checkpoint \"$CKPT\" --out \"$OUT\"",
+        "veylith-driver{mode} --device {} --sample {} --data-root \"$DATA\" --checkpoint \"$CKPT\" --out \"$OUT\"",
         if args.device == Backend::Rocm {
             "rocm"
         } else {
@@ -335,7 +462,9 @@ fn run(args: Args, started: Instant) -> Result<()> {
         args.sample.name()
     ));
     report["elapsed_seconds"] = json!(started.elapsed().as_secs_f64());
-    if let Err(err) = verify_report(&report, &reference, args.device) {
+    if args.study == Study::Expert3
+        && let Err(err) = verify_report(&report, &reference, args.device)
+    {
         if args.device == Backend::Rocm {
             eprintln!("Unverified GPU report: {report}");
         }
@@ -349,7 +478,7 @@ fn run(args: Args, started: Instant) -> Result<()> {
     println!(
         "{}",
         json!({
-            "experiment": reference["experiment"], "sample": args.sample.name(), "verified": true,
+            "experiment": report["experiment"], "sample": args.sample.name(), "verified": true,
             "preflight_seconds": (inputs_verified - started).as_secs_f64(),
             "evaluator_seconds": (evaluated - inputs_verified).as_secs_f64(),
             "load_seconds": (loaded - inputs_verified).as_secs_f64(),
@@ -376,6 +505,34 @@ fn main() -> ExitCode {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn matched_options_reject_invalid_combinations_before_loading_inputs() {
+        let run_with = |options: &[&str]| {
+            let args = Args::parse_from(
+                [
+                    "veylith-driver",
+                    "--data-root",
+                    "unused",
+                    "--checkpoint",
+                    "unused",
+                    "--out",
+                    "unused",
+                ]
+                .into_iter()
+                .chain(options.iter().copied()),
+            );
+            run(args, Instant::now()).unwrap_err().to_string()
+        };
+        assert_eq!(
+            run_with(&["--study", "matched", "--device", "rocm"]),
+            "the matched study requires --device cpu"
+        );
+        assert_eq!(
+            run_with(&["--coverage-only"]),
+            "--coverage-only requires --study matched"
+        );
+    }
 
     #[test]
     fn checks_the_selected_sample_and_each_outcome() {

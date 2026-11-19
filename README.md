@@ -1,6 +1,6 @@
 # Veylith
 
-Veylith is a family of small language models trained from scratch to study a practical question: when does routing tokens to different experts improve prediction? The project started with Transformer baselines on Tiny Shakespeare and grew into multi-source pretraining experiments on a single AMD Radeon RX 9070 XT. The active branch, `main`, uses a native Rust evaluator for the frozen expert 3 routing experiment. It includes the experimental checkpoints and the measurements behind the results.
+Veylith is a family of small language models trained from scratch to study a practical question: when does routing tokens to different experts improve prediction? The project started with Transformer baselines on Tiny Shakespeare and grew into multi-source pretraining experiments on a single AMD Radeon RX 9070 XT. The active branch, `main`, uses Rust to evaluate frozen routing decisions, check MoE training arithmetic and train a small dense Transformer. It includes the experimental checkpoints and the measurements behind the results.
 
 ## Run the Rust evaluator
 
@@ -23,7 +23,7 @@ CPU is the default. On supported AMD systems, build with the `rocm` feature and 
 
 ## Python research archive
 
-Use `main` for daily development. The `archive/python-research` branch preserves the original Python evaluator, v1/v2 checkpoint sampling, training, corpus preparation and historical tests. To reproduce one of those workflows, run `git switch archive/python-research` from a clean checkout, then `git switch main` to return to Rust. The Rust CLI currently covers expert 3 evaluation. Earlier training runs and their data licenses remain documented here. [Python archive and quickstart](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research)
+Use `main` for daily development. The `archive/python-research` branch preserves the original Python evaluator, v1/v2 checkpoint sampling, training, corpus preparation and historical tests. To reproduce one of those workflows, run `git switch archive/python-research` from a clean checkout, then `git switch main` to return to Rust. The Rust workspace includes the expert 3 evaluator, a one-step E16/K4 CPU check and a plain dense Transformer trained on the same token budget as v3.1-L. Earlier training runs and their data licenses remain documented here. [Rust training comparisons](veylith/README.md#rust-training-comparisons) · [Python archive and quickstart](https://github.com/VikingOwl91/VeylithAI/tree/archive/python-research)
 
 ## What the routing experiment found
 

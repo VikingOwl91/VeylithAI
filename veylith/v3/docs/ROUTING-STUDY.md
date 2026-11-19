@@ -110,3 +110,16 @@ Each first-replacement estimate uses 240 targets. At those positions the two run
 The native Rust CPU evaluator reproduced both frozen Python reports’ counts, loss estimates and bootstrap intervals exactly. On the Radeon RX 9070 XT, Rust and Python agreed exactly with each other across all eight runs. Both reproduced the CPU substitution counts and preserved identical losses before each sequence’s first replacement. The largest absolute difference from the CPU references across all reported CE means, deltas and interval endpoints was **8.42 × 10⁻⁷ nats**, within the prespecified tolerance of 0.0001 nats. [CPU benchmark](../../driver/expert3-native-benchmark.json) · [GPU benchmark](../../driver/expert3-rocm-benchmark.json)
 
 Mean time from startup through verified output and exit fell from **327.9 s on CPU to 64.0 s on GPU** for Rust, a **5.12× speedup**. Python averaged **76.9 s on GPU**. With HIP’s lowest stream priority and the `0xff` compute mask, at least **7.83 GiB of VRAM** was free at every reading. The Wayland probe’s 95th-percentile frame interval was **10.009 ms** before testing and in each run. Its longest interval was **30.018 ms** during testing, compared with **10.011 ms** during the 12-second baseline. [Per-run timings and measurement protocol](../../driver/README.md#paired-gpu-results)
+
+## Expert 3 at matched punctuation and word pieces
+
+Does expert 3 contribute more at punctuation than at nearby word pieces that the router also assigns to it? On each frozen sample, the Rust evaluator paired at most one punctuation piece with one ASCII-letter piece in the same sequence, using ordinary routing, position and router confidence. It then replaced expert 3 at each member of the pair in a separate forward pass. Each arm measured the change in next-token CE at its selected position. The paired contrast subtracts the word change from the punctuation change. [Selection rule, minimum support and bootstrap](EXPERT3-MATCHED-PROTOCOL.md)
+
+| Update-500 sample | Matched sequences | Extra CE at punctuation | Extra CE at words | Punctuation minus word, nats (paired 95% interval) |
+|---|---:|---:|---:|---:|
+| [Original](expert3-matched-update500.json) | 233 / 240 | +0.14971 | +0.23475 | **−0.08504** (−0.20463 to +0.04061) |
+| [Confirmation](expert3-matched-update500-confirmation.json) | 231 / 240 | +0.18241 | +0.17258 | **+0.00983** (−0.10030 to +0.11915) |
+
+Replacing expert 3 raised loss for both token classes on both samples. The paired intervals both include zero and the point estimates changed sign. The measurements support a predictive benefit at the matched positions in both classes. A larger benefit at punctuation remains unestablished.
+
+The original sample contributed 77, 79 and 77 matched sequences from Cosmopedia v2, FineWeb-Edu and Wikipedia. Confirmation contributed 75, 76 and 80. Both samples passed the coverage thresholds. Ordinary CE matched the frozen reference exactly across all 122,640 targets in each sample, as did the losses before each replacement. Both runs used the same CPU binary (SHA-256 `e5a5b3c519a19f66dcc6db70a27b00e2caa5486f01e3ab44477e600750f970ea`) and fixed matching protocol (SHA-256 `648252f870325eae0af728dbc8916418995c1e2ca6b1ff5b7065c9953e92bfe1`).

@@ -178,7 +178,7 @@ impl Stats {
     }
 }
 
-fn quantile(sorted: &[f64], probability: f64) -> f64 {
+pub(crate) fn quantile(sorted: &[f64], probability: f64) -> f64 {
     let at = probability * (sorted.len() - 1) as f64;
     let lower = sorted[at.floor() as usize];
     let upper = sorted[at.ceil() as usize];
@@ -191,13 +191,13 @@ fn quantile(sorted: &[f64], probability: f64) -> f64 {
     }
 }
 
-struct BootstrapRng {
+pub(crate) struct BootstrapRng {
     state: u128,
     upper_word: Option<u32>,
 }
 
 impl BootstrapRng {
-    fn new() -> Self {
+    pub(crate) fn new() -> Self {
         // Initial state of numpy.random.default_rng(20261118).bit_generator.
         // The frozen experiment uses a single seed across all 1,000 draws.
         Self {
@@ -222,7 +222,7 @@ impl BootstrapRng {
         value as u32
     }
 
-    fn draw(&mut self) -> [usize; SOURCES * PER_SOURCE] {
+    pub(crate) fn draw(&mut self) -> [usize; SOURCES * PER_SOURCE] {
         std::array::from_fn(|i| {
             // Lemire bounded sampling; reject the incomplete low interval.
             let width = PER_SOURCE as u32;

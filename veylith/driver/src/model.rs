@@ -24,6 +24,12 @@ pub struct BatchResult {
     pub substitute: Tensor,
 }
 
+pub struct MatchedLosses {
+    pub ordinary: Tensor,
+    pub punctuation: Tensor,
+    pub word: Tensor,
+}
+
 pub struct Model {
     embedding: Tensor,
     dense_block: Block<SwiGlu>,
@@ -268,17 +274,29 @@ impl Mixture {
     ) -> Result<(Tensor, Tensor, Intervention)> {
         let flat = input.reshape([-1, WIDTH]);
         let route = replace_expert3(&linear(&flat, &self.gate), punctuation)?;
-        let mut ordinary = flat.zeros_like();
-        let mut altered = flat.zeros_like();
-        // The intervention changes only the two routing weights at this layer.
-        // Evaluate each expert once and preserve the reference summation order in both arms.
-        for (i, expert) in self.experts.iter().enumerate() {
-            let value = expert.forward(&flat);
-            ordinary += route.ordinary_weights.narrow(1, i as i64, 1) * &value;
-            altered += route.altered_weights.narrow(1, i as i64, 1) * &value;
-        }
+        let [ordinary, altered] =
+            self.combine(&flat, [&route.ordinary_weights, &route.altered_weights]);
         Ok((ordinary.view_as(input), altered.view_as(input), route))
     }
+
+    fn combine<const N: usize>(&self, flat: &Tensor, weights: [&Tensor; N]) -> [Tensor; N] {
+        let mut outputs = std::array::from_fn(|_| flat.zeros_like());
+        // Every arm starts from the same expert values in the same summation order.
+        for (i, expert) in self.experts.iter().enumerate() {
+            let value = expert.forward(flat);
+            for (output, weight) in outputs.iter_mut().zip(weights) {
+                *output += weight.narrow(1, i as i64, 1) * &value;
+            }
+        }
+        outputs
+    }
+}
+
+fn check_mask(mask: &Tensor) -> Result<()> {
+    if mask.size() != [BATCH, STEPS] || mask.kind() != Kind::Bool || mask.device() != Device::Cpu {
+        return Err("expected a CPU bool mask [8,511]".into());
+    }
+    Ok(())
 }
 
 impl Model {
@@ -319,25 +337,18 @@ impl Model {
             .view([BATCH, STEPS])
     }
 
-    pub fn evaluate_batch(&self, tokens: &Tensor, punctuation: &Tensor) -> Result<BatchResult> {
-        let _no_grad = tch::no_grad_guard();
+    fn prepare_first_moe(&self, tokens: &Tensor) -> Result<(Tensor, Tensor, Tensor)> {
         if tokens.size() != [BATCH, CONTEXT]
             || tokens.kind() != Kind::Int64
             || tokens.device() != Device::Cpu
-            || punctuation.size() != [BATCH, STEPS]
-            || punctuation.kind() != Kind::Bool
-            || punctuation.device() != Device::Cpu
         {
-            return Err(
-                "expected CPU int64 tokens [8,512] and bool punctuation mask [8,511]".into(),
-            );
+            return Err("expected CPU int64 tokens [8,512]".into());
         }
         if tokens.min().int64_value(&[]) < 0 || tokens.max().int64_value(&[]) >= VOCAB {
             return Err("token ID outside the frozen model vocabulary".into());
         }
         let device = self.embedding.device();
         let tokens = tokens.to_device(device);
-        let punctuation = punctuation.to_device(device);
         let inputs = tokens.narrow(1, 0, STEPS);
         let targets = tokens.narrow(1, 1, STEPS).reshape([-1]);
         let embedding = Tensor::embedding(&self.embedding, &inputs, -1, false, false);
@@ -345,6 +356,29 @@ impl Model {
         let hidden = residual + self.dense_block.mlp.forward(&input);
         let first_moe = &self.routed_blocks[0];
         let (residual, input) = first_moe.prepare_mlp(&hidden, &self.positions);
+        Ok((residual, input, targets))
+    }
+
+    pub fn ordinary_routes(&self, tokens: &Tensor) -> Result<(Tensor, Tensor)> {
+        let _no_grad = tch::no_grad_guard();
+        let (_, input, _) = self.prepare_first_moe(tokens)?;
+        let logits = linear(&input.reshape([-1, WIDTH]), &self.routed_blocks[0].mlp.gate);
+        let (scores, ids) = logits.topk(2, -1, true, true);
+        let confidence = scores.softmax(-1, Kind::Float).select(1, 0);
+        Ok((
+            ids.select(1, 0)
+                .reshape([BATCH, STEPS])
+                .to_device(Device::Cpu),
+            confidence.reshape([BATCH, STEPS]).to_device(Device::Cpu),
+        ))
+    }
+
+    pub fn evaluate_batch(&self, tokens: &Tensor, punctuation: &Tensor) -> Result<BatchResult> {
+        let _no_grad = tch::no_grad_guard();
+        check_mask(punctuation)?;
+        let (residual, input, targets) = self.prepare_first_moe(tokens)?;
+        let punctuation = punctuation.to_device(self.embedding.device());
+        let first_moe = &self.routed_blocks[0];
         let (ordinary, altered, route) = first_moe.mlp.intervene(&input, &punctuation)?;
         Ok(BatchResult {
             ordinary: self
@@ -355,6 +389,52 @@ impl Model {
                 .to_device(Device::Cpu),
             eligible: route.eligible.to_device(Device::Cpu),
             substitute: route.substitute.to_device(Device::Cpu),
+        })
+    }
+
+    pub fn evaluate_matched(
+        &self,
+        tokens: &Tensor,
+        punctuation: &Tensor,
+        words: &Tensor,
+    ) -> Result<MatchedLosses> {
+        let _no_grad = tch::no_grad_guard();
+        if self.embedding.device() != Device::Cpu {
+            return Err("the matched study requires CPU float32".into());
+        }
+        check_mask(punctuation)?;
+        check_mask(words)?;
+        let per_row = |m: &Tensor| m.sum_dim_intlist(&[1i64][..], false, Kind::Int64);
+        let punct_counts = per_row(punctuation);
+        if !punct_counts.equal(&per_row(words))
+            || punct_counts.max().int64_value(&[]) > 1
+            || punctuation.logical_and(words).any().int64_value(&[]) != 0
+        {
+            return Err("expected two distinct singleton locations per matched sequence".into());
+        }
+        let (residual, input, targets) = self.prepare_first_moe(tokens)?;
+        let flat = input.reshape([-1, WIDTH]);
+        let mixture = &self.routed_blocks[0].mlp;
+        let logits = linear(&flat, &mixture.gate);
+        let punct_route = replace_expert3(&logits, punctuation)?;
+        let word_route = replace_expert3(&logits, words)?;
+        if !punct_route.eligible.equal(punctuation) || !word_route.eligible.equal(words) {
+            return Err("a matched location no longer has ordinary top-1 expert 3".into());
+        }
+        let [ordinary, punct, word] = mixture.combine(
+            &flat,
+            [
+                &punct_route.ordinary_weights,
+                &punct_route.altered_weights,
+                &word_route.altered_weights,
+            ],
+        );
+        let loss =
+            |output: Tensor| self.continuation_loss(&residual + output.view_as(&input), &targets);
+        Ok(MatchedLosses {
+            ordinary: loss(ordinary),
+            punctuation: loss(punct),
+            word: loss(word),
         })
     }
 }

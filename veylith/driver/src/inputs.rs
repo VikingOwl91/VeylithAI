@@ -145,6 +145,17 @@ fn punctuation(piece: &str) -> bool {
     piece.contains(['.', '!', '?']) && !(piece.starts_with('<') && piece.ends_with('>'))
 }
 
+fn word_control(piece: &str) -> bool {
+    let core = piece.strip_prefix('▁').unwrap_or(piece);
+    !core.is_empty() && core.bytes().all(|ch| ch.is_ascii_alphabetic())
+}
+
+pub struct Batch {
+    pub tokens: Tensor,
+    pub punctuation: Tensor,
+    pub words: Tensor,
+}
+
 // These frozen shards are NumPy v1 vectors of little-endian unsigned 16-bit IDs.
 fn npy_payload(file: &[u8], tokens: usize) -> Result<&[u8]> {
     if file.len() < 10 || &file[..8] != b"\x93NUMPY\x01\x00" {
@@ -170,16 +181,16 @@ pub fn load_batches(
     root: &Path,
     confirmation: bool,
     expected_sample_sha: &str,
-) -> Result<Vec<(Tensor, Tensor)>> {
+) -> Result<Vec<Batch>> {
     let corpus = root.join("corpus");
     let manifest: Manifest = serde_json::from_reader(File::open(corpus.join("manifest.json"))?)?;
     let vocabulary = Vocabulary::decode(
         fs::read(corpus.join(manifest.tokenization.tokenizer.model))?.as_slice(),
     )?;
-    let is_punctuation: Vec<bool> = vocabulary
+    let labels: Vec<(bool, bool)> = vocabulary
         .pieces
         .iter()
-        .map(|p| punctuation(&p.text))
+        .map(|p| (punctuation(&p.text), word_control(&p.text)))
         .collect();
     let split = manifest
         .tokenization
@@ -241,26 +252,31 @@ pub fn load_batches(
             .0
         {
             let mut tokens = Vec::with_capacity(BATCH_SIZE * SEQ_LEN);
-            let mut mask = Vec::with_capacity(BATCH_SIZE * (SEQ_LEN - 1));
+            let mut punctuation_mask = Vec::with_capacity(BATCH_SIZE * (SEQ_LEN - 1));
+            let mut word_mask = Vec::with_capacity(BATCH_SIZE * (SEQ_LEN - 1));
             for row in batch.as_chunks::<BYTES_PER_SEQUENCE>().0 {
                 if confirmation && original_rows.contains(row) {
                     return Err("confirmation sample overlaps the original sample".into());
                 }
                 for (pos, &word) in row.as_chunks::<2>().0.iter().enumerate() {
                     let id = u16::from_le_bytes(word);
-                    let punct = *is_punctuation
+                    let &(punct, word) = labels
                         .get(usize::from(id))
                         .ok_or("token ID outside vocabulary")?;
                     tokens.push(i64::from(id));
                     if pos + 1 < SEQ_LEN {
-                        mask.push(punct);
+                        punctuation_mask.push(punct);
+                        word_mask.push(word);
                     }
                 }
             }
-            batches.push((
-                Tensor::f_from_slice(&tokens)?.f_view([BATCH_SIZE as i64, SEQ_LEN as i64])?,
-                Tensor::f_from_slice(&mask)?.f_view([BATCH_SIZE as i64, SEQ_LEN as i64 - 1])?,
-            ));
+            let shape = [BATCH_SIZE as i64, SEQ_LEN as i64 - 1];
+            batches.push(Batch {
+                tokens: Tensor::f_from_slice(&tokens)?
+                    .f_view([BATCH_SIZE as i64, SEQ_LEN as i64])?,
+                punctuation: Tensor::f_from_slice(&punctuation_mask)?.f_view(shape)?,
+                words: Tensor::f_from_slice(&word_mask)?.f_view(shape)?,
+            });
         }
     }
     Ok(batches)
@@ -276,6 +292,16 @@ mod tests {
         assert!(punctuation("!?"));
         assert!(!punctuation("<.>"));
         assert!(!punctuation("▁word"));
+    }
+
+    #[test]
+    fn word_controls_use_ascii_letters_and_optional_initial_word_boundary() {
+        for piece in ["CAT", "▁a", "tion"] {
+            assert!(word_control(piece));
+        }
+        for piece in ["", "▁", "▁▁A", "<unk>", "▁Dr.", "can't", "π", "2dogs"] {
+            assert!(!word_control(piece));
+        }
     }
 
     #[test]

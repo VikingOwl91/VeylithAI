@@ -2,6 +2,8 @@
 
 The Rust driver evaluates the frozen update-500 checkpoint on CPU or an AMD GPU using the system LibTorch library. It reads the training checkpoint and token shards, runs ordinary and intervened inference, computes next-token losses and source-stratified bootstrap intervals, and publishes a verified report. The archived Python evaluator and its two reports are the numerical reference. [Experiment and scientific results](../v3/docs/ROUTING-STUDY.md#expert-3-results-at-update-500)
 
+The Cargo package also includes a one-step CPU training comparison for 16 experts and a plain dense Transformer trainer. [E16/K4 parity protocol and command](../v3/docs/E16-K4-CPU-PARITY.md) · [Dense baseline and resume command](../v3/docs/DENSE-BASELINE-PROTOCOL.md)
+
 ## Run a sample
 
 Build on Linux with Rust, a C++ compiler, LibTorch 2.15.0 headers and libraries, and `bsdtar` on PATH. The tested build used GCC with the system LibTorch installation. Set `DATA` to the frozen multi-100m corpus root, `CKPT` to the original update-500 training checkpoint, and `OUT` to a **new** report path in an existing directory. Allow roughly 1.5 GiB of temporary disk space alongside the report. The loader normalizes the checkpoint ZIP into a temporary file and removes it after reading the verified model tensors.
@@ -17,6 +19,8 @@ OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=2 MKL_NUM_THREADS=2 \
 ```
 
 Select `--sample confirmation` and a fresh output path for the second sample. The default evaluator uses CPU float32, two LibTorch compute threads and one interop thread. It inherits the caller’s CPU affinity and lowers its scheduling priority to niceness 15 if needed. To pin the run to two particular logical CPUs on Linux, launch with `taskset -c`. The old driver’s `--python` and `--v3-dir` flags applied to its Python worker; the native CLI takes its complete inputs from the two artifact paths.
+
+To compare expert 3 at matched punctuation and word pieces, add `--study matched --device cpu` to each sample command. Adding `--coverage-only` publishes the eligible and matched counts and balance before any losses are evaluated. A scored run checks the ordinary loss against the full frozen sample and checks that each replacement leaves all earlier predictions unchanged. [Matching rule, minimum coverage and uncertainty](../v3/docs/EXPERT3-MATCHED-PROTOCOL.md)
 
 ## What gets checked
 

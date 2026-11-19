@@ -30,7 +30,7 @@ release.
 
 ## Layout
 
-- `driver/` contains the native Rust evaluator for the update-500 expert 3 study. Run Cargo from the repository root. [Rust quickstart](../README.md#run-the-rust-evaluator)
+- `driver/` contains the native Rust expert-3 evaluator, E16/K4 CPU training check and plain dense Transformer trainer. Run Cargo from the repository root. [Rust commands and protocols](driver/README.md)
 - `v1/` and `v2/` preserve the baseline and MoE checkpoints, tokenizer files and research records.
 - `v3/` contains pretraining and routing evidence, including the frozen numerical references. [v3 research](v3/README.md)
 - `reference/` - `config.json` files of DeepSeek-V4-Pro, GLM-5,
@@ -94,7 +94,15 @@ the corpus is tiny.
 
 At update 500, replacing expert 3 at the selected punctuation positions raised next-token loss by **0.186 nats** on the original sample and **0.231 nats** on confirmation. Rust and Python on the Radeon RX 9070 XT reproduced the CPU replacement counts of **4,180** and **4,299** and gave identical GPU loss estimates and confidence intervals. [Expert 3 study results](v3/docs/ROUTING-STUDY.md#expert-3-results-at-update-500)
 
+Replacing expert 3 also raised loss at matched word pieces. The punctuation-minus-word difference was **−0.085 nats** on the original sample and **+0.010** on confirmation. Both paired 95% intervals included zero. [Matched comparisons and coverage](v3/docs/ROUTING-STUDY.md#expert-3-at-matched-punctuation-and-word-pieces)
+
 Across eight GPU runs, mean wall time through verified output and process exit was **64.0 s for Rust** and **76.9 s for Python**. The earlier Rust CPU mean was **327.9 s**. [Timings by validation sample](../README.md#expert-3-benchmark) · [GPU benchmark data](driver/expert3-rocm-benchmark.json)
+
+### Rust training comparisons
+
+A synthetic 16-expert, top-4 CPU training step matched the archived Python router on every selection. Both Rust implementations reproduced the training loss exactly, and every AdamW parameter change agreed within 2.99 × 10⁻⁸. [E16/K4 measurements](v3/docs/E16-K4-CPU-PARITY.md)
+
+The 1.13M-parameter plain dense Transformer trained on the same 16,352,000 targets as v3.1-L. It reached a source-macro validation loss of **6.90331**. The 98.34M-parameter MoE reached **5.40009** under the same token budget. Both scores use the complete validation split. [Dense training results, controls and checkpoint hashes](v3/docs/DENSE-BASELINE-PROTOCOL.md#results-on-19-november-2026)
 
 ## Reproduce historical Python runs
 
